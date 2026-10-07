@@ -1,0 +1,24 @@
+npm warn Unknown global config "--init.module". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown global config "--init.module". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm notice run spec2scene@0.1.0 test
+npm notice run node --test --test-concurrency=1 tools/test/*.test.mjs
+✔ browser render, resume, screenshot metrics and encoding work on a deterministic scene (3725.27146ms)
+✔ browser audit refuses page errors and missing elements instead of a false screenshot PASS (1607.135549ms)
+✔ CLI rejects unknown, missing and invalid numeric arguments; subprocess failure propagates (59.28845ms)
+✔ static server MIME, HEAD, range, empty files, traversal, hidden and escaping symlinks (50.503292ms)
+✔ image measurements, labelled contact sheets and QA detect frozen/black/mismatched/missing frames (77.819518ms)
+✔ One Euro filter smooths, follows faster motion, resets and rejects reversed clocks (0.776533ms)
+✔ event metrics maximize one-to-one matches; duplicate events and wrong hands are not hidden (1.467915ms)
+✔ local fileset uses explicit .bin URLs; telemetry patches require exact hash and count (0.747821ms)
+✔ pose harness preserves acquisition timestamp and invokes real detector boundary (1.791898ms)
+✔ optional licensed video missing is explicit SKIP, mandatory input is an error (3.536777ms)
+✔ release excludes cache, secrets and media; validates extraction; hook failure prevents package (85.968633ms)
+✔ deploy gates tests, versions runtime, rejects immutable edits and compares served bytes before activation (303.531319ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6865.284928

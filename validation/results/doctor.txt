@@ -1,0 +1,12 @@
+PASS node available
+PASS npm available
+PASS python3 available
+PASS ffmpeg available
+PASS ffprobe available
+PASS Node 24.21.0
+PASS Playwright Chromium installed
+PASS optional codex available
+PASS optional claude available
+OPTIONAL rubberband absent
+INFO Python analysis dependencies: install tools/music/requirements.txt in a project virtual environment
+INFO No services started or system configuration changed

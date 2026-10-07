@@ -1,0 +1,25 @@
+:root { color-scheme: light; font: 18px/1.6 system-ui, sans-serif; color: #19384c; background: #edf5f8; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1080px; padding: 24px; margin: auto; }
+h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.2; margin: 0 0 12px; }
+p { margin: 10px 0; }
+.panel { background: #fff; border: 1px solid #bfd2db; border-radius: 18px; padding: 20px; margin: 16px 0; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+button, input { font: inherit; }
+button { min-height: 48px; padding: 8px 18px; border-radius: 12px; border: 2px solid #197178; background: #fff; color: #145159; cursor: pointer; }
+button.primary { color: #fff; background: #156b72; }
+button:focus-visible, input:focus-visible { outline: 3px solid #ac4c16; outline-offset: 3px; }
+button[disabled] { opacity: .6; cursor: default; }
+canvas { display: block; width: 100%; height: auto; background: #e4f2f6; border-radius: 12px; }
+input[type=range] { width: min(100%, 420px); min-height: 48px; accent-color: #156b72; }
+#status, #audio-status { min-height: 1.6em; }
+[hidden] { display: none !important; }
+small { display: block; color: #34596b; }
+@media (max-width: 500px) { main { padding: 14px; } .panel { padding: 14px; } button { flex: 1 1 40%; } }
+@media (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr); gap: 14px; }
+  main > h1, main > p, main > small { grid-column: 1 / -1; margin: 0; }
+  main > .panel { margin: 0; align-self: start; }
+}
+@media (max-width: 500px) { small { font-size: 13px; } }

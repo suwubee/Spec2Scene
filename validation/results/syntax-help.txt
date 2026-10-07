@@ -1,0 +1,3 @@
+PASS executable JavaScript --help: 13
+PASS shell syntax and --help: 7
+PASS JavaScript syntax: 35

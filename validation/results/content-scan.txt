@@ -1,0 +1,12 @@
+git grep --cached -n -I -i -E -f <external-deny-patterns> -- .
+stdout:
+(empty)
+exit_code=1 (1 means no matches)
+rg -n --hidden -i -f <external-deny-patterns> --glob !.git/** --glob !node_modules/** --glob !.venv/** .
+stdout:
+(empty)
+exit_code=1 (1 means no matches)
+forbidden_media_or_model_files=0
+binary_files=0
+projects_entries=["README.md"]
+PASS no project-specific content or bundled binary assets

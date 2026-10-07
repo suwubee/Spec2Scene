@@ -1,0 +1,31 @@
+npm warn Unknown global config "--init.module". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm notice run spec2scene@0.1.0 test:browser
+npm notice run node scripts/validate-projects.mjs
+PASS generated motion-games -> projects/demo-a; structure, isolated output, npm test, gitignore
+PASS generated music-video -> projects/demo-b; structure, isolated output, npm test, gitignore
+PASS generated 3d-simulation -> projects/demo-c; structure, isolated output, npm test, gitignore
+PASS generator rejects existing project and path traversal
+PASS official local model/runtime download and integrity verification
+PASS loopback server port=39920 owned-pid=1567687
+PASS loopback server port=39921 owned-pid=1567712
+PASS loopback server port=39922 owned-pid=1567749
+PASS motion synthetic skeleton, hands-free hold, default autoplay lock, trusted-click sound
+PASS real local model with fake camera initializes; stop releases media; external requests=0
+INFO observing local runtime network for 65 seconds while verifying other tracks
+PASS music browser page and scene contract
+PASS simulation browser page and scene contract
+PASS render 12 frames, reverse rerender pixel identity, resume, encode, full decode, AV delta=0.000000s, contact sheet
+PASS desktop/mobile screenshots, CIE L*, selected-element overlap and viewport bounds
+PASS video -> extracted frames -> browser harness -> metrics -> contact sheet (synthetic adapter only)
+PASS loopback server port=39923 owned-pid=1568843
+PASS release package hash verification, extraction and independent browser startup
+PASS 65-second telemetry observation: external requests=0; page errors=0
+SKIP optional licensed real-person recordings: no datasets bundled; no real-person accuracy claim
+CLEAN owned-pid=1567687 stopped
+CLEAN owned-pid=1567712 stopped
+CLEAN owned-pid=1567749 stopped
+CLEAN owned-pid=1568843 stopped
+CLEAN projects/demo-a removed
+CLEAN projects/demo-b removed
+CLEAN projects/demo-c removed
+PASS all generated-project and browser validations

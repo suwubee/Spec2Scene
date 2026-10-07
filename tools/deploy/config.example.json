@@ -1,0 +1,12 @@
+{
+  "source": "projects/my-scene/site",
+  "destination": "out/static-site",
+  "version": "release-001",
+  "testEvidence": "out/test-evidence.json",
+  "baseUrl": "https://example.com/",
+  "immutable": ["assets", "vendor"],
+  "smoke": [
+    {"path": "index.html", "mime": "text/html", "cache": "no-cache"},
+    {"path": "src/main.js", "mime": "text/javascript", "cache": "immutable"}
+  ]
+}

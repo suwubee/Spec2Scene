@@ -1,0 +1,4 @@
+spec2scene: Skill is valid!
+music-video: Skill is valid!
+3d-simulation: Skill is valid!
+motion-game: Skill is valid!

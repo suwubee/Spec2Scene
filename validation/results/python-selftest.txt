@@ -1,0 +1,2 @@
+PASS analyze_song selftest: grid, drift, silence rejection, synthesized audio analysis, plot
+PASS gen_voice selftest: transcript validation, traversal rejection, duplicate rejection, two-pass loudness, encoded duration
