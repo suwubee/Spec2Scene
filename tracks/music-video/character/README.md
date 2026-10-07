@@ -1,18 +1,89 @@
-# 三维角色与人体检查
+# 程序角色：中远景与剪影
 
-默认写实比例，纯程序几何。`createCharacter({body:'masculine'|'feminine',height,headRatio,shoulderWidth,posture,coat,scarf,backpack,hat})` 创建两种可参数化体型，尺寸为米；默认 1.78m、7.6 头身。体型是可调形态预设，不代表身份推断。服装、头发、脸、手指均无外部素材。
+本模块面向**中远景可信、剪影清楚的表演**。默认不戴帽；服装和道具由项目选择。没有可信的近景资产时，用背影、剪影、局部、痕迹与空间表达。程序脸有颅面结构，五指能弯曲，但不承诺照片级脸、近景手部皮肤或完整布料碰撞。
+
+仅依赖引擎提供的同一份 `vendor/three.module.js`；数学、材质、审核台均在角色目录中。不会调用或修改电影后期、场景或引擎的光照实现。
 
 ```js
-import {createCharacter} from './index.js';
-const actor = createCharacter({coat:true,scarf:true});
+import {createCharacter, inspectRig} from './character/index.js';
+const actor = createCharacter({
+  body: 'masculine', // 或 feminine：形态预设，不是身份推断
+  height: 1.78, headRatio: 7.6, shoulderWidth: 1,
+  coat: true, scarf: true, coatColor: 0x635346,
+});
 scene.add(actor.object);
-actor.update('walk', 2.5, {speed:.38});
+const pose = actor.update('walk', 2.5, {speed: .38, wind: .5});
+const report = inspectRig(actor.rig, pose);
 ```
 
-骨架定义在 rig.js；+Y 向上、+Z 向前，弯曲符号只由 hingeAxis 确定：肘向前、膝向后。limits 是弧度。twoBone 的结果和 applyPose 都经过限位，不可达目标会夹到可达范围，不能把不可达结果当接触成功。
+`height` 为米（1.2–2.2），`headRatio` 为头身比（6.5–9），`shoulderWidth` 是肩宽倍率（0.8–1.2）。`posture` 调节头部基础俯仰；`backpack`、`hat` 默认关闭。比例极值需要项目重新拍审核图；本轮采样覆盖两种体型、1.55m / 1.90m 与相应肩宽组合。
 
-motion.js 动作：stand/walk/stop/turn/sit/rise/pushDoor/pushWindow/shade/embrace/bow/lookUp/windWalk。行走以距离确定足步，相邻支撑采样的足端世界位置必须相同。站立呼吸只改变胸部，不让支撑脚浮起。视线先行、颈部稍后转动，眨眼、头发、衣摆和围巾由时间闭式计算。表情 neutral/concern/resolve/tired，手势 rest/open/fist/point；可选 viseme 0..1，缺省始终闭口。
+## 几何与蒙皮
 
-自动检查：`node tools/check-anatomy.mjs --out <ignored-output>/anatomy.json`，已加入 npm test；生成项目也自带同一检查。检查骨长、肘膝方向、肩髋颈腕范围、手端与躯干体积、脚端与地面、支撑滑步及镜像。浏览器脚本生成八方向转台、去外套动作序列和表演连续帧。
+- `surface.js` 沿胸、腰、臀、上臂/前臂、大腿/小腿截面放样，再把场融合为一个焊接、封闭、连通的躯干与四肢网格。主体是真正的 `SkinnedMesh`，每个顶点最多四个归一化权重，不是把若干刚体网格放进同一个 Group。
+- 肩部按场的距离平滑混合。手臂、躯干与腿的权重分区避免“抬手拉起腰部”。每条前臂另有三段扭转骨骼，分散旋前，防止大角度旋转在肘部挤成细线。
+- 长大衣是独立蒙皮壳，领口、袖口、下摆开口有内层和缝合边，壳厚 7mm；袖口与翻领有厚度。衣摆按步态与风作闭式变形，并用腿部包络近似避免默认行走时膝盖穿出；围巾尾部弯曲、发束轻动。它没有布料求解器，也不提供坐姿的布料碰撞保证。
+- 每只手是连续掌指表面，五指各三节骨骼；拇指有基础对掌动作。头部由连续颅面表面及眼睑、眼球、唇、耳、头发附件构成。头部和手部细节是附件，不把所有材质与五官强行焊成同一网格。
+- 皮肤使用克制的暖色包裹光近似，不是物理次表面散射。没有贴图、外部模型、纹理或默认歌曲。
 
-边界：几何服装没有完整布料碰撞；手端/躯干椭球检查不是全网格自碰撞；足端是简化刚性脚；坐下/推门需要项目根据家具设置根位置与接触目标。程序面部与手指是近似，近景须独立目视审核。新增动作、非默认比例或服装都应重跑检查，不能沿用旧结论。
+## 动作与坐标
+
++Y 向上、+Z 向前。`L` 在角色自身的 +X 一侧。肘向前、膝向后弯曲，符号固定在 `hingeAxis` 中，所有控制经过弧度限位。前臂旋转的零点是绑定姿态；自然下垂时掌心朝向大腿，推窗时经旋前与伸腕使掌根朝前。
+
+`motion.js` 提供 stand / walk / stop / turn / sit / rise / pushDoor / pushWindow / shade / embrace / bow / lookUp / windWalk。`update(action, t, options)` 不积累状态，倒序 seek 可复现。行走按距离采样，一周期 0.9m，同侧脚下一次接触前进 0.9m；默认速度 0.38m/s 是缓慢步行。支撑占周期 62%，有脚跟着地、平脚、前掌蹬离、摆动。锁定的是**当前脚底接触点**，允许脚踝围绕脚跟或前掌转动。中段支撑膝屈曲限制 0.48rad（0 为伸直），不能以持续屈膝代替重心起伏。
+
+骨盆与肩反向扭转，同侧手臂与腿前后相反，对侧手臂与腿同向；重心左右转移与上下起伏来自足端约束。推窗/推门有预备、重心前移、肩带动、肘先屈后伸和掌根推送；它们是基础表演，项目仍需按实际门窗布置接触目标。呼吸作用于胸部，颈部补偿减少头部晃动。动作阶段使用缓入缓出；停止包含速度逐渐降到零的制动段，然后双脚落稳。坐下/起立需要项目提供家具位置。
+
+手势 `handPose`：`relaxed`（放松）、`carry`（握柄）、`open`（摊掌）、`touch`（轻触）、`smooth`（抚平）。保留 `rest`、`fist`、`point` 兼容名称。`carry` 不自动创建提灯；把项目道具挂到对应 `rig.limbs.*arm.tip`，并重新核对握柄半径、拇指和接触。`expression` 为 neutral / concern / resolve / tired；`viseme` 是 0..1 的粗略嘴部形变，没有数据时保持闭口，不等同口型同步。
+
+## 用户模型接入
+
+仓库不附带或下载角色资产。用户负责模型、贴图、动画与衍生作品的使用许可，把它们放在自己的被忽略项目中。适配时必须传入 `license` 说明，项目应另外保存正式授权记录。
+
+项目安装与当前 THREE 同版本的 `GLTFLoader`，把加载器作为参数传入；读取 `.gltf` 或 `.glb`。VRM 使用项目安装的 `VRMLoaderPlugin`，注册到该加载器后读取 `.vrm`，适配器读取 `gltf.userData.vrm.humanoid.getRawBoneNode()`。原有模型应处于绑定/静止姿态，停用会竞争写入同一骨骼的 AnimationMixer 或 VRM humanoid 动画更新。
+
+```js
+import {loadExternalCharacter} from './character/index.js';
+// loader 由项目创建；VRM 项目在此 loader 上注册 VRMLoaderPlugin。
+const avatar = await loadExternalCharacter({
+  url: './assets/user-avatar.glb', loader,
+  license: '项目内授权记录的标识',
+  mapping: {
+    hips: 'Hips', chest: 'Chest', neck: 'Neck',
+    leftUpperArm: 'UpperArm_L', leftLowerArm: 'LowerArm_L', leftHand: 'Hand_L',
+    rightUpperArm: 'UpperArm_R', rightLowerArm: 'LowerArm_R', rightHand: 'Hand_R',
+    leftUpperLeg: 'UpperLeg_L', leftLowerLeg: 'LowerLeg_L', leftFoot: 'Foot_L',
+    rightUpperLeg: 'UpperLeg_R', rightLowerLeg: 'LowerLeg_R', rightFoot: 'Foot_R',
+  },
+});
+scene.add(avatar.object);
+avatar.update('walk', 1.5);
+const result = avatar.inspect(); // PASS / FAIL，检查实际映射后的关节与足底锚点
+```
+
+也可直接 `adaptExternalCharacter({scene, mapping, license})`，映射值可以是唯一节点名或骨骼节点。VRM 可省略映射，显式字段优先于 VRM 自动映射。指骨使用 VRM 1 的名字，例如 `leftIndexProximal/Intermediate/Distal` 和 `leftThumbMetacarpal/Proximal/Distal`。缺失指骨会报告 `capabilities.fingers='PARTIAL'` 及缺失列表，不能当作手指检查通过。
+
+接入要求与边界：
+
+- 模型预先整理到 +Y 向上、+Z 朝前，地面位于足底；所有对象和骨骼使用正的均匀缩放。坐标朝向和脚底厚度需要用户按资产核对；`footHeight` 默认归一化 0.085m。
+- 强制检查映射完整性、唯一性、骨架归属和父子链，拒绝零骨长。通过绑定方向校正适配不同骨骼局部轴；按实际骨长重算腿 IK。模型的原始权重与材质保留。
+- `update()` 先对统一控制骨架执行关节限位，再重定向。`inspect(previousReport)` 检查实际关节的骨长、角度、相对躯干位置、足底高度和连续支撑滑移，并检测映射骨骼偏离已限位姿态。极端比例或脚形可能 FAIL，不能只凭控制骨架通过就忽略资产报告。
+- 不自动重做坏拓扑、修复资产蒙皮或转换缺失的手指；不驱动 VRM 表情、弹簧骨和所有原动画。没有提供获授权的真实 glTF/GLB/VRM 时，真实资产回归明确 SKIP；测试夹具只证明接口和数学。
+
+## 验收与审核图
+
+```bash
+SCENE_TEST_PORT_MIN=39930 SCENE_TEST_PORT_MAX=39939 npm test
+node tools/check-anatomy.mjs --out out/character-check/anatomy.json
+node tools/test/character-browser.mjs --out out/character-review --port 39930
+```
+
+输出目录必须已被 git 忽略且不存在；父目录先自行建立。审核器仅使用角色分配端口 39930–39939，单浏览器、默认自动播放策略和 SwiftShader，记录服务 PID 并按 PID 结束、等待退出。若浏览器安装在项目专用目录，可设置 `PLAYWRIGHT_BROWSERS_PATH`；不要复用其他任务缓存。
+
+审核台也可用仓库本地服务打开 `tracks/music-video/character/review.html`，选择动作、时间、正/侧/背面和外套；手部近景将左臂展开，以免躯干遮挡掌面。生成项目的对应地址为 `character/review.html`。审核光源随细节相机调整，始终为灰底、主光/补光/轮廓光。
+
+自动输出正/侧两行的体型与衣服转台、八向转台、全部 13 个动作的正/侧各八帧、行走/风中行走/推窗/推门的外套对照、正/3⁄4/侧脸，以及五种手势的掌面/侧面特写。**每一格直接保留 600×800 像素**，不压进横向小缩略图。还验证新建项目测试、样片 seek、倒序/刷新后的 PNG 字节一致、浏览器错误与外部请求。
+
+人体检查包含骨长、固定铰链方向、关节范围、手端与躯干、足底支撑、滑移、支撑相膝角、摆臂相位和指节屈曲。关节采样用 `deformClothing:false` 跳过衣摆顶点更新，衣服必须另看完整浏览器序列。npm test 另检验主体连通性/封闭性、归一化权重、双层壳、肘部体积、动作错误注入、外部模型不同绑定轴与单位。
+
+离散人体检查不证明全网格无自碰撞；几何指节限位不证明手指之间不接触。所有失败轮保留，修复后再拍。同版本 G2 仍须独立审核人逐张看图；自动通过、软件截图和实现者自审都不能代签 G2 或目标硬件性能。
