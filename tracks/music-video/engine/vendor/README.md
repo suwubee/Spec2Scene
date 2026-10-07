@@ -1,9 +1,5 @@
 # Vendored runtime
 
-three.js 0.170.0 / r170，MIT，随附原始 LICENSE。使用官方 npm 包的 build/three.module.min.js，改名为 three.module.js；文件内容未修改。无 addons、示例素材、模型、字体或纹理。
+three.js 0.186.0 / r186，MIT，保留原始 LICENSE。完整引擎依赖 r186 的 WebGL2 shader chunks 与材质接口，因此从原运行时 r170 升级。运行时为官方 build/three.module.js 与 build/three.core.js；BufferGeometryUtils.js 仅把 three 导入改为本地相对路径。
 
-官方下载端点：`https://registry.npmjs.org/three/-/three-0.170.0.tgz`。
-
-SHA-256（three.module.js）：`08fd7545d13d2c7fb65ab691530a802dafefd638596501854f267d0fb13c39e7`。
-
-卫生检查对固定哈希的许可运行时允许标准技术标识，其他来源内容不享有例外。
+官方端点：`https://registry.npmjs.org/three/-/three-0.186.0.tgz`。三个文件最终 SHA-256 记录于 manifest.json，卫生检查逐一验证。无示例媒体、模型、字体、纹理。技术引用与标准许可保留第三方原署名，不改写成项目作者。

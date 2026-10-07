@@ -49,3 +49,7 @@ python3 -m venv .venv
 离线帧工具在页面支持 resize(w,h) 时按请求尺寸设置实际画布。软件后端可设置 `SCENE_SOFTWARE_GL=1`，渲染 manifest 记录该选项；浏览器自动播放策略保持默认。裸 canvas 捕获不含 DOM 字幕，带字幕输出须显式合成叠加层。
 
 `render-final.mjs --review REVIEW_JSON --identity REVISION --url URL --out DIR` 是音乐视频正式渲染入口：要求同版本独立 G1–G3 PASS 并逐个确认审核证据存在，再进入单 worker 渲染。生成项目提供 `npm run render:final -- ...`；预览仍使用 render-frames.mjs，不应把预览冒充已获独立批准的 final。
+
+## v0.3 完整电影工具
+
+音乐视频使用 [cinematic/README.md](cinematic/README.md) 的移植离线工具，含半分辨率预览片段、严格身份续渲、BT.709 编码、像素确定性、叠化校验、字体子集化与 PID 优先级让路。原通用工具仍用于其他产线。

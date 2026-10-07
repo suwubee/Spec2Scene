@@ -7,8 +7,8 @@ import {createHash} from 'node:crypto';
 import {cli,isMain} from './lib/cli.mjs';
 const exec=promisify(execFile);
 const root=fileURLToPath(new URL('../',import.meta.url));
-const vendor='tracks/music-video/engine/vendor/three.module.js';
-const vendorHash='08fd7545d13d2c7fb65ab691530a802dafefd638596501854f267d0fb13c39e7';
+const vendorDir='tracks/music-video/engine/vendor/';
+const vendorHashes=JSON.parse(await readFile(path.join(root,vendorDir,'manifest.json'),'utf8'));
 export async function hygiene({patterns=[]}={}) {
   const {stdout}=await exec('git',['ls-files','-c','-o','--exclude-standard','-z'],{cwd:root,maxBuffer:4*1024*1024});
   const files=[...new Set(stdout.split('\0').filter(Boolean))],issues=[];let vendorVerified=0;
@@ -16,16 +16,17 @@ export async function hygiene({patterns=[]}={}) {
   const forbiddenExtension=/\.(png|jpe?g|webp|gif|mp[34]|wav|ogg|flac|glb|gltf|vrm|fbx|obj|task|bin|woff2?|ttf|otf|zip|tgz)$/i;
   for(const name of files){
     if(name.startsWith('projects/')&&name!=='projects/README.md')issues.push({file:name,kind:'project-output'});
-    const data=await readFile(path.join(root,name));
+    let data;try{data=await readFile(path.join(root,name));}catch(e){if(e.code==='ENOENT')continue;throw e;}
     if(data.includes(0)||forbiddenExtension.test(name))issues.push({file:name,kind:'media-model-or-binary'});
     const text=data.toString('utf8');
     if(privatePath.test(text))issues.push({file:name,kind:'private-path'});
-    if(name===vendor){if(createHash('sha256').update(data).digest('hex')!==vendorHash)issues.push({file:name,kind:'vendor-integrity'});else vendorVerified++;}
+    if(name.startsWith(vendorDir)&&vendorHashes[name.slice(vendorDir.length)]){if(createHash('sha256').update(data).digest('hex')!==vendorHashes[name.slice(vendorDir.length)])issues.push({file:name,kind:'vendor-integrity'});else vendorVerified++;}
     for(const [i,pattern] of patterns.entries()) {
-      const scan=name===vendor?text.replace(/\bspotlight\w*\b/gi,'TechnicalLight'):text;
+      const scan=name.startsWith(vendorDir)&&vendorHashes[name.slice(vendorDir.length)]?text.replace(/\bspotlight\w*\b/gi,'TechnicalLight'):text;
       if(new RegExp(pattern,'im').test(scan))issues.push({file:name,kind:'external-deny-pattern',pattern:i+1});
     }
   }
+  if(vendorVerified!==Object.keys(vendorHashes).length&&!issues.some(i=>i.kind==='vendor-integrity'))issues.push({file:vendorDir,kind:'missing-vendor-runtime'});
   return {status:issues.length?'FAIL':'PASS',files:files.length,vendorVerified,externalPatterns:patterns.length,issues,
     scope:'Tracked plus unignored files. Exact-hash MIT runtime allows standard light class identifiers. User denylist supplied outside source tree.'};
 }

@@ -24,7 +24,7 @@ const owned = [], servers = [];
 let chromium, observationTimer;
 
 async function serve(directory) {
-  for (let port = 39920; port <= 39939; port++) {
+  for (let port = 39920; port <= 39929; port++) {
     const child = spawn(process.execPath, [path.join(root, 'tools/serve.mjs'), '--root', directory, '--port', String(port)], {stdio: ['ignore', 'pipe', 'pipe']});
     let errors = '';
     child.stderr.on('data', chunk => { errors += chunk; });

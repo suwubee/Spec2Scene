@@ -33,19 +33,19 @@ if (track === '--help' || track === '-h') {
     await put('docs/lessons.md', await readFile(path.join(repo, 'tracks', track, 'lessons.md'), 'utf8'));
     const rootPackage = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8'));
     await put('package.json', JSON.stringify({name, private: true, type: 'module', scripts: {test: 'node --test tests/*.test.mjs',
-      serve: 'node tools.local/serve.mjs --root . --port 39920', ...(track === 'music-video' ? {'render:final': 'node tools.local/render-final.mjs'} : {})}, engines: {node: '>=20'}, devDependencies: rootPackage.devDependencies}, null, 2) + '\n');
+      serve: 'node tools.local/serve.mjs --root . --port 39920', ...(track === 'music-video' ? {'render:final': 'node tools.local/render-final.mjs', 'render:preview': 'node tools.local/cinematic/preview.mjs --root .'} : {})}, engines: {node: '>=20'}, devDependencies: rootPackage.devDependencies}, null, 2) + '\n');
     await put('.gitignore', 'node_modules/\n.venv/\n__pycache__/\nout/\nwork/\nvendor/\nassets/*\n!assets/README.md\n');
     const titles = {'music-video': '音乐视频 · 三维电影', '3d-simulation': '三维模拟 · 数据来源', 'motion-games': '体感游戏 · 本地骨架'};
     const controls = track === 'motion-games' ? '<div class="controls"><button id="begin" class="primary" data-gesture>开始演示</button><button id="camera">打开摄像头</button><button id="stop" data-gesture>停止</button></div><div class="panel"><p id="audio-status" role="status"></p><button id="sound">点一下开启声音</button></div>' :
       `<label for="timeline">${track === 'music-video' ? '时间（秒）' : '观察角度'}</label><input id="timeline" type="range" min="0" max="${track === 'music-video' ? 8 : 6.28}" step="0.01" value="0">${track === '3d-simulation' ? '<button id="provenance">切换数据来源视图</button>' : ''}`;
     await put('index.html', `<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; img-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:"><title>${titles[track]}</title><link rel="stylesheet" href="./style.css"></head><body><main><h1>${titles[track]}</h1><p>通用起步页。先填写规格，再替换为自己的获授权内容。</p><div class="panel"><canvas width="800" height="450" aria-label="程序化演示画面"></canvas><video hidden muted playsinline></video><p id="status" role="status"></p></div><section class="panel">${controls}</section><small>素材授权由用户确认；体感示例不构成医疗或专业健身建议。</small></main><script type="module" src="./src/main.js"></script></body></html>\n`);
     if (track === 'music-video') {
-      for (const directory of ['engine', 'character', 'sample', 'directing']) await cp(path.join(repo, 'tracks/music-video', directory), path.join(staging, directory), {recursive: true});
+      for (const directory of ['engine', 'character', 'sample', 'directing', 'kits']) await cp(path.join(repo, 'tracks/music-video', directory), path.join(staging, directory), {recursive: true});
       await put('index.html', await readFile(path.join(repo, 'templates/starters/music-video/index.html'), 'utf8'));
       await put('tools.local/check-anatomy.mjs', (await readFile(path.join(repo, 'tools/check-anatomy.mjs'), 'utf8')).replaceAll('../tracks/music-video/', '../'));
       await put('tests/anatomy.test.mjs', "import test from 'node:test'; import assert from 'node:assert/strict'; import {checkAnatomy} from '../tools.local/check-anatomy.mjs'; test('all character action samples pass anatomy constraints',()=>assert.deepEqual(checkAnatomy().failures,[]));\n");
       await put('docs/REVIEW-music-video.md', await readFile(path.join(repo, 'templates/REVIEW-music-video.md'), 'utf8'));
-      await put('render.config.json', JSON.stringify({fps: 24, width: 1280, height: 720, count: 1440, sceneContract: 'window.__scene={ready,canvas,seek(t),capture()}'}, null, 2));
+      await put('render.config.json', JSON.stringify({fps: 24, width: 1920, height: 1080, count: 1440, sceneContract: 'window.__scene={ready,canvas,seek(t),capture()}'}, null, 2));
     }
     if (track === '3d-simulation') await put('data/sources.md', '# 数据来源与可信度\n\n| 对象/属性 | 来源类别 | 许可 | 可信度 | 误差/日期 | 验证 |\n|---|---|---|---|---|---|\n| 起步几何 | 程序生成 | 项目原创 | 非测绘 | 不适用 | 只验证透视与来源视图 |\n');
     const test = track === 'music-video' ? "import {worldAt} from '../src/shots.js';\ntest('world state depends only on t', () => { const expected = worldAt(2); worldAt(9); assert.deepEqual(worldAt(2), expected); });" :

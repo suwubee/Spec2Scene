@@ -1,2 +1,2 @@
 import {circleOfConfusion} from './index.js';
-export const example = () => circleOfConfusion(3,5,50,2.8);
+export const focused = circleOfConfusion(5,5);

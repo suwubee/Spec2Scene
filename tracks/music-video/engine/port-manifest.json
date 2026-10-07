@@ -1,0 +1,137 @@
+[
+  {
+    "module": "audio.js",
+    "sourceBytes": 13130,
+    "sourceSHA256": "064211d9f9e411fdae3abcb55008fe751a5526853046697cb18bc5ac9121ebf6",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 12976,
+    "portedSHA256": "1ef061f96e460c92a914428929561d3329cb764fa6d2906d25995eea0618cc9a"
+  },
+  {
+    "module": "camera.js",
+    "sourceBytes": 10910,
+    "sourceSHA256": "8ee7a05516809211f14fde5d72ab0b28e73c225d369a612e4e155fc1ff756362",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 10929,
+    "portedSHA256": "fd66b8298b313758e9b403b81e303d2424503e4160851c3e14dd06814aa4c38b"
+  },
+  {
+    "module": "core.js",
+    "sourceBytes": 28938,
+    "sourceSHA256": "3aa4af615e2aedbf70f4271326b383e4fbc09ba133fa1ae74829101f0c7de52c",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 26201,
+    "portedSHA256": "9455b849fc9e035caa22b61aea114638fd1b8c675fd543d5e5541d7766eeb367"
+  },
+  {
+    "module": "geo.js",
+    "sourceBytes": 59676,
+    "sourceSHA256": "06cbf218009c4e40c6b9f250ba5277f565f1ed6b31078518c9d5569ffaf07fa7",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 59708,
+    "portedSHA256": "ffbaae017b885f1832b05188afab2314e71c081fa89d5276296cb4341f425b4e"
+  },
+  {
+    "module": "lyrics.js",
+    "sourceBytes": 32529,
+    "sourceSHA256": "183a8346d1e9830e9101d6a06317c3a09a0996c8c293b042359ced9d9703f10d",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 31854,
+    "portedSHA256": "752c6531028d2bf061b04b958ad4efa6a8845e6f0836ea2d503d2309f2e7bb5e"
+  },
+  {
+    "module": "materials.js",
+    "sourceBytes": 61056,
+    "sourceSHA256": "ac761919632a6ed1d8420f1c793cd8fe7e2b7ad1332c3eb0e9fe13178415000f",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 61032,
+    "portedSHA256": "e5a9017636e823589f159ff911ff5f448374a552b99e2d11cd1e0c3060655616"
+  },
+  {
+    "module": "moon.js",
+    "sourceBytes": 16187,
+    "sourceSHA256": "867b1c8eab7e0a4d336120c0b5887f3ab5a9776b1f7649d5f025ef21fef4d4f3",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 16206,
+    "portedSHA256": "0a3d2cab56585fa5388df27d5835f5e8c529e07a5164aa6c7985200c1b1dae2e"
+  },
+  {
+    "module": "noise.js",
+    "sourceBytes": 22615,
+    "sourceSHA256": "446766b0de2b6c46bdafc8b5934eee01b116983440d041425fa49de290399d0b",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 22634,
+    "portedSHA256": "c11db0cd9442d3d17f15ff9a417ab207548fb661c693c7deadef7b1c68c26bf4"
+  },
+  {
+    "module": "particles.js",
+    "sourceBytes": 150092,
+    "sourceSHA256": "b29801f9a8346f3e2558adba4cd69c6786986c61f71ae3f1da41e7ad1db8eb96",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 149878,
+    "portedSHA256": "3c6660b78cf350f7800604271d2b9cf7e24e3377b6a60b15bcba08a532184b54"
+  },
+  {
+    "module": "post.js",
+    "sourceBytes": 47343,
+    "sourceSHA256": "621c5d01e839de92b93ba1c7ade0732529a5317d89bce9e5d61a2251060ccd47",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 47381,
+    "portedSHA256": "253055c60faa53df747fa697679a5101fd0116276097b672c1114690e64f8546"
+  },
+  {
+    "module": "procTex.js",
+    "sourceBytes": 77203,
+    "sourceSHA256": "a0b7e76a58529142a819c1e522af1046df72aa22267fe900989d98ae0bbc637f",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 77123,
+    "portedSHA256": "a31f8dd141eb0159fd3555b646f096837c4fe1ea6fae8c8898823a0b39c816ce"
+  },
+  {
+    "module": "sky.js",
+    "sourceBytes": 117665,
+    "sourceSHA256": "8c7a9682893f5a54d43b073a195e679a2a7e54eda332da0f7ddad4abd29fb890",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 116246,
+    "portedSHA256": "ab3af6c533d6b7b2be4d6fff300dc4e9224f0be33f1b258980d84edfcf1fa3a5"
+  },
+  {
+    "module": "terrain.js",
+    "sourceBytes": 114659,
+    "sourceSHA256": "ef58e0a9711624a793caa17aae8407ee1e7afc7dc83c0b2248ffcca9eb4aa97f",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 110257,
+    "portedSHA256": "c4a5d4581e84f972032e8153b879bcca4dce1e64605a07d2fb2bbd8c76213728"
+  },
+  {
+    "module": "util.js",
+    "sourceBytes": 11976,
+    "sourceSHA256": "e02db0a1729f1e3b11cf6a5632bc6b710a511fcdce6d791cab4bab74bbcb79f6",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 11995,
+    "portedSHA256": "1df18d102559785e8663d58ec5f4574d5ed258d39ae70c14c01221181a2b7e0f"
+  },
+  {
+    "module": "water.js",
+    "sourceBytes": 23219,
+    "sourceSHA256": "2024e4351a09653f2426d3e9263bc4473d0b5bbbacfcce67ba208a0db6e08040",
+    "comparison": "identical in both authorized snapshots",
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
+    "portedBytes": 23208,
+    "portedSHA256": "5bcef8ab510217e898fd0dc9e6af5cd03451c3ae43f8c3e97b7761a38179fabe"
+  }
+]

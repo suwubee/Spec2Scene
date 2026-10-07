@@ -21,3 +21,15 @@ export function vapor({count=12}={}) {
   for(let i=0;i<count;i++)group.add(new THREE.Mesh(new THREE.SphereGeometry(.1,8,6),mat));
   return {object:group,update(t){group.children.forEach((m,i)=>{const u=((t*.3+i/count)%1+1)%1;m.position.set(Math.sin(i+t)*u*.12,u*.6,0);m.scale.setScalar(.4+u*2);});}};
 }
+
+/** Ground-space footprint field. Negative centre + raised, irregular lip; no emissive decal. */
+export function footprintField({count=62,step=.62,start=[0,0,9],depth=.085,width=.105,length=.19}={}) {
+  const marks=Array.from({length:count},(_,i)=>({x:start[0]+Math.sin(i*.095)*.72+(i%2?.16:-.16),z:start[2]-i*step,birth:-count+i}));
+  return {marks,depth,height(x,z,t=0){let h=0;
+    const nearest=Math.round((start[2]-z)/step);
+    for(let i=Math.max(0,nearest-1);i<=Math.min(count-1,nearest+1);i++){
+      const m=marks[i];if(t<m.birth)continue;
+      const dx=(x-m.x)/width,dz=(z-m.z)/length,r=Math.sqrt(dx*dx+dz*dz);
+      if(r<1.6){const bowl=-depth*Math.pow(Math.max(0,1-Math.min(r,1)**4),.6),rim=depth*.22*Math.exp(-(((r-1.1)/.21)**2));h+=bowl+rim;}
+    }return h;}};
+}

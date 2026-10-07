@@ -5,9 +5,7 @@ import {hash,curve} from '../../tracks/music-video/engine/core/math.js';
 import {createWorld} from '../../tracks/music-video/engine/world/index.js';
 import {validateShots,shotAt,cameraAt,focalToFov,orbit} from '../../tracks/music-video/engine/camera/index.js';
 import {circleOfConfusion,makeLUT} from '../../tracks/music-video/engine/post/index.js';
-import {particleAt,lightVolume,sky} from '../../tracks/music-video/engine/atmos/index.js';
 import {footprintState,afterglow,footprints} from '../../tracks/music-video/engine/traces/index.js';
-import {terrain,water,vegetation,skyline,room} from '../../tracks/music-video/engine/landscape/index.js';
 import {material} from '../../tracks/music-video/engine/materials/index.js';
 import {subtitleAt} from '../../tracks/music-video/engine/lyrics/index.js';
 import {musicAt,createClock} from '../../tracks/music-video/engine/audio/index.js';
@@ -28,20 +26,15 @@ test('integer hash, world and shot sampling are independent of seek order',()=>{
   const state=cameraAt(shots[2],44);cameraAt(shots[0],0);assert.deepEqual(cameraAt(shots[2],44),state);
   assert.throws(()=>validateShots([{...shots[0],end:0}]));assert.throws(()=>validateShots([{...shots[0],focal:[[0,-1]]}]));
 });
-test('HDR lens model, optional LUT and deterministic atmospheric primitives',()=>{
+test('HDR lens model and optional LUT',()=>{
   assert.equal(circleOfConfusion(5,5),0);assert.ok(circleOfConfusion(2,5,50,1.4)>circleOfConfusion(2,5,50,8));
   const lut=makeLUT(4);assert.deepEqual([...lut.image.data.slice(0,4)],[0,0,0,1]);assert.deepEqual([...lut.image.data.slice(-4)],[1,1,1,1]);lut.dispose();
-  for(const kind of ['rain','snow','dust','fireflies']){const p=particleAt(12,4,{kind});particleAt(99,80,{kind});assert.deepEqual(particleAt(12,4,{kind}),p);assert.ok(p.every(Number.isFinite));}
-  assert.ok(lightVolume().material.fragmentShader.includes('for(int'));assert.ok(sky({night:false,moon:false}).children.length);
 });
 test('traces appear by birth time, decay predictably and reset after reverse seek',()=>{
   assert.equal(footprintState(0,1).visible,false);assert.equal(footprintState(2,1).visible,true);assert.equal(afterglow(4,0,2),.25);
   const traces=footprints({count:3,birth:i=>i});traces.update(9);assert.ok(traces.object.children.every(x=>x.visible));traces.update(-1);assert.ok(traces.object.children.every(x=>!x.visible));
 });
-test('landscape and material primitives construct finite 3D geometry without assets',()=>{
-  for(const item of [terrain({segments:5}),water().mesh,vegetation({count:5}),skyline({count:4}),room()]){
-    let meshes=0;item.traverse(o=>{if(o.geometry){meshes++;assert.ok([...o.geometry.attributes.position.array].every(Number.isFinite));}});assert.ok(meshes>0);
-  }
+test('legacy character material names remain compatible',()=>{
   for(const name of ['cloth','wood','stone','metal','glass','skin'])assert.ok(material(name).isMeshPhysicalMaterial);
   assert.throws(()=>material('unknown'));
 });

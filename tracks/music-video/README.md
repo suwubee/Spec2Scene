@@ -17,12 +17,12 @@
 
 ## 实现契约
 
-[引擎](engine/README.md)中 core / post / camera / world / atmos / traces / landscape / materials / lyrics / audio 各模块附 README、最小示例和单测；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
+[引擎 v0.3](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
 
-页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。实时播放和离线渲染同一路径。捕获画布不包含 DOM 字幕，带字幕输出需要合成叠加层。`sample/shots.json` 是实际驱动相机与转场的数据。
+页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。实时播放和离线渲染同一路径。原生字幕在后期末端合成进画布；额外 DOM 不在画布捕获内。seek 与 resize 必须 await。`sample/shots.json` 是实际驱动相机与转场的数据。
 
 正式渲染前记录源码/数据摘要、浏览器、图形后端、尺寸和种子；固定 fps，帧逐个原子写入，只在相同配置续渲，缺帧拒绝编码。共享服务器默认单 worker，预先估算磁盘；小尺寸稀疏预览通过后再出 final。
 
-使用 tools/render-frames.mjs → tools/encode.sh → tools/qa.mjs；重新打开浏览器逆序复渲比较像素。黑场、冻结、色带和音画长度只是候选，转场与闪光逐格审核；母版与分享版分别 QA。导出源码、运行指南、输入授权、联系表和质检报告，作品不回填方法仓库。
+使用 [tools/cinematic](../../tools/cinematic/README.md) 的 render_frames → encode → qa；重新打开浏览器逆序复渲比较像素。黑场、冻结、色带和音画长度只是候选，转场与闪光逐格审核；母版与分享版分别 QA。导出源码、运行指南、输入授权、联系表和质检报告，作品不回填方法仓库。
 
 开始阅读：[规格](SPEC.md)、[QA](QA.md)、[经验](lessons.md)、[通用工具](../../tools/README.md)。English: Translate emotion into recurring imagery, then direct the camera. Independent gates review mood, anatomy and the complete cinematic preview.

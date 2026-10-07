@@ -1,6 +1,6 @@
 {
   "name": "spec2scene",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "From spec to scene: methods, templates and tools",
   "type": "module",
@@ -11,7 +11,7 @@
   "scripts": {
     "test": "node --test --test-concurrency=1 tools/test/*.test.mjs",
     "test:browser": "node scripts/validate-projects.mjs",
-    "test:cinematic": "node scripts/validate-cinematic.mjs --out validation/v0.2/artifacts/latest",
+    "test:cinematic": "node scripts/validate-cinematic.mjs",
     "test:hygiene": "node tools/hygiene.mjs"
   },
   "devDependencies": {

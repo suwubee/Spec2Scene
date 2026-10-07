@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {hygiene} from '../hygiene.mjs';
 import {readFile} from 'node:fs/promises';
 test('repository hygiene: no generated content, private paths, media or changed vendored runtime',async()=>{
-  const report=await hygiene();assert.deepEqual(report.issues,[]);assert.equal(report.vendorVerified,1);
+  const report=await hygiene();assert.deepEqual(report.issues,[]);assert.equal(report.vendorVerified,3);
 });
 test('music starter uses local 3D engine and a complete cinematic shot timeline',async()=>{
   const main=await readFile(new URL('../../templates/starters/music-video/src/main.js',import.meta.url),'utf8');

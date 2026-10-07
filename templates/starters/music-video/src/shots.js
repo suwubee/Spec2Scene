@@ -1,3 +1,3 @@
-import {createWorld} from '../engine/world/index.js';
-export const world=createWorld({hour:[[0,23],[60,23.5]],weather:[[0,0],[29,0],[31,1]],wind:[[0,.25],[30,.4],[60,.55]],fog:[[0,.010],[30,.010],[33,.025]],light:[[0,1]],season:[[0,1]],motif:[[0,0],[60,1]]});
+import {createEnvironment} from '../engine/world/environment.js';
+export const world=createEnvironment({rain:[[0,0],[29.9,0],[30,.7],[60,.75]],wind:[[0,.32],[30,.4],[60,.5]],mist:[[0,.4],[30,.55],[60,.6]],cloudCover:[[0,.37],[30,.6],[60,.7]],moonElev:[[0,12]],moonAzim:[[0,345]],moonlight:[[0,1],[30,.35]],moonGap:[[0,.72],[30,.1]]});
 export const worldAt=t=>world.at(t);

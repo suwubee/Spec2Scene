@@ -26,12 +26,14 @@ export function byteRange(header, size) {
   return {start, end};
 }
 
-export async function startServer({root = '.', port = 39920, host = '127.0.0.1'} = {}) {
+export async function startServer({root = '.', port = 39920, host = '127.0.0.1', handler=null} = {}) {
   if (!['127.0.0.1', '::1'].includes(host)) throw new Error('Only loopback hosts are supported');
   const base = await realpath(root);
   const inside = file => file === base || file.startsWith(base + path.sep);
   const server = http.createServer(async (req, res) => {
     try {
+      if(req.url==='/favicon.ico'){res.writeHead(204).end();return;}
+      if(handler && await handler(req,res,new URL(req.url,'http://localhost').pathname))return;
       if (!['GET', 'HEAD'].includes(req.method)) {
         res.writeHead(405, {Allow: 'GET, HEAD'}).end();
         return;

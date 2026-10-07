@@ -57,3 +57,7 @@ Independent reviewers must pass G1 (mood/shots), G2 (anatomy/performance) and G3
 ## License and responsibility
 
 Original repository content: [Apache-2.0](LICENSE), copyright suwubee and contributors. No third-party creative assets are bundled. Dependencies keep their licenses; the model fetcher records upstream license information for users to verify. You are responsible for permissions covering all imported, downloaded and generated content and third-party services. Outputs need human review. Motion activities are not medical or professional fitness advice. Camera data stays local by default. See the bilingual [disclaimer](DISCLAIMER.md), [privacy/licensing workflow](playbook/09-privacy-and-licensing.md) and [security policy](SECURITY.md).
+
+## Cinematic engine v0.3
+
+The complete authorized cinematic engine is ported with content removed, retaining HDR post, sky, terrain, water, materials, particles and deterministic offline tools. See [engine](tracks/music-video/engine/README.md), [kits](tracks/music-video/kits/README.md), and [preview / validation tools](tools/cinematic/README.md). `npm run test:cinematic` writes full-resolution evidence only into an ignored generated project. The character workstream is independent.

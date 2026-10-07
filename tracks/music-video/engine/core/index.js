@@ -1,28 +1,34 @@
+// Author: suwubee
 import * as THREE from '../vendor/three.module.js';
-import {validateShots,shotAt,cameraAt,applyCamera} from '../camera/index.js';
-import {createPost} from '../post/index.js';
-import {clamp} from './math.js';
-export function createEngine({canvas,shots,scenes,world,width=1280,height=720,post={}}) {
-  validateShots(shots);
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true,powerPreference:'low-power'});
-  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.setPixelRatio(1);renderer.setSize(width,height,false);renderer.outputColorSpace=THREE.LinearSRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;
-  const camera=new THREE.PerspectiveCamera(45,width/height,.1,500),pipeline=createPost(renderer,width,height,post);
+import {createEngine as createFilmEngine} from '../core.js';
+import {createTimeline,cameraFromShot} from '../timeline.js';
+import {shotAt} from '../camera/index.js';
+import {defaultEnvironment} from '../world/environment.js';
+/** Async adapter: scene factories receive the original engine context. */
+export async function createEngine({canvas,shots,scenes,world=defaultEnvironment,width=1280,height=720,quality='auto',post={},...options}) {
+  const timeline=createTimeline(shots),sets={};
+  for(const [id,definition] of Object.entries(scenes))sets[id]={create:async ctx=>{
+    const inst=typeof definition==='function'?await definition(ctx):definition;
+    inst.camera ||= new THREE.PerspectiveCamera(35,ctx.aspect,.05,30000);
+    const update=inst.update;
+    return {...inst,cameraAt(t,shot){return cameraFromShot(shot,shot.t0+t);},update(t,shot,c){update?.(c.t,c.state,inst.camera,shot,c);}};
+  }};
+  let native=await createFilmEngine({canvas,width,height,world,quality,timeline,sets,lyrics:false,postOverride:post,...options});
   let current=0,disposed=false;
-  const renderShot=(shot,t,target)=>{const scene=scenes[shot.scene];if(!scene)throw new Error(`unknown scene ${shot.scene}`);
-    const state=cameraAt(shot,t);scene.update(t,world.at(t));applyCamera(camera,state);renderer.setRenderTarget(target);renderer.render(scene.scene,camera);return state;};
-  const api={ready:false,canvas,duration:shots.at(-1).end,renderer,camera,scenes,post:pipeline,
-    seek(t){if(disposed)throw new Error('engine disposed');if(!Number.isFinite(t))throw new TypeError('finite scene time required');current=clamp(t,0,api.duration);
-      const {shot,previous,blend}=shotAt(shots,current);const lensOther=previous?renderShot(previous,current,pipeline.b):null;
-      const lens=renderShot(shot,current,pipeline.a);pipeline.render({blend,lens,lensOther:lensOther||lens,t:current,exposure:shot.exposure??1});return {t:current,shot:shot.id,lens,blend};},
-    resize(w,h){if(!Number.isInteger(w)||!Number.isInteger(h)||w<16||h<16||w>4096||h>4096)throw new Error('render dimensions out of bounds');renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();pipeline.resize(w,h);api.seek(current);},
-    capture(){api.seek(current);return canvas.toDataURL('image/png');},
-    composition(){const {shot}=shotAt(shots,current),actor=scenes[shot.scene].character?.object;if(!actor)return null;
-      const bounds=new THREE.Box3().setFromObject(actor),points=[];
-      for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z])points.push(new THREE.Vector3(x,y,z).project(camera));
-      const xs=points.map(p=>clamp((p.x+1)/2)),ys=points.map(p=>clamp((p.y+1)/2));
-      const width=Math.max(...xs)-Math.min(...xs),height=Math.max(...ys)-Math.min(...ys);return {shot:shot.id,characterAreaFraction:width*height,bounds:{left:Math.min(...xs),bottom:Math.min(...ys),width,height},method:'Conservative projected 3D bounding box; negative space still requires visual annotation'};},
-    inspect(){return {time:current,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures};},
-    dispose(){disposed=true;pipeline.dispose();for(const item of Object.values(scenes))item.scene.traverse(o=>{o.geometry?.dispose();for(const m of (Array.isArray(o.material)?o.material:[o.material]))m?.dispose();});renderer.dispose();api.ready=false;}
+  const seek=async(t,opts)=>{if(disposed)throw new Error('engine disposed');const result=await native.seek(t,opts);current=result.t;return {...result,shot:shotAt(shots,current).shot.id};};
+  const api={...native,ready:false,seek,
+    capture(){return canvas.toDataURL('image/png');},
+    async composition(){const {shot}=shotAt(shots,current),inst=await native.getSet(shot.scene),actor=inst.character?.object;if(!actor)return {shot:shot.id,characterAreaFraction:0};
+      const box=new THREE.Box3().setFromObject(actor),points=[];
+      for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])points.push(new THREE.Vector3(x,y,z).project(inst.camera));
+      const xs=points.map(p=>Math.max(0,Math.min(1,(p.x+1)/2))),ys=points.map(p=>Math.max(0,Math.min(1,(p.y+1)/2)));
+      return {shot:shot.id,characterAreaFraction:(Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys))};},
+    inspect(){return {time:current,quality:native.qualityInfo,drawCalls:native.renderer.info.render.calls,triangles:native.renderer.info.render.triangles,errors:native.errors};},
+    async resize(w,h){if(!Number.isInteger(w)||!Number.isInteger(h)||w<16||h<16||w>4096||h>4096)throw new Error('render dimensions out of bounds');
+      // Recreate fixed-size render targets and procedural libraries through the same factory contract.
+      api.ready=false;native.dispose();native=await createFilmEngine({canvas,width:w,height:h,world,quality,timeline,sets,lyrics:false,postOverride:post,...options});
+      const methods={seek:api.seek,resize:api.resize,dispose:api.dispose};Object.assign(api,native,methods);await seek(current);api.ready=true;return api;},
+    dispose(){disposed=true;api.ready=false;native.dispose();}
   };
-  api.seek(0);api.ready=true;return api;
+  await api.seek(0);api.ready=true;return api;
 }
