@@ -2,6 +2,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import sharp from 'sharp';
 import {startServer} from '../tools/cinematic/serve.mjs';
 import {launchBrowser,openMvPage,parseArgs,allowedCpus} from '../tools/cinematic/lib/browser.mjs';
 import {FrameSink,seekAndCapture} from '../tools/cinematic/lib/capture.mjs';
@@ -29,7 +30,10 @@ async function capture(o,t,file){
 }
 async function sequence(o,name,times){
  const rows=[];for(const t of times)rows.push(await capture(o,t,`${name}-${String(t).replaceAll('.','_')}.png`));
- await contactSheet(rows.map(r=>path.join(out,r.file)),path.join(out,`${name}-sheet.png`),{columns:2,width:960,labels:rows.map(r=>`${name} ${r.time}s`)});return rows;
+ const sheet=path.join(out,`${name}-sheet.png`);
+ await contactSheet(rows.map(r=>path.join(out,r.file)),sheet,{columns:2,width:960,labels:rows.map(r=>`${name} ${r.time}s`)});
+ await sharp(sheet).resize({width:1600}).toFile(path.join(out,`${name}-review.png`));
+ console.log(`PASS ${name}: ${rows.length} frames`);return rows;
 }
 try{
  report.runtimeDigest=treeHash(await tree(project,{runtime:true,includeMedia:true}));
@@ -37,15 +41,22 @@ try{
  b=await launchBrowser({cpus:allowedCpus().slice(0,2).join(','),nproc:2});report.browser=b.version();report.backend=b.mvGL;
  if(!a['benches-only']){
   const o=await open('index.html');report.frames=await sequence(o,'key',[0,6,15,24,29,30.6,35,41,46,50,57,59.9]);
+  report.composition=[];
+  for(const t of [0,15,29,35,46,59.9]){await o.page.evaluate(t=>window.__scene.seek(t),t);const c=await o.page.evaluate(()=>window.__scene.composition());assert.ok(c.characterAreaFraction<.025,'sample character must remain distant');report.composition.push({time:t,...c});}
   if(!a.quick){
    report.crane=await sequence(o,'crane',[0,4,8,12,16,20,24,28,29.9]);
    report.dissolve=await sequence(o,'dissolve',[29.9,30,30.2,30.4,30.6,30.8,31,31.2]);
    report.rain=await sequence(o,'rain',[35,35+1/24,35+2/24,35+3/24,35+4/24,35+5/24,35+6/24,35+7/24]);
   }
   const times=[];for(const t of [4,15,28,36,47,58]){const r=await seekAndCapture(o.page,t,{sink});await r.encode;times.push(r.seekMs);}times.sort((x,y)=>x-y);
-  report.performance={warmSeekMs:times,p50:times[3],max:times.at(-1),scope:'await seek + GPU readback; shader initialization excluded; software only'};
+  report.performance={warmSeekMs:times,p50:(times[2]+times[3])/2,max:times.at(-1),scope:'await seek + GPU readback; shader initialization excluded; software only'};
   await o.page.evaluate(async()=>{await window.__scene.resize(640,360);await window.__scene.seek(15);if(window.__scene.canvas.width!==640)throw Error('resize');});
   report.resize='PASS';await o.page.close();
+  const live=await openMvPage(b,{baseUrl:server.url,page:'index.html',query:'quality=high',w:640,h:360,readyTimeout:90000,diag:{echo:'problems'}});
+  report.realtime=await live.page.evaluate(async()=>{const e=window.__scene;await Promise.all([e.seek(3),e.seek(40),e.seek(2)]);return e.inspect();});
+  assert.equal(report.realtime.time,2,'seek calls must finish in submission order');
+  if(['llvmpipe','swiftshader'].includes(b.mvGL))assert.equal(report.realtime.quality.name,'low');
+  await capture(live,2,'realtime-low.png');await live.page.close();
  }
  for(const kind of (a.quick?[]:a.kits?String(a.kits).split(','):['snowfield','station','river','interior','architecture','garden','vegetation','sky','materials','particles'])){
   const day=['garden','vegetation','materials'].includes(kind)?'&day=1':'';
@@ -53,7 +64,10 @@ try{
   report.benches.push({...await capture(o,4,`kit-${kind}.png`),kind});await o.page.close();
   console.log(`PASS kit ${kind}`);
  }
- if(report.benches.length)await contactSheet(report.benches.map(r=>path.join(out,r.file)),path.join(out,'kits-sheet.png'),{columns:2,width:960,labels:report.benches.map(r=>r.kind)});
+ if(report.benches.length){
+  await contactSheet(report.benches.map(r=>path.join(out,r.file)),path.join(out,'kits-sheet.png'),{columns:2,width:960,labels:report.benches.map(r=>r.kind)});
+  await sharp(path.join(out,'kits-sheet.png')).resize({width:1600}).toFile(path.join(out,'kits-review.png'));
+ }
  assert.deepEqual(report.external,[]);report.status='PASS';console.log(JSON.stringify(report));
 }catch(e){report.status='FAIL';report.failure=e.stack;process.exitCode=1;console.error(e);}
 finally{if(b)await b.close();if(server)await server.close();report.ownedProcessesClosed=true;await fs.writeFile(path.join(out,'browser-report.json'),JSON.stringify(report,null,2)+'\n');}

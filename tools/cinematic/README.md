@@ -2,6 +2,8 @@
 
 整体保留原帧渲染、捕获/PNG、编码、QA、确定性、叠化与运维优先级工具，接到生成项目目录。新增预算与续渲身份检查。所有页面使用浏览器默认自动播放策略，错误/缺失场景直接失败。下列命令用于实现证据与预览，不替代独立审核、生产成片放行或部署授权。
 
+12 个移植工具文件的来源快照摘要见 [port-manifest.json](port-manifest.json)。`verify_determinism` 在输出目录保存 `report.json`，包含采样帧、CPU 组、逐次像素比较及失败信息；不匹配时另保留 A/B/差异图片。
+
 ```bash
 # 稀疏预览：半分辨率、每 N 帧、指定时间段；联系表 + 标为“预览非成片”的 MP4
 node tools/cinematic/preview.mjs --root projects/demo --start 28 --end 34 --every 4 --out projects/demo/out/preview --port 39920
@@ -30,7 +32,7 @@ python3 tools/cinematic/ops/prio_guard.py OWN_RENDER_PID --light 5 --heavy 19 --
 python3 tools/cinematic/ops/prio_guard.py --selftest
 ```
 
-`encode` 保留 BT.709 矩阵与标签、limited range、H.264 High、faststart、帧号元数据；默认无音频。`qa --silent` 允许静音预览，音画同步必须标 SKIP；黑场/冻结/亮度尖峰/色带是供人检查的候选，不能当审美评分。`verify_dissolve` 比较独立开发后的双层画面，检查 0/1 端点和平均亮度单调。
+`encode` 保留 BT.709 矩阵与标签、limited range、H.264 High、faststart、帧号元数据；默认无音频。稀疏预览必须显式传 `--every N`，默认按连续帧检查，避免规律缺帧被误判成降低帧率。`qa --silent` 允许静音预览，音画同步必须标 SKIP；黑场/冻结/亮度尖峰/色带是供人检查的候选，不能当审美评分。`verify_dissolve` 比较独立开发后的双层画面，检查 0/1 端点和平均亮度单调。
 
 字体由项目提供。`build_fonts.mjs` 保留递归文本收集、fontTools woff2 子集与实际 cmap 覆盖检查；Python 环境通过 `--python` 指定，不使用任何机器私有目录。
 

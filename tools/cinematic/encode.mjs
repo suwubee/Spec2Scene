@@ -11,7 +11,7 @@
 //   --out FILE          output .mp4 (default <frames>/../<basename>.mp4)
 //   --fps N             24
 //   --range A:B         encode frames A..B-1 (default: lowest..highest frame found). Audio is sliced to match.
-//   --every K           frames were rendered every K-th (auto-detected from the file list); output fps = fps/K
+//   --every K           explicit sparse-frame stride (default 1); output fps = fps/K
 //   --pad               pad WxH picture to 1920x1080 centred (black bars) - for picture-only frames
 //   --crf 14 --preset slow
 //   --x264 PARAMS       default "aq-mode=3:psy-rd=1.0,0.15:deblock=-1,-1" (chosen in dev/bench_encode.mjs, tools/cinematic/README.md)
@@ -45,14 +45,9 @@ for (const n of fs.readdirSync(framesDir)) {
 if (!found.size) { console.error(`[encode] no f#####.png|jpg frames in ${framesDir}`); process.exit(1); }
 const all = [...found.keys()].sort((x, y) => x - y);
 let [A, B] = a.range ? String(a.range).split(':').map(Number) : [all[0], all.at(-1) + 1];
-let every = +(a.every || 0);
-if (!every) { // auto-detect the rendering stride from the frames inside the range
-  const inR = all.filter((f) => f >= A && f < B);
-  let g = 0; const gcd = (x, y) => (y ? gcd(y, x % y) : x);
-  for (let i = 1; i < inR.length; i++) g = gcd(g, inR[i] - inR[i - 1]);
-  every = Math.max(1, g || 1);
-}
-if(![fps,A,B,every].every(Number.isFinite)||fps<=0||fps>120||A<0||B<=A||every<1||!Number.isInteger(every)||(B-A)/every>100000)throw new Error('invalid encode range/fps/every');
+// A missing regular subsequence must not silently become a lower-frame-rate film.
+const every = +(a.every ?? 1);
+if(![fps,A,B,every].every(Number.isFinite)||fps<=0||fps>120||A<0||B<=A||![A,B,every].every(Number.isInteger)||every<1||(B-A)/every>100000)throw new Error('invalid encode range/fps/every');
 const wanted = [];
 for (let f = A; f < B; f += every) wanted.push(f);
 const missing = wanted.filter((f) => !found.has(f));
@@ -72,6 +67,7 @@ if (contiguous) {
   inputArgs = ['-framerate', String(outFps), '-start_number', String(A), '-i', path.join(framesDir, `f%05d.${ext}`)];
 } else {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), '.encode-seq-'));
+  process.once('exit',()=>fs.rmSync(tmpDir,{recursive:true,force:true}));
   let last = null, linkOk = true;
   wanted.forEach((f, i) => {
     const src = found.has(f) ? path.join(framesDir, found.get(f)) : last;

@@ -66,6 +66,7 @@ async function run(label, cpus, plan, gl) {
 }
 
 let exitCode = 0;
+const report={status:'RUNNING',frames:targets,size:[W,H],fps,query:query.toString(),cpusA,cpusB,comparisons:[],scope:'Same browser and backend, two fresh processes, shuffled targets, distractors and repeats'};
 try {
   console.log(`[determinism] K=${K} seed=${seed} frames=${targets.join(',')} | A on cpus ${cpusA} order ${orderA.join(',')} | B on cpus ${cpusB} (with distractors + repeats)`);
   const resA = await run('A', cpusA, orderA.map((f) => ({ f })), a.gl || null);
@@ -97,12 +98,15 @@ try {
     rows.push(row);
   }
   console.table(rows.map(({ files, ...r }) => r));
+  report.comparisons=rows;report.status=exitCode?'FAIL':'PASS';
   rows.filter((r) => r.files).forEach((r) => console.log(`[determinism] f${r.frame} images: ${r.files}`));
   console.log(exitCode ? `[determinism] FAIL: ${rows.filter((r) => !r.identical).length}/${rows.length} comparisons differ` : `[determinism] PASS: all ${rows.length} comparisons bit-identical (${K} frames, 2 processes, different CPU sets and orders, + distractors/repeats)`);
 } catch (e) {
   console.error('[determinism] ERROR ' + e.message);
   exitCode = 2;
+  report.status='ERROR';report.error=e.stack;
 } finally {
   await server.close();
+  fs.mkdirSync(outDir,{recursive:true});fs.writeFileSync(path.join(outDir,'report.json'),JSON.stringify(report,null,2)+'\n');
 }
 process.exit(exitCode);

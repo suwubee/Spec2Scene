@@ -1,0 +1,184 @@
+{
+  "author": "suwubee",
+  "sources": "Authorized read-only snapshots; source locations kept outside the repository.",
+  "modules": [
+    {
+      "module": "eaves.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "eaves.js",
+      "sourceBytes": 18582,
+      "sourceSHA256": "3eb21225220b366ea0e5fa71668ceb232d489cd003877be626b9a4a8257e98ae",
+      "portedBytes": 18358,
+      "portedSHA256": "63fc5ba5cfd5c4e489362a3bf0287ec913b949ae179dc72fb831e5946731c49f"
+    },
+    {
+      "module": "gauze.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "gauze.js",
+      "sourceBytes": 4314,
+      "sourceSHA256": "a69442680282abc3f84c813d2c62f5c47bb47c748db05a446935caf983167869",
+      "portedBytes": 4122,
+      "portedSHA256": "d536746dfdf8169ab133f92a8fd973797d7915417929dfdbe3fdd671707dc4f4"
+    },
+    {
+      "module": "lantern.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "lantern.js",
+      "sourceBytes": 26253,
+      "sourceSHA256": "712c41a09f21c8bb18a88573946fd17cd4e97bdc4adeca9e30d50e1b40b0602c",
+      "portedBytes": 26075,
+      "portedSHA256": "78e1c01eccfef3084cbfe3695f167b6f005b98196f4218044f8d0ecc1d1950ff"
+    },
+    {
+      "module": "latticeWindow.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "latticeWindow.js",
+      "sourceBytes": 6328,
+      "sourceSHA256": "58f0d828f323cda0c514d6c9d91f65f755b9b732e4565a7274d7e9ef3ab6586d",
+      "portedBytes": 6189,
+      "portedSHA256": "814c891dc90804db27078c61052e67d60cd2e084a1a994add335b2b3f186ff8a"
+    },
+    {
+      "module": "oilLamp.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "oilLamp.js",
+      "sourceBytes": 11088,
+      "sourceSHA256": "e265af45fa11c112bb827ac59626ea71496e9a7ca5167b61ca3536bc0f0f45b1",
+      "portedBytes": 11058,
+      "portedSHA256": "207ab6013bd8a0efc424f986cfdcce441d1d0e8f2123d61ceed5d6cda1dac4d5"
+    },
+    {
+      "module": "plumBranch.js",
+      "sourceGroup": "authorized-film-props",
+      "sourceModule": "plumBranch.js",
+      "sourceBytes": 68236,
+      "sourceSHA256": "7d8ad2ee3e6150f2bbddc6fdb170da8ecfe6b8888c7dae20030ec30ae50add5f",
+      "portedBytes": 68202,
+      "portedSHA256": "eb57daad49a18c0fb98cc745a77c47059343df0110a94e2112552d14523b4f35"
+    },
+    {
+      "module": "plants/atlas.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/atlas.js",
+      "sourceBytes": 41744,
+      "sourceSHA256": "34760b4ea3f1215a51f6e0efc8a51a68b41c5263c0886a819019039b4b851453",
+      "portedBytes": 41763,
+      "portedSHA256": "b930022ca8b7eb27fc2da4dccd15126678caccbcfe9d0cc7742f45182638dc09"
+    },
+    {
+      "module": "plants/batch.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/batch.js",
+      "sourceBytes": 11803,
+      "sourceSHA256": "56f52f1b4778d1176e25b88497f4e2218de3b6477e2332072427d744362b3886",
+      "portedBytes": 11822,
+      "portedSHA256": "e248bd3632a2c914da40891b15b56a1f9f80ab73e6aecc7743cfa831cac202c6"
+    },
+    {
+      "module": "plants/build.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/build.js",
+      "sourceBytes": 18810,
+      "sourceSHA256": "cc2d392bfba5170a3ea4542addfea097e70ec998dcfe4f67ef7c0fb469b29ad7",
+      "portedBytes": 18829,
+      "portedSHA256": "c6d5e7142c59438abc9eeb9ee6c04ff2220fc37ce12d2f5644d10b39726979d7"
+    },
+    {
+      "module": "plants/kit.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/kit.js",
+      "sourceBytes": 5910,
+      "sourceSHA256": "c172434c81f74cbef931eda424137a6902a238d07631b44dfbe2a5dccb4cfcef",
+      "portedBytes": 5929,
+      "portedSHA256": "d37783460f0c8feb78c86d827f5509965c9c9ec2a338872cd61c26fecc3f5b42"
+    },
+    {
+      "module": "plants/lod.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/lod.js",
+      "sourceBytes": 13732,
+      "sourceSHA256": "63121fc8d8286e73ead570e03d817c91c290126c62336ea27d3e5e1f45dc2b81",
+      "portedBytes": 13751,
+      "portedSHA256": "c785fe93da01f5cade3f48d56f40a26ffce20df89639ae79abbfa3d8dc3b5011"
+    },
+    {
+      "module": "plants/material.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/material.js",
+      "sourceBytes": 15159,
+      "sourceSHA256": "12f1d4cfe5b314ad615d997e7e6d8c38b041236aa2d2a75620fc4aebd70e9826",
+      "portedBytes": 15178,
+      "portedSHA256": "ef1ba5d24e760426f70186a659ab385acb7cb9b2665ed2969d97ec94a5a70e4c"
+    },
+    {
+      "module": "plants/species.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/species.js",
+      "sourceBytes": 14563,
+      "sourceSHA256": "1a2dac37ddec26481bd0a487f14a2e723f375ebc96c27de2deff4b1bb072a2c6",
+      "portedBytes": 14582,
+      "portedSHA256": "05246bccefc43fe16525be75118ba3549aeb98a007be28acab5add2d8a2e83c2"
+    },
+    {
+      "module": "plants/trees.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "plants/trees.js",
+      "sourceBytes": 47481,
+      "sourceSHA256": "acca69b48e398e33f531d4e5601f6c9c4c8b9ef0367d15d060acdcb639d5c70c",
+      "portedBytes": 47500,
+      "portedSHA256": "4ed3bd6dd618eb293edbb95a5a611853659f44de5580ba880f54c75fdf5236cc"
+    },
+    {
+      "module": "garden/geom.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "rock/geom.js",
+      "sourceBytes": 23104,
+      "sourceSHA256": "292f32d5d64061b49fd79ec46ef38e4dc4d8aa9fe604a4f1bf1197b781482927",
+      "portedBytes": 21964,
+      "portedSHA256": "2f4fb2a262837b5c2f01fc79017c18592de74c4a735b1ed79d1582b451211179"
+    },
+    {
+      "module": "garden/material.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "rock/material.js",
+      "sourceBytes": 12344,
+      "sourceSHA256": "d90d921788cc43fb8e53873c9a6d2aeb7ef410aeb5b8d2298088467bf922c0c4",
+      "portedBytes": 12359,
+      "portedSHA256": "3d8a2f92dc3a6dd0641336a3dd7b4accab99a276a422eeebbf5ca27afb224b5b"
+    },
+    {
+      "module": "garden/sdf.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "rock/sdf.js",
+      "sourceBytes": 6399,
+      "sourceSHA256": "e348797bc9bcffd7d44af80cde0c81920371b5b84be5b6ef697ecd29f5e0f163",
+      "portedBytes": 6418,
+      "portedSHA256": "16fdc2e4730eac28ac53ce922507aff428da75694d39a906f4fdec62d44aad8f"
+    },
+    {
+      "module": "garden/textures.js",
+      "sourceGroup": "authorized-garden",
+      "sourceModule": "ground/textures.js",
+      "sourceBytes": 5779,
+      "sourceSHA256": "cbbac14fe7f2760fe342f7b6668f4469e83125a3cd40699e99fba8eeaab023fa",
+      "portedBytes": 4209,
+      "portedSHA256": "992ac9ba0b1950f9b4f7740e33d6ddcca8cceed6f8943eee95ea9971fea826ac"
+    }
+  ],
+  "newAdapters": [
+    "common.js",
+    "architecture.js",
+    "interior.js",
+    "river.js",
+    "snowfield.js",
+    "station.js",
+    "vegetation.js",
+    "garden/index.js"
+  ],
+  "excludes": [
+    "scene layouts",
+    "placement and survey data",
+    "landmark identities",
+    "project media and fonts"
+  ]
+}

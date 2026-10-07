@@ -2,7 +2,7 @@
 // Author: suwubee
 // Parallel, resumable, deterministic frame renderer.
 //
-//   node tools/cinematic/render_frames.mjs --page index.html --fps 24 --range 0:1440 --workers 4 --taskset 0-15 \
+//   node tools/cinematic/render_frames.mjs --root projects/demo --page index.html --fps 24 --range 0:1440 --workers 1 \
 //        --out work/frames --format png --quality final [--resume] [--every 1] [--scale 1]
 //
 // Frame f is rendered at t = f / fps (never wall-clock). Files: <out>/f%05d.<ext> (absolute frame index).

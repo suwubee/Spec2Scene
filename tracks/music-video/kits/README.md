@@ -2,6 +2,8 @@
 
 通用构件从授权代码抽出，保留材质、几何和动画算法。工厂使用引擎 ctx，返回 `{scene,camera,update(t,world,camera),dispose()}`；道具工厂返回 `{object,update,dispose}`。位置采用局部坐标或显式 placement 数组；项目布局、现场追踪坐标、原场景和研究数据不随库分发。
 
+[port-manifest.json](port-manifest.json) 记录 6 个成熟道具模块、8 个植物模块及 4 个石材/铺装模块的来源和移植后字节摘要。来源以授权快照组和模块相对路径标识，不写来源作品身份或机器路径；雪原、站台及场景组合工厂是本仓库新建的通用适配层。
+
 | 工具包 | 构件 / 主要参数 | 试验台 |
 |---|---|---|
 | snowfield.js | 新雪地高度场、真实凹陷脚印、移植山岭/天空/雾/雪粉；seed、tracks、mountains | bench/snowfield.html |
@@ -25,4 +27,4 @@ node scripts/validate-cinematic.mjs --root projects/cinematic-demo --out project
 node scripts/validate-cinematic.mjs --root projects/cinematic-demo --benches-only
 ```
 
-每页产生 1920×1080 关键帧，联系表以两列、每格 960 像素排列。截图只进入项目 out/，不提交仓库。试验台证明构件能接入与渲染；场景美术与独立审核需要额外看图。角色目录属于独立实现任务，样片默认使用远景或剪影。
+每页产生 1920×1080 关键帧，`*-sheet.png` 大图联系表以两列、每格 960 像素排列；`*-review.png` 是 1600 像素宽的审图版本。截图只进入项目 out/，不提交仓库。试验台证明构件能接入与渲染；场景美术与独立审核需要额外看图。角色目录属于独立实现任务，样片默认使用远景或剪影。

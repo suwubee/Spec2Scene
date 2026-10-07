@@ -14,6 +14,9 @@ import {createTimeline} from '../../tracks/music-video/engine/timeline.js';
 import {rangeFrames,checkResume,finite,renderIdentity} from '../cinematic/lib/plan.mjs';
 import {parseTimes} from '../cinematic/lib/browser.mjs';
 import {collectCharacters} from '../cinematic/build_fonts.mjs';
+import {run} from '../lib/cli.mjs';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 
 test('ported integer random streams fork independently; coherent noise is finite and continuous',()=>{
  const a=makeRng('scene'),b=makeRng('scene');assert.deepEqual(Array.from({length:30},()=>a()),Array.from({length:30},()=>b()));
@@ -57,4 +60,22 @@ test('project audio accepts arbitrary instrument keys and rejects missing data w
  const {normalizeSong,createAudio,loadSong}=await import('../../tracks/music-video/engine/audio.js');
  const song=normalizeSong({duration:5,notes:{customSynth:[{t:1,dur:.3,midi:65,vel:.8}]}});assert.deepEqual(Object.keys(song.notes),['customSynth']);assert.deepEqual(createAudio(song).instruments,['customSynth']);
  await assert.rejects(loadSong('data:application/json,not-json'));
+});
+
+test('encoding refuses regular missing frames unless a sparse stride is explicitly provided',async t=>{
+ const dir=await mkdtemp(path.join(os.tmpdir(),'scene-encode-gap-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ for(const frame of [0,2,4])await writeFile(path.join(dir,`f${String(frame).padStart(5,'0')}.png`),'inventory-only test');
+ const args=['tools/cinematic/encode.mjs','--frames',dir,'--dry-run'];
+ await assert.rejects(run(process.execPath,args),/missing frame/);
+ const sparse=await run(process.execPath,[...args,'--every','2']);assert.match(sparse.stderr,/@ 12 fps/);
+ await assert.rejects(run(process.execPath,[...args,'--range','0.5:4']),/invalid encode range/);
+});
+
+test('engine and kit manifests identify the exact distributed modules',async()=>{
+ for(const kind of ['engine','kits']){
+  const root=new URL(`../../tracks/music-video/${kind}/`,import.meta.url),manifest=JSON.parse(await readFile(new URL('port-manifest.json',root)));
+  const rows=Array.isArray(manifest)?manifest:manifest.modules;
+  assert.equal(rows.length,kind==='engine'?15:18);
+  for(const row of rows){const data=await readFile(new URL(row.module,root));assert.equal(data.length,row.portedBytes,row.module);assert.equal(createHash('sha256').update(data).digest('hex'),row.portedSHA256,row.module);assert.match(row.sourceSHA256,/^[a-f0-9]{64}$/);}
+ }
 });
