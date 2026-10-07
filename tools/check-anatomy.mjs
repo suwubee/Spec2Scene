@@ -4,15 +4,19 @@ import {actions,poseAt,handPoses} from '../tracks/music-video/character/motion.j
 import {cli,isMain,atomic} from './lib/cli.mjs';
 export function checkAnatomy({duration=8,hz=60}={}) {
   const failures=[],summary=[];let samples=0;
-  const measurements={midStanceKneeDegrees:{min:Infinity,max:0},maxSupportSlipMetres:0,minArmPhaseProduct:Infinity,fingerFlexionDegrees:{min:Infinity,max:0}};
+  const measurements={midStanceKneeDegrees:{min:Infinity,max:0},maxSupportSlipMetres:0,minArmPhaseProduct:Infinity,fingerFlexionDegrees:{min:Infinity,max:0},maxFingerHyperextensionDegrees:0,relaxedMCPDegrees:{index:[],middle:[],ring:[],little:[]}};
   const measure=(rig,pose,report,previous)=>{
     for(const side of ['L','R']){
       const key=side+'leg',g=pose.gait?.[side];
       if(g&&g.settle===0&&g.phase>.14&&g.phase<.46){const degrees=rig.limbs[key].lower.rotation.x*180/Math.PI;measurements.midStanceKneeDegrees.min=Math.min(measurements.midStanceKneeDegrees.min,degrees);measurements.midStanceKneeDegrees.max=Math.max(measurements.midStanceKneeDegrees.max,degrees);}
-      if(g&&g.settle===0&&Math.abs(g.reach)>.035)measurements.minArmPhaseProduct=Math.min(measurements.minArmPhaseProduct,rig.limbs[side+'arm'].upper.rotation.x*g.reach);
+      if(g&&g.settle===0&&!pose.occupiedArms?.includes(side)&&Math.abs(g.reach)>.035)measurements.minArmPhaseProduct=Math.min(measurements.minArmPhaseProduct,rig.limbs[side+'arm'].upper.rotation.x*g.reach);
       if(previous&&pose.contacts[key]&&previous.contacts[key]&&pose.contactIds[key]===previous.contactIds[key])measurements.maxSupportSlipMetres=Math.max(measurements.maxSupportSlipMetres,Math.hypot(...report.supportPoints[key].map((v,i)=>v-previous.supportPoints[key][i])));
     }
-    for(const f of rig.fingers||[])for(const joint of f.joints){const degrees=-joint.rotation.x*180/Math.PI;measurements.fingerFlexionDegrees.min=Math.min(measurements.fingerFlexionDegrees.min,degrees);measurements.fingerFlexionDegrees.max=Math.max(measurements.fingerFlexionDegrees.max,degrees);}
+    for(const f of rig.fingers||[])for(const joint of f.joints){const degrees=-joint.rotation.x*180/Math.PI;measurements.fingerFlexionDegrees.min=Math.min(measurements.fingerFlexionDegrees.min,degrees);measurements.fingerFlexionDegrees.max=Math.max(measurements.fingerFlexionDegrees.max,degrees);measurements.maxFingerHyperextensionDegrees=Math.max(measurements.maxFingerHyperextensionDegrees,-degrees);}
+    for(const f of rig.fingers||[])if(!f.thumb&&['relaxed','rest'].includes(f.gesture)){
+      const list=measurements.relaxedMCPDegrees[['index','middle','ring','little'][f.index-1]],degrees=-f.joints[0].rotation.x*180/Math.PI;
+      if(!list.includes(degrees))list.push(degrees);
+    }
   };
   for(const action of actions){const rig=createSkeleton();let previous;let checked=0;
     for(let i=0;i<=duration*hz;i++){const t=i/hz,pose=poseAt(action,t);applyPose(rig,pose);const report=inspectRig(rig,pose,previous);samples++;checked++;measure(rig,pose,report,previous);
@@ -26,7 +30,7 @@ export function checkAnatomy({duration=8,hz=60}={}) {
     proportions.push({body,height,samples:count,handPoses:Object.keys(handPoses).length});actor.object.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
   }
   return {status:failures.length?'FAIL':'PASS',samples,proportions,summary,measurements,limits,hingeAxis,failures,
-    scope:'Base rig sampled at 60 Hz; four body/height combinations at 30 Hz. Measured heel/sole/toe anchors, mid-stance knee flexion (0 = straight), arm phase and all finger gestures. Fixed bone lengths. Clothing deformation is excluded from joint sampling and reviewed in browser sequences. Visual review and clothing collision still required.'};
+    scope:'Base rig sampled at 60 Hz; four body/height combinations at 30 Hz. Measured heel/sole/toe anchors, mid-stance knee flexion (0 = straight), unoccupied-arm phase, all finger gestures, explicit 10-degree hyperextension rejection and increasing relaxed MCP flexion. Fixed bone lengths. Clothing deformation is excluded from joint sampling and reviewed in browser sequences. Visual review and clothing collision still required.'};
 }
 if(isMain(import.meta.url)) {
   const args=cli({out:{type:'string'}},'Usage: node tools/check-anatomy.mjs [--out report.json]\n人体结构采样；所有动作、铰链方向、限位、骨长、躯干/地面与滑步。');

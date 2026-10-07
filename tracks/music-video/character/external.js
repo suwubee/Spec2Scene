@@ -1,6 +1,6 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {createSkeleton,applyPose,inspectRig,anatomy,limits} from './rig.js';
-import {poseAt,handPoses} from './motion.js';
+import {poseAt,handPoses,fingerAngles} from './motion.js';
 import {clamp} from './math.js';
 
 // Loader ownership stays with the project. Use the same THREE instance/version as
@@ -100,7 +100,7 @@ export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=
         worldRotation(mapped[foot],baseQ.clone().multiply(rotation(canonical[foot])).multiply(rest[foot].control.clone().invert()).multiply(rest[foot].rotation));
       }
       const angles=handPoses[options.handPose||pose.handPose];if(!angles)throw new Error('unknown hand pose');
-      for(const f of fingers)f.joints.forEach((j,i)=>j.quaternion.copy(f.rest[i]).multiply(quat().setFromAxisAngle(f.axes[i],-clamp(angles[i]*(f.digit==='Thumb'?.65:1),...limits.finger))));
+      for(const f of fingers){const flex=fingerAngles(options.handPose||pose.handPose,['Thumb','Index','Middle','Ring','Little'].indexOf(f.digit));f.joints.forEach((j,i)=>j.quaternion.copy(f.rest[i]).multiply(quat().setFromAxisAngle(f.axes[i],-clamp(flex[i],...limits.finger))));}
       object.updateMatrixWorld(true);scene.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});
       expected.clear();for(const node of [...Object.values(mapped),...fingers.flatMap(f=>f.joints)])expected.set(node,rotation(node));
       return pose;

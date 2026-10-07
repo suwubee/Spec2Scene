@@ -74,7 +74,19 @@ export function inspectRig(rig, pose, previous = null) {
     }
     for(const [value,range] of [[l.upper.rotation.x,limits[arm?'shoulderX':'hip']],[l.tip.rotation.x,arm?limits.wrist:[-4,4]]]) if(value<range[0]-1e-8 || value>range[1]+1e-8) errors.push(`${key}: joint range`);
   }
-  for(const side of ['L','R']){const g=pose.gait?.[side];if(g&&g.settle===0&&Number.isFinite(g.phase)){if(g.phase>.14&&g.phase<.46&&rig.limbs[side+'leg'].lower.rotation.x>.48)errors.push(`${side}: stance knee remains crouched`);if(Math.abs(g.reach)>.035&&rig.limbs[side+'arm'].upper.rotation.x*g.reach<-.002)errors.push(`${side}: arm swing phase reversed`);}}
-  for(const finger of rig.fingers||[])for(const joint of finger.joints){const bend=-joint.rotation.x;if(bend<limits.finger[0]-1e-8||bend>limits.finger[1]+1e-8)errors.push('finger: reversed or excessive flexion');}
+  for(const side of ['L','R']){const g=pose.gait?.[side];if(g&&g.settle===0&&Number.isFinite(g.phase)){if(g.phase>.14&&g.phase<.46&&rig.limbs[side+'leg'].lower.rotation.x>.48)errors.push(`${side}: stance knee remains crouched`);if(!pose.occupiedArms?.includes(side)&&Math.abs(g.reach)>.035&&rig.limbs[side+'arm'].upper.rotation.x*g.reach<-.002)errors.push(`${side}: arm swing phase reversed`);}}
+  for(const finger of rig.fingers||[])for(const joint of finger.joints){
+    const bend=-joint.rotation.x;
+    if(!Number.isFinite(bend))errors.push('finger: nonfinite flexion');
+    if(bend < -Math.PI/18-1e-8)errors.push('finger: hyperextension exceeds 10 degrees');
+    if(bend<limits.finger[0]-1e-8||bend>limits.finger[1]+1e-8)errors.push('finger: reversed or excessive flexion');
+  }
+  for(const side of ['L','R']){
+    const fingers=(rig.fingers||[]).filter(f=>f.side===side&&!f.thumb).sort((a,b)=>a.index-b.index);
+    if(fingers.length===4&&fingers.every(f=>['relaxed','rest'].includes(f.gesture))){
+      const degrees=fingers.map(f=>-f.joints[0].rotation.x*180/Math.PI);
+      if(degrees[0]<10||degrees[0]>20||degrees[3]<25||degrees[3]>40||degrees.some((v,i)=>i>0&&v<=degrees[i-1]))errors.push('finger: relaxed flexion must increase index to little');
+    }
+  }
   return {errors,points,supportPoints,contacts:pose.contacts,contactIds:pose.contactIds};
 }

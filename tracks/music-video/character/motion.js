@@ -1,8 +1,19 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {smooth, mix, mod, clamp} from './math.js';
 import {anatomy, twoBone, limit} from './rig.js';
-export const actions = ['stand','walk','stop','turn','sit','rise','pushDoor','pushWindow','shade','embrace','bow','lookUp','windWalk'];
+export const actions = ['stand','walk','stop','turn','sit','rise','pushDoor','pushWindow','shade','embrace','bow','lookUp','windWalk','lanternWalk','bagWalk','holdCup','phone'];
 export const handPoses={relaxed:[.22,.32,.25],carry:[1.05,1.35,.85],open:[.025,.025,.025],touch:[.12,.16,.09],smooth:[.06,.08,.05],rest:[.22,.32,.25],fist:[1.2,1.4,1.1],point:[.3,.4,.25]};
+// MCP/PIP/DIP flexion is per digit, in radians. The local palm faces +Z;
+// negative X rotation carries the finger pad towards that palm, never the nail.
+export function fingerAngles(gesture,index){
+  if(!handPoses[gesture])throw new Error('unknown hand pose');
+  const relaxed=[[.24,.28,.20],[.262,.30,.19],[.384,.38,.23],[.489,.45,.27],[.593,.53,.32]];
+  if(['relaxed','rest'].includes(gesture))return relaxed[index];
+  if(gesture==='touch'||gesture==='point')return index===1?[.015,.025,.02]:relaxed[index].map(a=>a*1.4);
+  if(gesture==='open')return index===0?[.15,.12,.06]:[.015,.025,.02];
+  if(gesture==='smooth')return index===0?[.18,.15,.08]:[.035,.045,.025];
+  return (gesture==='fist'?[1.20,1.40,1.10]:[1.05,1.35,.85]).map(a=>a*(index===0?.65:1));
+}
 export function gait(distance, side, stride=.9) {
   if(!Number.isFinite(distance)||!Number.isFinite(stride)||stride<=0||!['L','R'].includes(side))throw new TypeError('finite distance, positive stride and L/R side required');
   const offset=side==='L'?0:.5,q=distance/stride+offset,n=Math.floor(q),phase=mod(q,1),stance=.62,planted=(n+.31-offset)*stride;
@@ -13,9 +24,9 @@ export function gait(distance, side, stride=.9) {
   const dz=roll?pivot*(1-Math.cos(footPitch))+anatomy.ankle*Math.sin(footPitch):0,dy=roll?anatomy.ankle*(Math.cos(footPitch)-1)+pivot*Math.sin(footPitch):0;
   return {z:(phase<stance?planted:mix(planted,planted+stride,smooth(swing)))+dz,y:anatomy.ankle+dy+(phase<stance?0:.115*Math.sin(Math.PI*swing)),contact:phase<stance,id:n+':'+(roll?(footPitch<0?'heel':'toe'):'flat'),phase,footPitch,support:[0,-anatomy.ankle,roll?pivot:0]};
 }
-export function poseAt(action,t,{speed=.38,distance=t*speed,yaw=0,wind=.5}={}) {
+export function poseAt(action,t,{speed=.38,distance=t*speed,yaw=0,wind=.5,handPose}={}) {
   if(!actions.includes(action)||![t,speed,distance,yaw,wind].every(Number.isFinite)||speed<0)throw new Error('known action and finite time required');
-  const walking=['walk','windWalk','stop'].includes(action);
+  const walking=['walk','windWalk','stop','lanternWalk','bagWalk'].includes(action);
   const brakeLength=Math.min(.3,speed*.8),brakeStart=.75-brakeLength/2,u=brakeLength?clamp((distance-brakeStart)/brakeLength):1;
   const d=action==='stop'?(distance<brakeStart?distance:brakeStart+brakeLength*(u-u**3+.5*u**4)):distance,cycle=d/.9*Math.PI*2;
   const settle=action==='stop'?smooth((distance-(.75+brakeLength/2))/(Math.max(.01,speed)*.8)):0;
@@ -53,7 +64,12 @@ export function poseAt(action,t,{speed=.38,distance=t*speed,yaw=0,wind=.5}={}) {
     if(action==='shade'&&side==='R'){x=-smooth(t/2)*1.75;bend=smooth(t/2)*1.45;z=-.22;}
     if(action==='embrace'){x=-smooth(t/2)*1.35;bend=.85;z=sign*.12;}
     if(seated){x=-seated*.7;bend=.4;}
-    pose.limbs[side+'arm']={x:limit('shoulderX',x),z:limit('shoulderZ',z),bend:limit('elbow',bend),wrist,forearmTwist:-sign*Math.PI*(.5+(push?.5*prepare:0))};
+    let twist=-sign*Math.PI*(.5+(push?.5*prepare:0));
+    if(handPose==='open'){x=-.25;bend=1.2;wrist=0;twist=0;}
+    if(handPose==='smooth'){x=-.6;bend=.85;wrist=0;twist=sign*Math.PI;}
+    if(handPose==='touch'&&!push){x=-.45;bend=.85;twist=-sign*Math.PI*.5;}
+    pose.limbs[side+'arm']={x:limit('shoulderX',x),z:limit('shoulderZ',z),bend:limit('elbow',bend),wrist,forearmTwist:twist};
   }
+  if(handPose){if(!handPoses[handPose])throw new Error('unknown hand pose');pose.handPose=handPose;pose.occupiedArms=['L','R'];}
   return pose;
 }

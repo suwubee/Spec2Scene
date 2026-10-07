@@ -124,3 +124,98 @@ test('stopping decelerates continuously and settles into two planted feet',()=>{
  assert.ok(velocity(1.8)>velocity(2.1)&&velocity(2.1)>velocity(2.3));assert.ok(Math.abs(velocity(2.4))<1e-6);
  const stopped=poseAt('stop',4);assert.ok(Math.abs(stopped.position[2]-.75)<1e-10);assert.equal(stopped.hipHeight,.94);assert.ok(Object.values(stopped.contacts).every(Boolean));
 });
+
+test('feminine shape has independent shoulders, waist, hips, bust, neck, hands and face',()=>{
+ const m=createCharacter({body:'masculine',coat:false}),f=createCharacter({body:'feminine',coat:false});
+ try{
+  assert.equal(f.proportions.height,1.66);assert.equal(f.proportions.headRatio,7.4);
+  assert.ok(f.rig.limbs.Larm.upper.position.x<m.rig.limbs.Larm.upper.position.x*.9);
+  const radius=(a,y)=>a.proportions.bodyRings.find(r=>r[0]===y)[1];
+  assert.ok(radius(f,1.11)<radius(m,1.11)*.9);assert.ok(radius(f,.90)>radius(m,.90)*1.1);
+  assert.ok(f.proportions.neckRadius<m.proportions.neckRadius*.9);
+  assert.ok(f.rig.fingers[2].length<m.rig.fingers[2].length*.9);
+  const frontAtChest=a=>{const p=a.object.getObjectByName('continuous-body').geometry.attributes.position;let max=-Infinity;for(let i=0;i<p.count;i++)if(p.getY(i)>1.29&&p.getY(i)<1.35&&Math.abs(p.getX(i))<.13)max=Math.max(max,p.getZ(i));return max;};
+  assert.ok(frontAtChest(f)>frontAtChest(m)+.025,'clothed bust must have real volume');
+  const jaw=a=>{const p=a.object.getObjectByName('sculpted-face').geometry.attributes.position;let max=0;for(let i=0;i<p.count;i++)if(p.getY(i)<-.085)max=Math.max(max,Math.abs(p.getX(i)));return max;};
+  assert.ok(jaw(f)<jaw(m)*.9);
+ }finally{dispose(m);dispose(f);}
+});
+
+test('relaxed fingers bend towards the palm, increase index to little, and reject hyperextension',()=>{
+ const a=createCharacter({body:'feminine',coat:false});
+ try{
+  for(const side of ['L','R']){
+   let pose=a.update('stand',1,{handPose:'relaxed'}),previous=0;
+   const hand=a.rig.limbs[side+'arm'].tip;
+   for(const f of a.rig.fingers.filter(f=>f.side===side&&!f.thumb)){
+    const angle=-f.joints[0].rotation.x*180/Math.PI;assert.ok(angle>previous);previous=angle;
+    if(f.index===1)assert.ok(angle>=10&&angle<=20);if(f.index===4)assert.ok(angle>=25&&angle<=40);
+    const base=hand.worldToLocal(f.joints[0].getWorldPosition(new THREE.Vector3())),end=hand.worldToLocal(f.joints[2].localToWorld(new THREE.Vector3(0,-f.length*.24,0)));
+    assert.ok(end.z>base.z+.006,'finger curls to +Z palm, away from -Z nail');
+   }
+   const f=a.rig.fingers.find(f=>f.side===side&&f.index===1);f.joints[1].rotation.x=11*Math.PI/180;
+   assert.ok(inspectRig(a.rig,pose).errors.some(e=>e.includes('hyperextension exceeds 10')));
+   pose=a.update('stand',1,{handPose:'relaxed'});f.joints[0].rotation.x=-.65;
+   assert.ok(inspectRig(a.rig,pose).errors.some(e=>e.includes('must increase')));
+  }
+  for(const gesture of ['relaxed','open','touch','smooth','carry']){
+   const pose=a.update('stand',1,{handPose:gesture});assert.deepEqual(inspectRig(a.rig,pose).errors,[]);
+   const normal=new THREE.Vector3(0,0,1).applyQuaternion(a.rig.limbs.Larm.tip.getWorldQuaternion(new THREE.Quaternion()));
+   if(gesture==='open')assert.ok(normal.y>.8,'open palm faces up');if(gesture==='smooth')assert.ok(normal.y<-.8,'smooth palm faces down');
+   if(gesture==='touch'){const fs=a.rig.fingers.filter(f=>f.side==='L'&&!f.thumb);assert.ok(-fs[0].joints[0].rotation.x<.04);assert.ok(fs.slice(1).every(f=>-f.joints[0].rotation.x>.4));}
+  }
+ }finally{dispose(a);}
+});
+
+test('scarf and hair respond to wind with deterministic seek; two tails and a helical wrap replace the ring',()=>{
+ const a=createCharacter({body:'feminine',hairStyle:'ponytail'});
+ try{
+  assert.equal(a.object.getObjectByName('scarf-wrap').geometry.type,'BufferGeometry');
+  const tails=[0,1].map(i=>a.object.getObjectByName(`scarf-tail-${i}`));assert.ok(tails.every(Boolean));
+  a.update('walk',1,{wind:0});const still=tails[0].geometry.attributes.position.array.slice();
+  a.update('walk',1,{wind:1});const windy=tails[0].geometry.attributes.position.array.slice();assert.notDeepEqual(still,windy);
+  for(let i=0;i<windy.length;i+=12){const width=Math.hypot(windy[i]-windy[i+3],windy[i+1]-windy[i+4],windy[i+2]-windy[i+5]);assert.ok(Math.abs(width-.055)<1e-6,'wind must preserve ribbon width rather than collapse it to a line');}
+  a.update('stand',4,{wind:.2});a.update('walk',1,{wind:1});assert.deepEqual(tails[0].geometry.attributes.position.array,windy);
+  const shoe=a.object.getObjectByName('boot-last').geometry;shoe.computeBoundingBox();assert.ok(shoe.boundingBox.max.z-shoe.boundingBox.min.z>.29);
+  assert.deepEqual(topology(shoe),{components:1,openEdges:0},'shoe last must close at toe and heel');
+  assert.deepEqual(topology(a.object.getObjectByName('boot-sole').geometry),{components:1,openEdges:0},'sole must have closed ends');
+ }finally{dispose(a);}
+});
+
+test('all prop actions preserve anatomy and lantern handle remains at the gripping hand',()=>{
+ const a=createCharacter({body:'feminine'});
+ try{
+  for(const action of ['lanternWalk','bagWalk','holdCup','phone']){
+   let previous;
+   for(let i=0;i<=48;i++){
+    const pose=a.update(action,i/24),r=inspectRig(a.rig,pose,previous);assert.deepEqual(r.errors,[],`${action} ${i}`);previous=r;
+    if(action==='lanternWalk'){
+     const socket=a.rig.limbs.Larm.tip.localToWorld(new THREE.Vector3(0,-.078*a.proportions.handScale,.022*a.proportions.handScale)),handle=a.props.objects.lantern.getWorldPosition(new THREE.Vector3());assert.ok(socket.distanceTo(handle)<1e-6);
+     assert.equal(a.rig.fingers.find(f=>f.side==='L').gesture,'carry');
+    }
+    if(action==='phone')assert.ok(a.rig.neck.rotation.x>.35);
+   }
+  }
+ }finally{dispose(a);}
+});
+
+test('every coat style has a level sewn hem and contains the feminine chest surface',()=>{
+ for(const coatStyle of ['long','cloak','short']){
+  const a=createCharacter({body:'feminine',coatStyle});
+  try{
+   const g=a.object.getObjectByName('coat-shell').geometry,p=g.attributes.position;
+   assert.deepEqual(topology(g),{components:1,openEdges:0},coatStyle);
+   const hem=coatStyle==='long'?.595:coatStyle==='cloak'?.32:.99;
+   const low=[],front=[];
+   for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+    if(Math.abs(x)<.19&&y<hem+.012&&y>hem-.02)low.push(y);
+    if(Math.abs(x)<.12&&y>1.30&&y<1.34)front.push(z);
+   }
+   assert.ok(low.length>10);assert.ok(low.every(y=>Math.abs(y-hem)<1e-6),'no marching-grid saw teeth at hem');
+   const bp=a.object.getObjectByName('continuous-body').geometry.attributes.position;let bodyFront=0;
+   for(let i=0;i<bp.count;i++)if(Math.abs(bp.getX(i))<.12&&bp.getY(i)>1.30&&bp.getY(i)<1.34)bodyFront=Math.max(bodyFront,bp.getZ(i));
+   assert.ok(Math.max(...front)>bodyFront+.009,'outer cloth chest has clearance');
+  }finally{dispose(a);}
+ }
+});
