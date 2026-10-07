@@ -50,7 +50,9 @@ test('all action samples pass hinge direction, joint limits, constant bones, tor
 });
 test('anatomy guard detects a deliberately reversed knee, hand collision and altered bone length',()=>{
   const rig=createSkeleton(),pose=poseAt('stand',0);applyPose(rig,pose);rig.limbs.Lleg.lower.rotation.x=-.5;rig.limbs.Rarm.lower.position.y=-.4;
-  rig.limbs.Larm.tip.position.set(.0,-.1,0);rig.limbs.Larm.upper.position.x=0;rig.root.updateMatrixWorld(true);
+  // Place the hand inside the torso in world space, independent of twist-bone layout.
+  rig.root.updateMatrixWorld(true);const inside=rig.pelvis.localToWorld(rig.pelvis.position.clone().set(0,.25,0));
+  rig.limbs.Larm.tip.position.copy(rig.limbs.Larm.tip.parent.worldToLocal(inside));rig.root.updateMatrixWorld(true);
   const errors=inspectRig(rig,pose).errors;assert.ok(errors.some(e=>e.includes('reversed hinge')));assert.ok(errors.some(e=>e.includes('bone length')));assert.ok(errors.some(e=>e.includes('hand intersects')));
 });
 test('IK clamps singular/unreachable targets, and mirrored half-cycle gait preserves left/right convention',()=>{
