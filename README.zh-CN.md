@@ -61,6 +61,10 @@ scripts/new-project.sh motion-games my-motion
 
 G1 意境与分镜、G2 角色与表演、G3 成片预览均由独立审核人完成，前关未通过不得推进，自审不算审核。v0.3 整体移植成熟引擎并提供 [参数化工具包](tracks/music-video/kits/README.md)、[离线预览与复验工具](tools/cinematic/README.md)。执行 `npm run test:cinematic` 生成 1920×1080 关键帧、大图联系表、升起/叠化/雨连续序列、工具包截图和性能证据，保存到生成项目的 out/。角色独立验收不由本引擎脚本代签；历史基线见 [v0.2 报告](validation/v0.2/README.md)。软件后端截图不等于真机性能或独立审美通过。
 
+## v0.3.1 通用增补
+
+[歌词对齐管线](tools/music/lyrics/README.md)提供本地 Demucs/pYIN、逐字 DP、人工校正、锁定字幕与合成歌误差自测；[场景反馈工具](tracks/music-video/kits/feedback.md)提供曲线鞋印、连续地形、公寓近物、玻璃倒影及可见性统计。完整复验可设置 `SCENE_PYTHON` 指向已安装音乐依赖的 Python；缺少依赖会显式 SKIP 音频自测。
+
 ## 许可与责任
 
 本仓库原创内容采用 [Apache-2.0](LICENSE)，版权为 suwubee 与贡献者。未随仓库分发第三方创作素材；第三方依赖保留各自许可，模型下载记录许可来源，使用前仍须核验。用户对上传、导入、下载、生成内容及第三方服务的授权负责；输出需人工审核，体感活动不构成医疗或专业健身建议，摄像头默认本地处理。完整说明见 [中英免责声明](DISCLAIMER.md)、[隐私与许可](playbook/09-privacy-and-licensing.md)。

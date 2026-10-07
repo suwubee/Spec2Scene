@@ -8,6 +8,7 @@
 //  finished lines fade gracefully (drift up + dissolve).
 import { clamp, saturate, smoothstep, lastIndexLE } from './util.js';
 import { makeRng } from './noise.js';
+import {alignedSongLines} from './lyrics/index.js';
 
 export const FONT_SERIF = 'MV Serif';
 export const FONT_BRUSH = 'MV Brush';
@@ -81,6 +82,7 @@ export function displayLine(l) {
  *     bottom:{ place:'bar'|'picture', size } }
  */
 export function createLyrics({ width, height, pictureHeight, song, config = {}, coverage = null, onMissing = null }) {
+  const FONT_SERIF = config.fontFamily || 'MV Serif', FONT_BRUSH = config.titleFontFamily || FONT_SERIF;
   const W = width, H = height, PH = pictureHeight;
   const barH = (H - PH) / 2;
   const S = H / 1080; // reference scale
@@ -110,7 +112,7 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
 
   // song.json lines are the display lines (text keeps the half-line space; see displayLine). A timeline
   // `displayLines` list is only used to RE-FLOW merged aligner lines, when explicitly configured.
-  const songLines = song ? song.lyrics : [];
+  const songLines = song?.lines ? alignedSongLines(song) : (song?.lyrics || []).filter(l=>l.locked===true);
   let lines = (config.displayLines && reflowLyrics(songLines, config.displayLines)) || songLines.map(displayLine);
   // per-line lead: sibilant / aspirated initials start 0.08–0.2 s before the aligned vowel onset
   const leadOf = (i) => (config.leads && config.leads[i] !== undefined ? config.leads[i] : (config.lead ?? 0.10));
@@ -120,7 +122,7 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
     return { ...l, t0: l.t0 - d, t1: l.t1 - d, chars: l.chars.map((c) => ({ ...c, t0: c.t0 - d, t1: c.t1 - d })) };
   });
   for (const l of lines) checkGlyphs(l.text, FONT_SERIF);
-  const styles = (config.styles || []).slice().sort((a, b) => a.t0 - b.t0);
+  const styles = (config.styles || (config.direction==='vertical'?[{t0:0,t1:Math.max(0,...songLines.map(l=>l.t1))+2,mode:'vertical',...(config.vertical||{})}]:[])).slice().sort((a, b) => a.t0 - b.t0);
   const titles = config.titles || [];
   for (const T of titles) {
     if (T.kind === 'credits') for (const ln of T.lines || []) checkGlyphs(typeof ln === 'object' ? ln.text : ln, typeof ln === 'object' && ln.head ? FONT_BRUSH : FONT_SERIF);
@@ -573,9 +575,9 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
       const visible = [];
       if (!hideLyrics) for (const L of lines) if (t >= L.visStart && t <= L.fadeEnd) visible.push(L);
       const vt = titles.filter((T) => t >= T.t0 && t <= T.t1);
-      if (!visible.length && !vt.length) return null;
       g.clearRect(0, 0, W, H); // full clear: the result must never depend on the previous frame
       bb.x0 = bb.y0 = 1e9; bb.x1 = bb.y1 = -1e9;
+      if (!visible.length && !vt.length) return null;
       for (const L of visible) { if (L.mode === 'vertical') drawVertical(L, t); else drawBottom(L, t); }
       for (const T of vt) {
         if (T.kind === 'credits') drawCredits(T, t);

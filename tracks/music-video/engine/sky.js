@@ -18,6 +18,7 @@
 //
 // See engine/README.md for the full API, exposure numbers, performance and known issues.
 import { createMoonTexture } from './moon.js';
+import {skyPreset,lunarTransmittance} from './sky-presets.js';
 import { makeRng, GLSL_HASH } from './noise.js';
 
 const D2R = Math.PI / 180;
@@ -1476,7 +1477,7 @@ function mipToRoughness(m) {
 // ---------------------------------------------------------------------------------------------------------------
 export function createSky(ctx, opts = {}) {
   const { THREE, renderer } = ctx;
-  const o = { ...SKY_DEFAULTS, ...opts };
+  const o = { ...SKY_DEFAULTS, ...(opts.preset?skyPreset(opts.preset).sky:{}), ...opts };
   let quality = ctx.quality === 'preview' ? 'preview' : 'final';
   // budget tier: software SwiftShader gets a cheaper 'final' cloud march (llvmpipe / real GPUs get the full one)
   let slowGL = o.budget === 'low';
@@ -1768,7 +1769,7 @@ export function createSky(ctx, opts = {}) {
     U.uWind.value.set(-windDir[0] * D, -D * 0.06, -windDir[2] * D);
     U.uWind2.value.set(-windDir[0] * D * 1.25, -D * 0.1, -windDir[2] * D * 1.25);
     // key light for the clouds: moon at night, sun by day (both TOA irradiance * transmittance at ~1.1 km)
-    const tMoonCl = transmittanceJS(1.1, moonDir[1], o.mie), tSunCl = transmittanceJS(sunDir[1] < 0.03 ? 3.0 : 1.1, sunDir[1], o.mie);
+    const tMoonCl = lunarTransmittance(transmittanceJS(1.1, moonDir[1], o.mie),o.lunarCloudNeutrality), tSunCl = transmittanceJS(sunDir[1] < 0.03 ? 3.0 : 1.1, sunDir[1], o.mie);
     const moonI = [U.uMoonE.value.x * tMoonCl[0], U.uMoonE.value.y * tMoonCl[1], U.uMoonE.value.z * tMoonCl[2]];
     const sunI = [U.uSunE.value.x * tSunCl[0] / o.daySkyGain * TW.gu, U.uSunE.value.y * tSunCl[1] / o.daySkyGain * TW.gu, U.uSunE.value.z * tSunCl[2] / o.daySkyGain * TW.gu];
     const moonKey = lum(moonI) >= lum(sunI);
@@ -1779,7 +1780,7 @@ export function createSky(ctx, opts = {}) {
     U.uSecCol.value.set(...(lum(sCol) > 1e-4 * Math.max(1e-6, lum(kCol)) && lum(sCol) > 1e-7 ? sCol : [0, 0, 0]));
     // cirrus: lit at its own altitude (stays lit after sunset)
     const ciH = o.cirrusAltitude / 1000;
-    const tMoonCi = transmittanceJS(ciH, moonDir[1], o.mie), tSunCi = transmittanceJS(ciH, sunDir[1], o.mie);
+    const tMoonCi = lunarTransmittance(transmittanceJS(ciH, moonDir[1], o.mie),o.lunarCloudNeutrality), tSunCi = transmittanceJS(ciH, sunDir[1], o.mie);
     const moonCi = [U.uMoonE.value.x * tMoonCi[0], U.uMoonE.value.y * tMoonCi[1], U.uMoonE.value.z * tMoonCi[2]];
     const sunCi = [U.uSunE.value.x * tSunCi[0] / o.daySkyGain * TW.gu, U.uSunE.value.y * tSunCi[1] / o.daySkyGain * TW.gu, U.uSunE.value.z * tSunCi[2] / o.daySkyGain * TW.gu];
     const ciMoonKey = lum(moonCi) >= lum(sunCi);

@@ -28,3 +28,5 @@ node scripts/validate-cinematic.mjs --root projects/cinematic-demo --benches-onl
 ```
 
 每页产生 1920×1080 关键帧，`*-sheet.png` 大图联系表以两列、每格 960 像素排列；`*-review.png` 是 1600 像素宽的审图版本。截图只进入项目 out/，不提交仓库。试验台证明构件能接入与渲染；场景美术与独立审核需要额外看图。角色目录属于独立实现任务，样片默认使用远景或剪影。
+
+v0.3.1 增补的曲线鞋印、连续非均匀高度场、天空预设、长时间粒子、公寓、盆栽、折纸、玻璃倒影及构图测量的完整参数表见 [feedback.md](feedback.md)。统一复验台为 [bench/feedback.html](bench/feedback.html)。

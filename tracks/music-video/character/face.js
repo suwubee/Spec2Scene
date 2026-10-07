@@ -35,7 +35,7 @@ function sculptHead(skin,feminine){
   const mesh=new THREE.Mesh(g,m);mesh.name='sculpted-face';return mesh;
 }
 export function makeFace(head,skin,{body,hairStyle}){
-  const feminine=body==='feminine';head.add(sculptHead(skin,feminine));
+  const feminine=body==='feminine',sculpt=sculptHead(skin,feminine);head.add(sculpt);const headRest=sculpt.geometry.attributes.position.array.slice();
   const hair=material('cloth',{color:0x291b16,roughness:.76}),lip=material('skin',{color:0xa76c60,roughness:.55}),dark=material('skin',{color:0x624138}),white=material('skin',{color:0xa59f8b,roughness:.3}),iris=material('skin',{color:0x4d4636,roughness:.34}),pupil=material('metal',{color:0x111712,metalness:0,roughness:.22});
   const eyes=[],brows=[],locks=[];
   for(const sign of [-1,1]){
@@ -60,7 +60,9 @@ export function makeFace(head,skin,{body,hairStyle}){
     ellipsoid(head,.0028,[1,.38,.45],[sign*.011,-.029,.096],dark);
   }
   // A soft cupid bow and lower lip, seated in the muzzle rather than drawn on it.
-  ellipsoid(head,.016,[1,.18,.28],[0,-.067,.0865],lip);
+  const lowerLip=ellipsoid(head,.016,[1,.18,.28],[0,-.067,.0865],lip);
+  const cavity=ellipsoid(head,.015,[1,.01,.35],[0,-.065,.091],new THREE.MeshStandardMaterial({color:0x26141a,roughness:1}),'mouth-cavity');
+  const teeth=ellipsoid(head,.012,[1,.16,.1],[0,-.066,.094],new THREE.MeshStandardMaterial({color:0xd4cbb7,roughness:.55}),'upper-teeth');teeth.visible=false;
   for(const sign of [-1,1])ellipsoid(head,.009,[1,.20,.26],[sign*.007,-.0627,.0865],lip);
   const mouth=stroke(head,[[-.017,-.0648,.084],[0,-.0648,.090],[.017,-.0648,.084]],.0006,dark);
   // Scalp foundation has volume; larger swept locks define the silhouette.
@@ -86,5 +88,14 @@ export function makeFace(head,skin,{body,hairStyle}){
     ellipsoid(head,.05,[1,.82,.85],[0,.045,-.107],hair,'hair-bun');
     for(let i=0;i<7;i++){const a=i/7*Math.PI*2;lock([[Math.sin(a)*.033,.045+Math.cos(a)*.032,-.106],[Math.sin(a+.8)*.045,.045+Math.cos(a+.8)*.035,-.142],[Math.sin(a+1.6)*.018,.045+Math.cos(a+1.6)*.020,-.151]],.008,.006,true);}
   }else if(hairStyle!=='short')throw new Error('unknown hair style');
-  return {eyes,brows,mouth,locks};
+  let lastOpen=-1,lastRound=-1;
+  return {eyes,brows,mouth,locks,updateMouth(open,round){
+    if(open===lastOpen&&round===lastRound)return;lastOpen=open;lastRound=round;
+    lowerLip.position.y=-.067-open*.027;lowerLip.position.z=.0865-open*.004;lowerLip.scale.x=1-round*.38;
+    cavity.scale.set(1-round*.4,.01+open*.93,.35);cavity.position.y=-.065-open*.014;teeth.visible=open>.25;
+    mouth.visible=open<.12;
+    const p=sculpt.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){const x=headRest[i*3],y=headRest[i*3+1],z=headRest[i*3+2],weight=smooth((-.052-y)/.07);p.setXYZ(i,x,y-open*.027*weight,z-open*.009*weight);}
+    p.needsUpdate=true;sculpt.geometry.computeVertexNormals();
+  }};
 }

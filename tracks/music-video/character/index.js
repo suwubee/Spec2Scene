@@ -4,6 +4,7 @@ import {createSkeleton,applyPose,limit,anatomy} from './rig.js';
 import {poseAt,handPoses,fingerAngles} from './motion.js';
 import {ellipsoid} from './geometry.js';
 import {makeFace} from './face.js';
+import {solveHandContacts} from './contact.js';
 import {makeBoot,addTailoring,makeScarf} from './wardrobe.js';
 import {makeProps,poseForProp,propNames} from './props.js';
 import {loftField,union,isoSurface,skinGeometry,tube,garmentShell} from './surface.js';
@@ -113,7 +114,7 @@ export function createCharacter({body='masculine',height=body==='feminine'?1.66:
   holder.scale.setScalar(height/1.851);
   const api={object:holder,rig,skeleton,head,props,proportions:{body,height,headRatio,neckRadius,handScale,bodyRings},update(action,t,options={}){
     const selectedProp=options.prop??(action==='lanternWalk'?'lantern':action==='holdCup'?'cup':action==='phone'?'phone':action==='bagWalk'?'bag':prop);if(!propNames.includes(selectedProp))throw new Error('unknown prop');
-    const pose=poseAt(action,t,options);poseForProp(rig,pose,selectedProp);applyPose(rig,pose);head.rotation.z=pose.secondary*.06;
+    const pose=poseAt(action,t,options);poseForProp(rig,pose,selectedProp);applyPose(rig,pose);if(options.handTargets)pose.ik=solveHandContacts(rig,pose,options.handTargets,options.ik);head.rotation.z=pose.secondary*.06;
     const handPose=options.handPose||pose.handPose,angles=handPoses[handPose];if(!angles)throw new Error('unknown hand pose');pose.fingers=angles;
     pose.handPose=handPose;
     for(const f of rig.fingers){
@@ -125,8 +126,8 @@ export function createCharacter({body='masculine',height=body==='feminine'?1.66:
     }
     face.eyes.forEach(e=>e.scale.y=pose.blink?.12:1);
     const expression=options.expression||'neutral',tilt={neutral:0,concern:.14,resolve:-.09,tired:.04}[expression];if(tilt===undefined)throw new Error('unknown expression');face.brows.forEach((b,i)=>b.rotation.z=(i?1:-1)*tilt);
-    if(options.viseme!==undefined&&!Number.isFinite(options.viseme))throw new TypeError('finite viseme required');
-    face.mouth.scale.y=1+clamp(options.viseme||0)*1.5;
+    for(const key of ['viseme','jawOpen','mouthRound'])if(options[key]!==undefined&&!Number.isFinite(options[key]))throw new TypeError('finite mouth parameter required');
+    face.updateMouth(clamp(options.jawOpen??options.viseme??0),clamp(options.mouthRound??0));
     const wind=options.wind??.5;
     if(options.deformClothing!==false)face.locks.forEach((lock,j)=>{const p=lock.geometry.attributes.position,r=lock.userData.rest;for(let i=0;i<p.count;i++){const u=clamp((.1-r[i*3+1])/.4),f=u*u;p.setXYZ(i,r[i*3]+f*wind*(.035+Math.sin(t*2.2+j*.4)*.014),r[i*3+1],r[i*3+2]+f*pose.secondary*.18);}p.needsUpdate=true;lock.geometry.computeVertexNormals();});
     if(options.deformClothing!==false)scarfRig?.update(t,wind,Math.sin(t*.38/.9*Math.PI*2));

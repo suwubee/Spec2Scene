@@ -239,6 +239,10 @@ class Worker {
       try { this.st.pid = +fs.readFileSync(this.pidFile, 'utf8').trim() || null; } catch { this.st.pid = null; } // native GPU mode has no pid file
       this.st.status = 'ready';
       this.st.gl = browser.mvGL;
+      this.st.quality = await opened.page.evaluate(() => {
+        const scene=window.__scene||window.__mv, q=scene?.qualityInfo||scene?.engine?.qualityInfo;
+        return q?{requested:q.requested||q.request,actual:q.actual||q.name,offline:q.offlineQuality||null,software:q.software}:null;
+      });
       let renderer = '';
       if (browser.mvGL === 'native') {
         this.st.renderer = await glRenderer(opened.page);
@@ -287,7 +291,7 @@ class Worker {
       state.done++; this.st.framesDone++;
       recent.push(Date.now());
       sumSeek += r.seekMs; sumCap += r.capMs; nTimed++;
-      logStream.write(JSON.stringify({ f, w: this.id, seekMs: Math.round(r.seekMs), capMs: Math.round(r.capMs), bytes: buf.length, doneAtMs: Date.now() - T0 }) + '\n');
+      logStream.write(JSON.stringify({ f, w: this.id, quality:this.st.quality, seekMs: Math.round(r.seekMs), capMs: Math.round(r.capMs), bytes: buf.length, doneAtMs: Date.now() - T0 }) + '\n');
     });
     this.pending.push({ f, job, uploadId: r.uploadId });
     // keep at most 2 frames in flight per worker (bounded memory)

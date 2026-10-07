@@ -9,6 +9,6 @@ export function resolveQuality(request='auto',gl=null) {
   const renderer=gl ? String(gl.getParameter(ext?.UNMASKED_RENDERER_WEBGL || gl.RENDERER)) : '';
   const software=/swiftshader|llvmpipe|softpipe|software|mesa offscreen/i.test(renderer);
   if(!['auto','high','medium','low','final','preview'].includes(request))throw new Error('unknown quality');
-  const name=request==='final'?'high':request==='preview'?'medium':software?'low':request==='auto'?'high':request;
-  return {...QUALITY[name],name,request,renderer,software,offline:request==='final',reason:software&&request!=='final'?'software renderer: automatic low quality':'requested quality'};
+  const name=request==='final'?'high':request==='preview'?'medium':request==='auto'?(software?'low':'high'):request;
+  return {...QUALITY[name],name,request,requested:request,actual:name,offlineQuality:'high',renderer,software,offline:request==='final',reason:software&&request==='auto'?'software renderer: auto selected low':'explicit requested quality preserved'};
 }

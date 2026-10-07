@@ -97,3 +97,13 @@ node tools/test/character-browser.mjs --out out/character-review --port 39930
 人体检查包含骨长、固定铰链方向、关节范围、手端与躯干、足底支撑、滑移、支撑相膝角、摆臂相位和指节屈曲、放松手指递增和过伸拒绝。关节采样用 `deformClothing:false` 跳过衣摆顶点更新，衣服必须另看完整浏览器序列。npm test 另检验主体连通性/封闭性、归一化权重、双层壳、肘部体积、动作错误注入、外部模型不同绑定轴与单位。
 
 离散人体检查不证明全网格无自碰撞；几何指节限位不证明手指之间不接触。所有失败轮保留，修复后再拍。同版本 G2 仍须独立审核人逐张看图；自动通过、软件截图和实现者自审都不能代签 G2 或目标硬件性能。
+
+## 接触、非站姿与口型
+
+`actor.update(action,t,{jawOpen,mouthRound})` 控制下颌与口腔，参数均为 0–1；`viseme` 保留为 jawOpen 的兼容入口。下半脸变形、下唇、暗口腔与上牙同步更新；不是音素识别或完整面部表情模型。没有音频驱动时需项目提供时间包络。
+
+`lie` 是静态仰卧姿势，可与现有 sit/rise 一起接受人体检查。姿态记录 standing/seated/lying，除骨长、限位和穿透外，检查坐姿骨盆/卧姿胸背与显式支撑面的高度误差。生成动作中的支撑高度按角色父空间缩放；自定义 `pose.bodySupports=[{joint:'pelvis',offset:[0,-.1,0],height,tolerance}]` 默认 height 为世界坐标。支撑面需项目实际放置；检查器不会猜测床和椅子的几何。当前 lie 不包含躺下/起床过渡，衣料和软组织接触仍需逐帧检查。
+
+`actor.update('stand',t,{handTargets:{L:{position:[x,y,z],offset:[0,-.075,.02],tolerance:.015}},ik:{iterations:36}})` 用现有肩/肘限位求解手掌接触。坐标是世界空间，offset 是手端骨局部坐标；目标可来自墙、窗或道具握点。返回的 pose.ik 含 errorMetres/reachable，inspectRig 的 contactReport 再独立测量真实末端位置。不可达目标保持受限姿态并报接触误差，不冒充成功。不包含腕部法线约束或手指自动包覆。
+
+复验工具 `tools/test/feedback-browser.mjs` 保存坐/卧/张口/接触动作的正、侧连续联系表，并验证倒序 seek。它使用 39920–39929 时可设置 `SCENE_TEST_PORT_MIN=39920 SCENE_TEST_PORT_MAX=39929`；同版本的独立 G2 审核仍由审核人完成。

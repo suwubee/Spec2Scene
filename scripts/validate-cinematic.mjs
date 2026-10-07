@@ -55,7 +55,8 @@ try{
   const live=await openMvPage(b,{baseUrl:server.url,page:'index.html',query:'quality=high',w:640,h:360,readyTimeout:90000,diag:{echo:'problems'}});
   report.realtime=await live.page.evaluate(async()=>{const e=window.__scene;await Promise.all([e.seek(3),e.seek(40),e.seek(2)]);return e.inspect();});
   assert.equal(report.realtime.time,2,'seek calls must finish in submission order');
-  if(['llvmpipe','swiftshader'].includes(b.mvGL))assert.equal(report.realtime.quality.name,'low');
+  assert.equal(report.realtime.quality.requested,'high');assert.equal(report.realtime.quality.actual,'high');
+  report.performance.quality={requested:report.realtime.quality.requested,actual:report.realtime.quality.actual,offline:report.realtime.quality.offlineQuality};
   await capture(live,2,'realtime-low.png');await live.page.close();
  }
  for(const kind of (a.quick?[]:a.kits?String(a.kits).split(','):['snowfield','station','river','interior','architecture','garden','vegetation','sky','materials','particles'])){

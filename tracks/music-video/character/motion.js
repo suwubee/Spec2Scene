@@ -1,7 +1,7 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {smooth, mix, mod, clamp} from './math.js';
 import {anatomy, twoBone, limit} from './rig.js';
-export const actions = ['stand','walk','stop','turn','sit','rise','pushDoor','pushWindow','shade','embrace','bow','lookUp','windWalk','lanternWalk','bagWalk','holdCup','phone'];
+export const actions = ['stand','walk','stop','turn','sit','lie','rise','pushDoor','pushWindow','shade','embrace','bow','lookUp','windWalk','lanternWalk','bagWalk','holdCup','phone'];
 export const handPoses={relaxed:[.22,.32,.25],carry:[1.05,1.35,.85],open:[.025,.025,.025],touch:[.12,.16,.09],smooth:[.06,.08,.05],rest:[.22,.32,.25],fist:[1.2,1.4,1.1],point:[.3,.4,.25]};
 // MCP/PIP/DIP flexion is per digit, in radians. The local palm faces +Z;
 // negative X rotation carries the finger pad towards that palm, never the nail.
@@ -71,5 +71,12 @@ export function poseAt(action,t,{speed=.38,distance=t*speed,yaw=0,wind=.5,handPo
     pose.limbs[side+'arm']={x:limit('shoulderX',x),z:limit('shoulderZ',z),bend:limit('elbow',bend),wrist,forearmTwist:twist};
   }
   if(handPose){if(!handPoses[handPose])throw new Error('unknown hand pose');pose.handPose=handPose;pose.occupiedArms=['L','R'];}
+  pose.posture=seated>.99?'seated':'standing';
+  if(seated>.99){pose.bodySupports=[{joint:'pelvis',offset:[0,-.1,0],height:.44,tolerance:.025,space:'parent'}];}
+  if(action==='lie'){
+    pose.posture='lying';pose.rootPitch=-Math.PI/2;pose.groundY=0;pose.position=[0,.22,0];pose.hipHeight=.94;pose.pelvisYaw=0;pose.chestYaw=0;pose.breath=0;
+    pose.bodySupports=[{joint:'chest',offset:[0,0,-.12],height:.1,tolerance:.02,space:'parent'}];
+    for(const side of ['L','R']){pose.contacts[side+'leg']=false;pose.limbs[side+'leg']={x:0,z:0,bend:.08,footPitch:0};pose.limbs[side+'arm'].z=(side==='L'?1:-1)*.22;}
+  }
   return pose;
 }

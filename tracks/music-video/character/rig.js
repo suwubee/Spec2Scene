@@ -1,5 +1,6 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {clamp} from './math.js';
+import {inspectContacts} from './contact.js';
 export const limits = Object.freeze({elbow:[0,2.5], knee:[0,2.6], shoulderX:[-2.5,1.2], shoulderZ:[-1.8,1.8], hip:[-1.9,1.1], neck:[-.9,.9], wrist:[-.9,.9], finger:[0,1.55], forearmTwist:[-Math.PI,Math.PI]});
 export const anatomy = Object.freeze({upperLeg:.43, lowerLeg:.43, upperArm:.29, lowerArm:.265, ankle:.085, hipWidth:.105, shoulderWidth:.205});
 export function limit(name, value) {
@@ -38,7 +39,7 @@ export function createSkeleton() {
   return {root,pelvis,chest,neck,limbs};
 }
 export function applyPose(rig, pose) {
-  rig.root.position.fromArray(pose.position); rig.root.rotation.set(0,pose.yaw,0); rig.pelvis.position.y=pose.hipHeight;
+  rig.root.position.fromArray(pose.position); rig.root.rotation.set(pose.rootPitch||0,pose.yaw,pose.rootRoll||0); rig.pelvis.position.y=pose.hipHeight;
   rig.pelvis.rotation.set(0,pose.pelvisYaw||0,0);rig.chest.rotation.set(pose.breath||0,pose.chestYaw||0,0); rig.neck.rotation.set(limit('neck',pose.headPitch-(pose.breath||0)),limit('neck',pose.headYaw-(pose.pelvisYaw||0)-(pose.chestYaw||0)),0);
   for(const [key,limb] of Object.entries(rig.limbs)) {
     const p=pose.limbs[key], arm=limb.type==='arm';
@@ -52,7 +53,7 @@ export function applyPose(rig, pose) {
   for(const limb of Object.values(rig.limbs))if(limb.type==='leg'){const desired=rootRotation.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),pose.limbs[limb.side+'leg'].footPitch||0));limb.tip.quaternion.copy(limb.lower.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(desired));limb.tip.updateMatrixWorld(true);}
 }
 export function inspectRig(rig, pose, previous = null) {
-  const errors=[], points={},supportPoints={},scale=rig.root.getWorldScale(new THREE.Vector3()).x,ground=rig.root.getWorldPosition(new THREE.Vector3()).y;
+  const errors=[], points={},supportPoints={},scale=rig.root.getWorldScale(new THREE.Vector3()).x,ground=pose.groundY??rig.root.getWorldPosition(new THREE.Vector3()).y;
   for(const value of [rig.neck.rotation.x,rig.neck.rotation.y])if(value<limits.neck[0]||value>limits.neck[1])errors.push('neck: joint range');
   for(const [key,l] of Object.entries(rig.limbs)) {
     const a=l.upper.getWorldPosition(new THREE.Vector3()), b=l.lower.getWorldPosition(new THREE.Vector3()), c=l.tip.getWorldPosition(new THREE.Vector3());
@@ -67,7 +68,7 @@ export function inspectRig(rig, pose, previous = null) {
     const local=rig.pelvis.worldToLocal(c.clone());
     if(arm && local.y>0 && local.y<.53 && (local.x/.19)**2+(local.z/.14)**2<1) errors.push(`${key}: hand intersects torso`);
     if(!arm) {
-      if(c.y<ground+anatomy.ankle*scale-1e-6) errors.push(`${key}: foot below ground`);
+      if(c.y<ground+(pose.posture==='lying'?0:anatomy.ankle*scale)-1e-6) errors.push(`${key}: foot below ground`);
       const contact=new THREE.Vector3(...(pose.support?.[key]||[0,-anatomy.ankle,0])).applyMatrix4(l.tip.matrixWorld);supportPoints[key]=contact.toArray();
       if(pose.contacts[key]&&Math.abs(contact.y-ground)>1e-6)errors.push(`${key}: sole off ground`);
       if(previous && pose.contacts[key] && previous.contacts[key] && pose.contactIds[key]===previous.contactIds[key] && new THREE.Vector3(...previous.supportPoints[key]).distanceTo(contact)>1e-5) errors.push(`${key}: stance foot slides`);
@@ -88,5 +89,6 @@ export function inspectRig(rig, pose, previous = null) {
       if(degrees[0]<10||degrees[0]>20||degrees[3]<25||degrees[3]>40||degrees.some((v,i)=>i>0&&v<=degrees[i-1]))errors.push('finger: relaxed flexion must increase index to little');
     }
   }
-  return {errors,points,supportPoints,contacts:pose.contacts,contactIds:pose.contactIds};
+  const contactReport=inspectContacts(rig,pose);errors.push(...contactReport.errors);
+  return {errors,points,supportPoints,contacts:pose.contacts,contactIds:pose.contactIds,contactReport,posture:pose.posture||'standing'};
 }

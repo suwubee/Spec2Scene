@@ -24,7 +24,13 @@ import {defaultEnvironment as DEFAULT_WORLD} from './world/environment.js';
 export const WIND_MS = 6.0;             // m/s horizontal wind at world.wind = 1
 export const SHUTTER = 0.5 / 24;        // 180° shutter at 24 fps (s)
 const MAX_PT = 4;                       // point lights per system
-const TL_DT = 1 / 16, TL_T0 = -8, TL_N = 4096; // world timeline texture: t in [-8, 248) every 1/16 s
+/** One immutable domain per world; CPU and shader use the same bounds. */
+export function particleTimeDomain(world={}) {
+  const {start=-8,end=600,step=.125}=world.particleTimeDomain||{};
+  const count=Math.ceil((end-start)/step)+1;
+  if(![start,end,step].every(Number.isFinite)||start>0||end<0||step<=0||count<2||count>16384||Math.abs(start/step-Math.round(start/step))>1e-7)throw new Error('invalid particle time domain (max 16384 samples; start aligned to step)');
+  return {start,end:start+(count-1)*step,step,count};
+}
 
 const qScale = (ctx) => (ctx.quality === 'final' ? 1 : 0.4);
 const toV3 = (THREE, a, def = [0, 0, 0]) => (a && a.isVector3 ? a.clone() : new THREE.Vector3().fromArray(a || def));
@@ -124,11 +130,12 @@ function worldFnOf(ctx, opts) {
 /**
  * Film timeline of slowly varying world quantities that particles need at *past* times:
  *   drift(t) = ∫ windVec dt  (m, x/z) — so gusts move rain/petals/mist correctly (w(t)·t would be wrong),
- *   petalFall(t), rain(t). Sampled every 1/16 s, pure function of the world curves.
+ *   petalFall(t), rain(t). Configured time domain, pure function of the world curves.
  */
-function getTimeline(THREE, worldSrc) {
+export function getTimeline(THREE, worldSrc) {
   let tl = _timelines.get(worldSrc);
   if (tl) return tl;
+  const {start:TL_T0,step:TL_DT,count:TL_N}=particleTimeDomain(worldSrc);
   const data = new Float32Array(TL_N * 4);
   let wx = 0, wz = 0, prev = null;
   // integrate from 0 outward in both directions so drift(0) = 0
@@ -149,14 +156,15 @@ function getTimeline(THREE, worldSrc) {
     const a = i * 4, b = (i + 1) * 4;
     return [data[a] + (data[b] - data[a]) * u, data[a + 1] + (data[b + 1] - data[a + 1]) * u, data[a + 2] + (data[b + 2] - data[a + 2]) * u, data[a + 3] + (data[b + 3] - data[a + 3]) * u];
   };
-  tl = { tex, at, data };
+  tl = { tex, at, data, domain:[TL_T0,TL_DT,TL_N-1.001] };
   _timelines.set(worldSrc, tl);
   return tl;
 }
 const GLSL_TIMELINE = /* glsl */ `
-uniform sampler2D uTimeline;   // x,z = wind drift (m), z... see particles.js getTimeline
+uniform sampler2D uTimeline;   // x,z drift, petal/rain activity
+uniform vec3 uTimelineDomain;
 vec4 timelineAt(float t){
-  float f = clamp((t - ${TL_T0.toFixed(1)}) / ${TL_DT.toFixed(6)}, 0.0, ${(TL_N - 1.001).toFixed(3)});
+  float f = clamp((t - uTimelineDomain.x) / uTimelineDomain.y, 0.0, uTimelineDomain.z);
   float i = floor(f);
   vec4 a = texelFetch(uTimeline, ivec2(int(i), 0), 0), b = texelFetch(uTimeline, ivec2(int(i) + 1, 0), 0);
   return mix(a, b, f - i);
@@ -325,7 +333,7 @@ function commonUniforms(THREE, ctx, opts, extra = {}) {
     uSceneDepth: fx.uniforms.uSceneDepth, uDepthOn: fx.uniforms.uDepthOn, uSoftDepth: { value: opts.softDepth ?? 0.05 },
     uTime: { value: 0 }, uLens: L.uLens, uRes: L.uRes,
     uCocMax: { value: 40 }, uGain: { value: opts.gain ?? 1 }, uShutter: { value: opts.shutter ?? SHUTTER },
-    uTimeline: { value: tl.tex },
+    uTimeline: { value: tl.tex }, uTimelineDomain: {value:new THREE.Vector3(...tl.domain)},
   }, lightUniforms(THREE), extra);
 }
 
@@ -1122,7 +1130,7 @@ const _dripTL = new WeakMap();
 function getDripTimeline(worldSrc) {
   let d = _dripTL.get(worldSrc);
   if (d) return d;
-  const N = TL_N, dt = TL_DT;
+  const {start:TL_T0,step:dt,count:N}=particleTimeDomain(worldSrc);
   const rain = new Float32Array(N), lag = new Float32Array(N), phi = new Float64Array(N);
   for (let i = 0; i < N; i++) rain[i] = worldSrc.at(TL_T0 + i * dt).rain || 0;
   const tau = 14; // s, drain time constant of the roof

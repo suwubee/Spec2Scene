@@ -99,7 +99,7 @@ export async function createEngine(opts = {}) {
     const F = await loadFonts(opts.fonts || {});
     fontInfo = F.faces;
     for (const f of F.faces) if (!f.ok) errors.push(`font failed to load: ${f.file}`);
-    lyrics = createLyrics({ width, height, pictureHeight, song, config: timeline.lyricsConfig || {}, coverage: F.coverage, onMissing: (m) => errors.push(m) });
+    lyrics = createLyrics({ width, height, pictureHeight, song:opts.alignment||song, config: timeline.lyricsConfig || {}, coverage: F.coverage, onMissing: (m) => errors.push(m) });
   }
 
   const msaa = opts.msaa ?? qualityInfo.msaa;

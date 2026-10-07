@@ -41,9 +41,9 @@ test('full-pipeline shot adapter preserves dissolve ends and reverse seek',()=>{
  const t=createTimeline([{...base,id:'a',scene:'room',start:0,end:2},{...base,id:'b',scene:'river',start:2,end:4,dissolve:1}]);
  assert.deepEqual(t.resolve(2).map(l=>l.weight),[1,0]);assert.equal(t.resolve(3).length,1);const result=t.resolve(2.5);t.resolve(0);assert.deepEqual(t.resolve(2.5),result);assert.ok(Math.abs(result.reduce((s,l)=>s+l.weight,0)-1)<1e-8);
 });
-test('software renderer lowers realtime quality but preserves explicit offline final',()=>{
+test('software renderer only lowers auto quality and reports requested/actual/offline separately',()=>{
  const gl={RENDERER:1,getExtension:()=>null,getParameter:()=> 'Mesa llvmpipe'};
- assert.equal(resolveQuality('high',gl).name,'low');assert.equal(resolveQuality('final',gl).name,'high');assert.equal(resolveQuality('final',gl).pipeline,'final');assert.throws(()=>resolveQuality('invalid'));
+ assert.equal(resolveQuality('high',gl).name,'high');assert.equal(resolveQuality('medium',gl).actual,'medium');assert.equal(resolveQuality('auto',gl).name,'low');assert.equal(resolveQuality('final',gl).name,'high');assert.equal(resolveQuality('final',gl).pipeline,'final');assert.throws(()=>resolveQuality('invalid'));
 });
 test('render plans reject runaway ranges; resume rejects changed source/browser/settings before work',async t=>{
  assert.deepEqual(rangeFrames(0,8,3),[0,3,6]);for(const spec of ['0:2:0','2:1:1','0:2:-1','-1','NaN'])assert.throws(()=>parseTimes(spec));assert.throws(()=>finite(12,'workers',1,2));

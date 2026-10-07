@@ -39,7 +39,7 @@ test('legacy character material names remain compatible',()=>{
   assert.throws(()=>material('unknown'));
 });
 test('subtitle timing and silent/media clocks share absolute time; no automatic audio unlock',async()=>{
-  const lines=[{start:1,end:3,text:'<placeholder>',words:[{text:'<a>',start:1},{text:'<b>',start:2}]}];
+  const lines=[{locked:true,start:1,end:3,text:'<placeholder>',words:[{text:'<a>',start:1},{text:'<b>',start:2}]}];
   assert.equal(subtitleAt(lines,.9).text,'');assert.equal(subtitleAt(lines,2).active,1);assert.equal(subtitleAt(lines,3).text,'');
   assert.equal(musicAt({beats:[0,.5,1],energy:{times:[0,1],values:[.2,.8]}},1).energy,.8);
   const c=createClock({duration:4});assert.equal(c.playing,false);await c.play(1000);assert.equal(c.time(2500),1.5);c.pause(3000);assert.equal(c.time(9000),2);c.seek(1,9000);assert.equal(c.time(9001),1);

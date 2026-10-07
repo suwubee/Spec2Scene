@@ -34,7 +34,7 @@ if (track === '--help' || track === '-h') {
     const rootPackage = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8'));
     await put('package.json', JSON.stringify({name, private: true, type: 'module', scripts: {test: 'node --test tests/*.test.mjs',
       serve: 'node tools.local/serve.mjs --root . --port 39920', ...(track === 'music-video' ? {'render:final': 'node tools.local/render-final.mjs', 'render:preview': 'node tools.local/cinematic/preview.mjs --root .'} : {})}, engines: {node: '>=20'}, devDependencies: rootPackage.devDependencies}, null, 2) + '\n');
-    await put('.gitignore', 'node_modules/\n.venv/\n__pycache__/\nout/\nwork/\nvendor/\nassets/*\n!assets/README.md\n');
+    await put('.gitignore', 'node_modules/\n.venv/\n__pycache__/\ncache/\nout/\nwork/\nvendor/\nassets/*\n!assets/README.md\n');
     const titles = {'music-video': '音乐视频 · 三维电影', '3d-simulation': '三维模拟 · 数据来源', 'motion-games': '体感游戏 · 本地骨架'};
     const controls = track === 'motion-games' ? '<div class="controls"><button id="begin" class="primary" data-gesture>开始演示</button><button id="camera">打开摄像头</button><button id="stop" data-gesture>停止</button></div><div class="panel"><p id="audio-status" role="status"></p><button id="sound">点一下开启声音</button></div>' :
       `<label for="timeline">${track === 'music-video' ? '时间（秒）' : '观察角度'}</label><input id="timeline" type="range" min="0" max="${track === 'music-video' ? 8 : 6.28}" step="0.01" value="0">${track === '3d-simulation' ? '<button id="provenance">切换数据来源视图</button>' : ''}`;
