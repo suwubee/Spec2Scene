@@ -84,3 +84,5 @@
 | M14 | 景深、粒子与合成约定 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M15 | 软件渲染器成本 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
+
+音乐视频 v0.2 追加经验见 [产线经验](../../tracks/music-video/lessons.md)：SVG 误读为二维媒介、逐句图解、反向肘膝没有自动拦截、自审冒充独立审核。导演方法、可运行三维引擎与三关证据共同防止重演。

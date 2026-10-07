@@ -1,0 +1,224 @@
+{
+  "version": "0.2.0",
+  "branch": "v0.2-cinematic",
+  "automatedStatus": "PASS",
+  "independentReview": {
+    "G1": "PENDING",
+    "G2": "PENDING",
+    "G3": "PENDING"
+  },
+  "npmTest": {
+    "passed": 24,
+    "failed": 0
+  },
+  "pythonSelftests": {
+    "analyze_song": "PASS",
+    "understand": "PASS",
+    "gen_voice": "PASS"
+  },
+  "baselineBrowser": "PASS; three tracks, default autoplay, local runtime, synthetic camera, 12-frame render/encode/package roundtrip",
+  "cinematicBrowser": {
+    "status": "PASS",
+    "backend": "Chromium headless / ANGLE SwiftShader",
+    "autoplay": "default",
+    "frames": [
+      {
+        "time": 0,
+        "file": "key-0.png",
+        "composition": {
+          "shot": "snow-crane",
+          "characterAreaFraction": 0.0013064795301482746,
+          "bounds": {
+            "left": 0.3747752654470843,
+            "bottom": 0.41177152194685396,
+            "width": 0.019134828648477098,
+            "height": 0.06827756621966169
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 15,
+        "file": "key-15.png",
+        "composition": {
+          "shot": "snow-crane",
+          "characterAreaFraction": 0.0008233048079613558,
+          "bounds": {
+            "left": 0.3662393021765452,
+            "bottom": 0.40962039764430264,
+            "width": 0.015131546305876209,
+            "height": 0.05440982641950032
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 29.9,
+        "file": "key-29-9.png",
+        "composition": {
+          "shot": "snow-crane",
+          "characterAreaFraction": 0.0006216291093332014,
+          "bounds": {
+            "left": 0.3625293873753916,
+            "bottom": 0.42035117626244983,
+            "width": 0.013599981653980242,
+            "height": 0.04570808440401625
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 35,
+        "file": "key-35.png",
+        "composition": {
+          "shot": "station-arrival",
+          "characterAreaFraction": 0.017290933450753155,
+          "bounds": {
+            "left": 0.39823824417734266,
+            "bottom": 0.2646849776371345,
+            "width": 0.06571460995451628,
+            "height": 0.26312160207176005
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 41,
+        "file": "key-41.png",
+        "composition": {
+          "shot": "station-focus",
+          "characterAreaFraction": 0.13200023517011866,
+          "bounds": {
+            "left": 0.4815675902974018,
+            "bottom": 0,
+            "width": 0.18656915442222421,
+            "height": 0.7075137129655915
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 46,
+        "file": "key-46.png",
+        "composition": {
+          "shot": "station-focus",
+          "characterAreaFraction": 0.13935587530565874,
+          "bounds": {
+            "left": 0.48661299232181016,
+            "bottom": 0,
+            "width": 0.19405223877761663,
+            "height": 0.7181358802325399
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 50,
+        "file": "key-50.png",
+        "composition": {
+          "shot": "station-turn",
+          "characterAreaFraction": 0.4607442538713072,
+          "bounds": {
+            "left": 0.23385506523333682,
+            "bottom": 0,
+            "width": 0.4607442538713072,
+            "height": 1
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      },
+      {
+        "time": 57,
+        "file": "key-57.png",
+        "composition": {
+          "shot": "station-departure",
+          "characterAreaFraction": 0.012791282842378276,
+          "bounds": {
+            "left": 0.3936255770586158,
+            "bottom": 0.28352442896519275,
+            "width": 0.056894188834016646,
+            "height": 0.22482582324348838
+          },
+          "method": "Conservative projected 3D bounding box; negative space still requires visual annotation"
+        }
+      }
+    ],
+    "errors": [],
+    "external": [],
+    "review": {
+      "G1": "PENDING",
+      "G2": "PENDING",
+      "G3": "PENDING"
+    },
+    "runtimeDigest": "a29cbae08ff615e900492d5cf275f426b7e1ba92ad7120a21ac91a856dbd9846",
+    "browser": "153.0.8010.12",
+    "determinism": {
+      "status": "PASS",
+      "scope": "same session and fresh page PNG identity",
+      "sha256": "3b60a958f4794d00ffc47aea0cb256f4b2d1ce3c448c5439e9eddbd3e336644d"
+    },
+    "performance": {
+      "width": 1280,
+      "height": 720,
+      "samples": 12,
+      "p50ms": 4.400000095367432,
+      "p95ms": 7.1000001430511475,
+      "rafP50ms": 16.700000000000728,
+      "rafP95ms": 616.6999999999998,
+      "timingScope": "CPU submission plus finish; RAF intervals measured separately",
+      "hardwareRealtime": "SKIP: software renderer only; target device not available"
+    },
+    "scope": "Automated checks and implementer evidence, not independent G1/G2/G3 approval"
+  },
+  "anatomy": {
+    "status": "PASS",
+    "baseSamples": 6253,
+    "proportions": [
+      {
+        "body": "masculine",
+        "height": 1.55,
+        "samples": 3133
+      },
+      {
+        "body": "masculine",
+        "height": 1.9,
+        "samples": 3133
+      },
+      {
+        "body": "feminine",
+        "height": 1.55,
+        "samples": 3133
+      },
+      {
+        "body": "feminine",
+        "height": 1.9,
+        "samples": 3133
+      }
+    ],
+    "totalSamples": 18785,
+    "failures": []
+  },
+  "evidenceRoot": "validation/v0.2/artifacts/latest",
+  "hygiene": {
+    "status": "PASS",
+    "files": 187,
+    "vendorVerified": 1,
+    "externalPatterns": 15,
+    "issues": [],
+    "scope": "Tracked plus unignored files. Exact-hash MIT runtime allows standard light class identifiers. User denylist supplied outside source tree."
+  },
+  "notValidated": [
+    "Independent aesthetic approval",
+    "Target hardware real-time performance",
+    "Licensed real music or human recordings",
+    "Local source-separation model quality",
+    "Production deployment"
+  ],
+  "deployment": "NOT RUN",
+  "push": "NOT RUN",
+  "syntax": {
+    "javascriptFiles": 69,
+    "status": "PASS",
+    "pythonFiles": 3
+  }
+}

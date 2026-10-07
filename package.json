@@ -1,14 +1,21 @@
 {
   "name": "spec2scene",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "From spec to scene: methods, templates and tools",
   "type": "module",
   "license": "Apache-2.0",
-  "engines": {"node": ">=20"},
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node --test --test-concurrency=1 tools/test/*.test.mjs",
-    "test:browser": "node scripts/validate-projects.mjs"
+    "test:browser": "node scripts/validate-projects.mjs",
+    "test:cinematic": "node scripts/validate-cinematic.mjs --out validation/v0.2/artifacts/latest",
+    "test:hygiene": "node tools/hygiene.mjs"
   },
-  "devDependencies": {"playwright": "1.63.0", "sharp": "0.35.5"}
+  "devDependencies": {
+    "playwright": "1.63.0",
+    "sharp": "0.35.5"
+  }
 }

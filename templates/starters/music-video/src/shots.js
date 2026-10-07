@@ -1,3 +1,3 @@
-// 中性分镜占位：换歌时在项目中填写音乐事件、场景与世界状态。
-export const shots = [{id: 'intro', start: 0, end: 8, scene: 'procedural-study', transition: 'cut'}];
-export function worldAt(t) { return {phase: t * Math.PI / 4, exposure: 1}; }
+import {createWorld} from '../engine/world/index.js';
+export const world=createWorld({hour:[[0,23],[60,23.5]],weather:[[0,0],[29,0],[31,1]],wind:[[0,.25],[30,.4],[60,.55]],fog:[[0,.010],[30,.010],[33,.025]],light:[[0,1]],season:[[0,1]],motif:[[0,0],[60,1]]});
+export const worldAt=t=>world.at(t);

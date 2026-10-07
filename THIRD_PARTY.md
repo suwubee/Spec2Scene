@@ -1,9 +1,10 @@
 # 第三方依赖与用户素材边界
 
-仓库原创方法、模板和工具为 Apache-2.0。仓库不附带第三方运行时源码、媒体、模型或数据集；package-lock 固定 Node 依赖，由用户安装，Python 工具依赖在独立环境安装。下表是工程依赖提示，实际发布以取得版本随附的许可证为准。
+仓库原创方法、模板和工具为 Apache-2.0。仓库仅附带下列许可明确的 three.js 运行时源码，不附带媒体、模型或数据集；package-lock 固定 Node 依赖，由用户安装，Python 工具依赖在独立环境安装。下表是工程依赖提示，实际发布以取得版本随附的许可证为准。
 
 | 依赖/工具 | 用途 | 许可核对 |
 |---|---|---|
+| three.js 0.170.0 / r170 | 本地三维渲染；原版压缩模块 | MIT；[许可证](tracks/music-video/engine/vendor/LICENSE)、[来源与固定哈希](tracks/music-video/engine/vendor/README.md)；保留原始版权通知 |
 | Playwright | 浏览器自动化 | Apache-2.0；下载的浏览器及组件各自许可 |
 | sharp | 图像测量与联系表 | Apache-2.0；原生图像库及编解码依赖保留其许可，含 libvips 的 LGPL 条款 |
 | MediaPipe Tasks Vision | 用户项目本地识别 | 下载运行时随附许可；模型卡与模型使用条款独立核对 |

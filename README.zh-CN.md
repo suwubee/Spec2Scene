@@ -18,7 +18,7 @@ scripts/new-project.sh music-video my-scene
 node tools/serve.mjs --root projects/my-scene --port 39920
 ```
 
-打开 `http://127.0.0.1:39920`，即可看到时间可定位的程序化画面。前台服务用 Ctrl+C 结束；后台服务记录 PID，只停止自己的进程。另两条产线：
+打开 `http://127.0.0.1:39920`，即可看到本地 three.js 驱动的 60 秒三维样片：雪夜旷野的升起长镜头，以及雨夜站台的剪辑、拉焦与回头。主画面使用 three.js 三维；SVG/Canvas 可用于叠加层与排版。前台服务用 Ctrl+C 结束；后台服务记录 PID，只停止自己的进程。另两条产线：
 
 ```bash
 scripts/new-project.sh 3d-simulation my-world
@@ -52,6 +52,14 @@ scripts/new-project.sh motion-games my-motion
 | [validation](validation/README.md) | 基准验收与证据 |
 
 执行 `npm test`、`npm run test:browser` 及工具文档列出的 Python `--selftest`。浏览器验收自动生成三条产线的演示项目，使用 39920–39939 的本地端口，验证后按自己的 PID 关闭并清理。受限数据缺失明确 SKIP，不能将合成测试结果写成真实识别准确率。
+
+## 效果门槛（v0.2）
+
+先写[意境书](tracks/music-video/directing/01-mood-first.md)与[意象转译表](tracks/music-video/directing/01b-imagery-translation.md)：例如让脚印承接月光，用大景小人和留白烘托孤独。歌词是情绪证据，不能直接变成逐句图解的镜头清单。
+
+每镜至少前/中/后三层空间，半浮点 HDR 与色调映射、有动机的灯光、雾或体积光、焦距/光圈/对焦距离驱动的景深，以及镜头表驱动的运动与转场。默认角色使用写实比例，肘膝限位和人体结构检查进入 npm test。详细标准见 [05-quality-bar](tracks/music-video/directing/05-quality-bar.md)。
+
+G1 意境与分镜、G2 角色与表演、G3 成片预览均由独立审核人完成，前关未通过不得推进，自审不算审核。执行 `npm run test:cinematic` 可生成关键帧、八方向转台、全动作序列、像素复渲和性能证据；截图位于忽略的 `validation/v0.2/artifacts/`，结论见 [v0.2 验证报告](validation/v0.2/README.md)。软件后端截图不等于真机性能或独立审美通过。
 
 ## 许可与责任
 

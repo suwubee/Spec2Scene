@@ -1,7 +1,7 @@
 import {chromium} from 'playwright';
 
 export async function browser(options = {}) {
-  return chromium.launch({headless: true, args: ['--no-sandbox'],
+  return chromium.launch({headless: true, args: ['--no-sandbox', ...(process.env.SCENE_SOFTWARE_GL === '1' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [])],
     ...(process.env.SCENE_CHROMIUM ? {executablePath: process.env.SCENE_CHROMIUM} : {}), ...options});
 }
 

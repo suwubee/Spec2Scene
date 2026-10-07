@@ -18,7 +18,7 @@ scripts/new-project.sh music-video my-scene
 node tools/serve.mjs --root projects/my-scene --port 39920
 ```
 
-Open `http://127.0.0.1:39920`. The procedural canvas works immediately. Stop your foreground server with Ctrl+C. Background jobs must be stopped by their recorded PID. Other tracks:
+Open `http://127.0.0.1:39920`. A local three.js cinematic starter runs immediately: a 60-second snowfield crane shot followed by a rainy platform with cuts, a focus pull and a restrained turn. Main imagery uses three.js 3D; SVG/Canvas are for overlays and typography. Stop your foreground server with Ctrl+C. Background jobs must be stopped by their recorded PID. Other tracks:
 
 ```bash
 scripts/new-project.sh 3d-simulation my-world
@@ -45,6 +45,14 @@ The motion starter includes a labelled synthetic skeleton and a real camera inpu
 | [validation](validation/README.md) | Baseline validation procedure and evidence |
 
 Run `npm test`, `npm run test:browser`, and the Python `--selftest` commands in the tools guide. The browser suite generates all three demonstration projects, serves only loopback ports 39920–39939, verifies them, closes its own servers, and removes the demonstrations. Optional real datasets are explicitly reported as SKIP when absent; synthetic checks do not establish real recognition accuracy.
+
+## Quality threshold (v0.2)
+
+Start with a mood book and an imagery translation table. Let moonlit footprints suggest a journey; use a small figure, negative space and motivated light to convey solitude. Words are emotional evidence, not a shot-by-shot illustration script.
+
+Every shot needs foreground, middle ground and background, half-float HDR and tone mapping, motivated lighting, atmospheric depth, lens-driven depth of field and a camera track. Character hinge limits and anatomy checks run in `npm test`. See the [directing quality bar](tracks/music-video/directing/05-quality-bar.md).
+
+Independent reviewers must pass G1 (mood/shots), G2 (anatomy/performance) and G3 (complete preview). Self-review cannot approve a gate. `npm run test:cinematic` generates keyframes, eight-view turntables, action sequences, pixel repeatability and software-rendering measurements. Evidence is ignored under `validation/v0.2/artifacts/`; the [validation report](validation/v0.2/README.md) states review and hardware limits.
 
 ## License and responsibility
 

@@ -24,3 +24,5 @@ work/
 *.glb
 *.zip
 *.tar.gz
+
+validation/v0.2/artifacts/
