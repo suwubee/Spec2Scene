@@ -18,7 +18,7 @@ scripts/new-project.sh music-video my-scene
 node tools/serve.mjs --root projects/my-scene --port 39920
 ```
 
-打开 `http://127.0.0.1:39920`，即可看到时间可定位的程序化画面。前台服务用 Ctrl+C 结束；后台服务记录 PID，只停止自己的进程。另两条产线：
+打开 `http://127.0.0.1:39920`，即可看到本地 three.js 驱动的 60 秒三维样片：雪夜旷野的升起长镜头，以及雨夜站台的剪辑与拉焦。主画面使用 three.js 三维；SVG/Canvas 可用于叠加层与排版。前台服务用 Ctrl+C 结束；后台服务记录 PID，只停止自己的进程。另两条产线：
 
 ```bash
 scripts/new-project.sh 3d-simulation my-world
@@ -51,7 +51,32 @@ scripts/new-project.sh motion-games my-motion
 | [projects](projects/README.md) | 每个新项目独立输出目录 |
 | [validation](validation/README.md) | 基准验收与证据 |
 
-执行 `npm test`、`npm run test:browser` 及工具文档列出的 Python `--selftest`。浏览器验收自动生成三条产线的演示项目，使用 39920–39939 的本地端口，验证后按自己的 PID 关闭并清理。受限数据缺失明确 SKIP，不能将合成测试结果写成真实识别准确率。
+执行 `npm test`、`npm run test:browser -- --isolated --offline`（不写当前 projects、不下载模型）或常规 `npm run test:browser` 及工具文档列出的 Python `--selftest`。浏览器验收自动生成三条产线的演示项目，使用 39920–39939 的本地端口，验证后按自己的 PID 关闭并清理。受限数据缺失明确 SKIP，不能将合成测试结果写成真实识别准确率。
+
+## 效果门槛（v0.4）
+
+先写[意境书](tracks/music-video/directing/01-mood-first.md)与[意象转译表](tracks/music-video/directing/01b-imagery-translation.md)：例如让脚印承接月光，用大景小人和留白烘托孤独。歌词是情绪证据，不能直接变成逐句图解的镜头清单。
+
+每镜至少前/中/后三层空间，半浮点 HDR 与色调映射、有动机的灯光、雾或体积光、焦距/光圈/对焦距离驱动的景深，以及镜头表驱动的运动与转场。默认角色使用写实比例，肘膝限位和人体结构检查进入 npm test。详细标准见 [05-quality-bar](tracks/music-video/directing/05-quality-bar.md)。
+
+G1 意境/分镜/样张、G1b 新引擎重渲、G2G3 全曲/表演/字幕、FINAL 最终复验均由独立审核人完成，前关未通过不得推进，自审不算审核。v0.3 整体移植成熟引擎并提供 [参数化工具包](tracks/music-video/kits/README.md)、[离线预览与复验工具](tools/cinematic/README.md)。执行 `npm run test:cinematic` 生成 1920×1080 关键帧、大图联系表、升起/叠化/雨连续序列、工具包截图和性能证据，保存到生成项目的 out/。角色独立验收不由本引擎脚本代签；历史基线见 [v0.2 报告](validation/v0.2/README.md)。软件后端截图不等于真机性能或独立审美通过。
+
+## v0.3.1 通用增补
+
+[歌词对齐管线](tools/music/lyrics/README.md)提供本地 Demucs/pYIN、逐字 DP、人工校正、锁定字幕与合成歌误差自测；[场景反馈工具](tracks/music-video/kits/feedback.md)提供曲线鞋印、连续地形、公寓近物、玻璃倒影及可见性统计。完整复验可设置 `SCENE_PYTHON` 指向已安装音乐依赖的 Python；缺少依赖会显式 SKIP 音频自测。
+
+## v0.4.0 能力与验证边界
+
+| 能力 | 已实现与实测范围 | 仍未验证或不足 |
+|---|---|---|
+| 天空与气氛 | 逐帧月相、低月珍珠白中和、光线步进云海自阴影/银边、外部地形谷雾；软件浏览器同帧/逆序检查 | 云内复杂物体交界、目标 GPU 性能 |
+| 场景构件 | 盆/缸/水洼场景反射、长焦远山细分、室内月光反弹/漫射、细分岩石与程序材质 | GI、波面动力学、超近景石材、城市语义 LOD |
+| 镜头与后期 | 分镜曝光/白平衡覆盖全局，逐镜曲线、FX 光柱状态刷新 | 真机实时全曲音画同步预算 |
+| 角色 | 动作交叉混合、加性抬头/转头/低头、坐姿膝上手位、抱膝、发髻高光；人体采样与多视角连续序列 | 中景脸/手/衣料真实感、任意坡面 IK、完整布料/接触碰撞 |
+| 歌词与排版 | 人声留存、静音乐句/段落保序/比例行窗、±0.3 秒起点与审核批准、人物包围盒避让 | 真实歌曲识别精度、真人听审；比例边界始终是估计 |
+| 流程 | 导演稿及虚构示例、四道独立关卡、命令超时、上下文检查点、60 分钟停滞看门狗 | 自动检查不代签审美、真人表演或生产验收 |
+
+接口见 [v0.4 构件](tracks/music-video/kits/v04.md)、[导演稿](templates/CONCEPT-music-video.md)、[版本记录](CHANGELOG.md)及[本轮验收](validation/v0.4/README.md)。`npm run test:v04 -- <临时证据目录>` 直接测试仓库通用构件；图像和原始日志只留临时输出。目标 GPU、真人听审、真实模型推理与生产环境无本轮通过声明。保留 `wip/v021-partial` 参考分支，不自动推送。
 
 ## 许可与责任
 

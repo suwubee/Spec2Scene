@@ -1,0 +1,87 @@
+{
+  "author": "suwubee",
+  "version": "content-addressed authorized snapshot",
+  "modules": [
+    {
+      "module": "encode.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 7835,
+      "sourceSHA256": "bf1424d46de1582686f9f94735b4d8edd3208cea606cf5f523cceedf215a5d10"
+    },
+    {
+      "module": "lib/browser.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 26315,
+      "sourceSHA256": "544c62518afaedddd9743f3f180dbf4054bec22a0f31911d1d91548902632b4b"
+    },
+    {
+      "module": "lib/capture.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 6908,
+      "sourceSHA256": "9eabb8e74bac6e7f7a21647d9e8bd96cf610aabe7be95683bab20f01b4ae447d"
+    },
+    {
+      "module": "lib/nproc_shim.c",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 2443,
+      "sourceSHA256": "0d78172cc447ae4dace8843bb95a06c30d2b6417dd172548866dc24d0157a563"
+    },
+    {
+      "module": "lib/png.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 4464,
+      "sourceSHA256": "f26a2ec1e73b3e5c2bcb7b8985aca5ccc9f7edeffd3a198413f8c7f623bd769c"
+    },
+    {
+      "module": "ops/prio_guard.py",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 3116,
+      "sourceSHA256": "476cf6020589935e3192c0502a33928dac09f4bd89377595566328e4561ba0e2"
+    },
+    {
+      "module": "qa.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 18857,
+      "sourceSHA256": "db8f7c488b21bab14dda61ac1df926980c6e7c265aa1519d0aa014d02fabe963"
+    },
+    {
+      "module": "render_frames.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 20966,
+      "sourceSHA256": "5e2176de9795d14c0797813056953cb44e1ef45ca7786fe35a66b5ebe2981b1d"
+    },
+    {
+      "module": "serve.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 7594,
+      "sourceSHA256": "53290a59f11b74d7c4dc79856b45c4f9fc1e6615d46bd253f0a27431d99127a1"
+    },
+    {
+      "module": "snap.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 8026,
+      "sourceSHA256": "d574d9e335dfa83163ce2f7f27e341c329e6f7764534fe68be9626a9303db4b4"
+    },
+    {
+      "module": "verify_determinism.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 6832,
+      "sourceSHA256": "dcbc9bbb8fdc043ecd0091251c26c1dc22e2c6d933d4f3b8fdccf2903f41b6cd"
+    },
+    {
+      "module": "verify_dissolve.mjs",
+      "sourceGroup": "authorized-film-tools",
+      "sourceBytes": 6313,
+      "sourceSHA256": "c283d464ac1e171ddfe2fa66a02e35380351cf55175c9162ee66e832b130ffc8"
+    }
+  ],
+  "adaptations": [
+    "project root and loopback ports",
+    "bounded workers, threads and frame budgets",
+    "resume identity and error propagation",
+    "project audio and fonts",
+    "explicit sparse encode stride",
+    "preview orchestration and contact sheets",
+    "PID ownership and shutdown"
+  ]
+}

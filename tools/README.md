@@ -10,7 +10,7 @@
 | qa.mjs | `--frames DIR [--compare DIR] [--video FILE] --out REPORT.json` | sharp/FFmpeg/ffprobe；黑场、冻结、色阶稀少候选、AV 长度与起点、解码、像素确定性 |
 | contact-sheet.mjs | `--dir DIR --out SHEET.png [--labels labels.json]` | sharp；每页最多 80 图，标签 XML 转义 |
 | snap.mjs | `--url URL --out DIR --lstar --selectors '#a,#b'` | Playwright/sharp；多视口、CIE L*、可选 ROI、元素重叠/越界 |
-| music/analyze_song.py | `--input FILE --bpm-hint 120 --out out/song.json` | librosa/numpy/matplotlib；输出 JSON+SVG，--tempo 使用 rubberband 并重新分析 |
+| music/analyze_song.py | `--input FILE --bpm-hint 120 --out out/song.json` | librosa/numpy/matplotlib；输出 JSON+PNG，--tempo 使用 rubberband 并重新分析 |
 | voice/gen_voice.py | `--script lines.json --voice '<voice-id>' --out out/voice` | edge-tts 或 --engine command；FFmpeg 两遍响度归一与清单 |
 | deploy/test-evidence.mjs | `--source SITE --command '["npm","test"]' --out EVIDENCE.json` | 发布树摘要绑定通过测试；证据放源目录外 |
 | deploy/deploy-static.sh | `--config CONFIG.json [--activate]` | 默认准备 releases/version，激活前按配置比 MIME/缓存/字节 |
@@ -37,3 +37,23 @@ python3 -m venv .venv
 打包默认排除媒体/模型，`--include-media` 仅适用于自己确认许可的项目资源；受限测试目录仍排除。需要更严格白名单时先构建 staging，再对它打包。验证钩子接收解压目录参数，不依赖当前源码目录。
 
 验证：`npm test` 覆盖通用 JS 的正常与失败路径；`npm run test:browser` 验证三项目页面、模型、渲染→编码→QA→联系表→截图、解压和部署本地冒烟。无真实授权数据的额外回归明确 SKIP，不将合成输入宣称为真人结果。
+
+## v0.2 三维电影与音乐证据
+
+- `music/understand.py --input FILE --out JSON [--line-count N]`：本地人声活动候选、频段进出、重复段、主导音高、可手调行时间及 PNG；可接本地人声轨/本地分离器，不自动下载模型。详见 music/README.md。
+- `check-anatomy.mjs [--out JSON]`：所有程序角色动作的固定铰链方向、关节范围、骨长、接触、滑步与手端检查。必须与转台/动作序列一起审核。
+- `review-gates.mjs --record JSON --gate G1|G2|G3`：检查当前版本的独立审核记录，拒绝自审或缺前关；不代签结论。
+- `hygiene.mjs [--patterns EXTERNAL_FILE]`：扫描 tracked 和未忽略文件、私有路径、媒体/模型扩展及固定哈希运行时；禁词表由任务在仓库外提供。
+- `scripts/validate-cinematic.mjs --out IGNORED_DIR`：生成临时三维样片，Playwright 截图、八向转台、全动作与三段连续序列、像素复渲、软件后端性能；自动清理自己的项目和服务 PID，保留证据。
+
+离线帧工具在页面支持 resize(w,h) 时按请求尺寸设置实际画布。软件后端可设置 `SCENE_SOFTWARE_GL=1`，渲染 manifest 记录该选项；浏览器自动播放策略保持默认。裸 canvas 捕获不含 DOM 字幕，带字幕输出须显式合成叠加层。
+
+`render-final.mjs --review REVIEW_JSON --identity REVISION --url URL --out DIR` 是音乐视频正式渲染入口：要求同版本独立 G1–G3 PASS 并逐个确认审核证据存在，再进入单 worker 渲染。生成项目提供 `npm run render:final -- ...`；预览仍使用 render-frames.mjs，不应把预览冒充已获独立批准的 final。
+
+## v0.3 完整电影工具
+
+音乐视频使用 [cinematic/README.md](cinematic/README.md) 的移植离线工具，含半分辨率预览片段、严格身份续渲、BT.709 编码、像素确定性、叠化校验、字体子集化与 PID 优先级让路。原通用工具仍用于其他产线。
+
+## v0.4 执行与回归
+
+`tools/watchdog.mjs --help`：源码 60 分钟无变化后，按自有 PID 结束、等待退出、通过检查点重启，重启次数有上限。`scripts/validate-v04.mjs <临时输出>` 直接验证通用构件、字幕和正侧动作，保留失败图。`scripts/validate-projects.mjs --isolated --offline` 用临时仓库生成三产线夹具并显式 SKIP 模型推理，避免下载及修改当前 projects。

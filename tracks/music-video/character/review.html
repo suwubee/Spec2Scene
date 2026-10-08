@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:,"><title>角色审核台</title>
+<style>body{margin:0;background:#777;color:#fff;font:16px system-ui}canvas{display:block}label{margin:8px}nav{padding:12px;display:flex;flex-wrap:wrap}select,button{font:inherit}</style>
+<nav>
+<label>体型 <select id="body"><option value="feminine">女性</option><option value="masculine">男性</option></select></label>
+<label>衣服 <select id="coat"><option value="long">长大衣</option><option value="cloak">风帽斗篷</option><option value="short">短外套</option><option value="none">毛衣</option></select></label>
+<label>发型 <select id="hair"><option value="shoulder">齐肩发</option><option value="ponytail">低马尾</option><option value="bun">发髻</option><option value="short">短发</option></select></label>
+<label>道具 <select id="prop"><option value="none">无</option><option value="lantern">提灯</option><option value="bag">帆布包</option><option value="cup">杯子</option><option value="phone">手机</option></select></label>
+<label>场景 <select id="stage"><option value="studio">灰底三点光</option><option value="snow">雪地逆光</option></select></label>
+<label>动作 <select id="action"></select></label><label>时间 <input id="time" type="range" min="0" max="8" value="1" step="0.01"></label><label>视角 <select id="view"><option value="0">正面</option><option value="0.7854">3/4</option><option value="1.5708">侧面</option><option value="3.14159">背面</option></select></label><button id="play">播放 / 暂停</button></nav>
+<script type="module" src="./review.js"></script></html>

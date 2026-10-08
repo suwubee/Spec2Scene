@@ -1,0 +1,11 @@
+{
+  "demucsVersion": "4.0.1",
+  "name": "htdemucs",
+  "signature": "955717e8",
+  "file": "955717e8-8726e21a.th",
+  "url": "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/955717e8-8726e21a.th",
+  "sha256": "8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4",
+  "license": "MIT",
+  "licenseURL": "https://raw.githubusercontent.com/facebookresearch/demucs/v4.0.1/LICENSE",
+  "registryURL": "https://raw.githubusercontent.com/facebookresearch/demucs/v4.0.1/demucs/remote/files.txt"
+}

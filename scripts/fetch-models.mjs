@@ -4,15 +4,17 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {mkdtemp, readFile, mkdir, rm, copyFile, realpath, rename} from 'node:fs/promises';
 import {cli, required, run, atomic} from '../tools/lib/cli.mjs';
+import {fetchDemucs} from '../tools/music/lyrics/fetch.mjs';
 
 const a = cli({project: {type: 'string'}, kind: {type: 'string', default: 'pose'}},
-  'Usage: scripts/fetch-models.sh --project projects/NAME [--kind pose|hand|face]\n仅下载到现有 projects 子项目；官方包校验 npm integrity，模型固定版本并记录 SHA-256 与许可来源。不提交模型。');
+  'Usage: scripts/fetch-models.sh --project projects/NAME [--kind pose|hand|face|demucs]\n仅下载到现有 projects 子项目；Demucs 固定 htdemucs + 完整 SHA-256 + MIT 许可，本地 CPU。');
 if (a) {
-  if (!['pose', 'hand', 'face'].includes(a.kind)) throw new Error('Unknown kind');
+  if (!['pose', 'hand', 'face', 'demucs'].includes(a.kind)) throw new Error('Unknown kind');
   const repo = fileURLToPath(new URL('../', import.meta.url));
   const projects = await realpath(path.join(repo, 'projects'));
   const project = await realpath(required(a.project, 'project'));
   if (!project.startsWith(projects + path.sep) || path.dirname(project) !== projects) throw new Error('Project must be a direct projects child');
+  if (a.kind === 'demucs') { await fetchDemucs(project); } else {
   const staging = await mkdtemp(path.join(os.tmpdir(), 'scene-models-'));
   const version = '0.10.32';
   async function download(url) {
@@ -53,4 +55,5 @@ if (a) {
     await atomic(path.join(target, `${a.kind}-sources.json`), JSON.stringify(manifest, null, 2));
     console.log(`PASS local ${a.kind} model and runtime installed; review vendor/${a.kind}-sources.json`);
   } finally { await rm(staging, {recursive: true, force: true}); }
+  }
 }

@@ -119,14 +119,14 @@ def selftest():
         sf.write(source, wave, 22050)
         result = analyze(source, 120)
         assert 118.8 <= result['bpm'] <= 121.2 and len(result['bars']) >= 3
-        save_plot(result, Path(folder) / 'analysis.svg')
+        save_plot(result, Path(folder) / 'analysis.png')
     print('PASS analyze_song selftest: grid, drift, silence rejection, synthesized audio analysis, plot')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input', type=Path)
-    parser.add_argument('--out', type=Path, help='JSON output; SVG plot uses same stem')
+    parser.add_argument('--out', type=Path, help='JSON output; PNG plot uses same stem')
     parser.add_argument('--bpm-hint', type=float)
     parser.add_argument('--beats-per-bar', type=int, default=4)
     parser.add_argument('--tempo', type=float, default=1, help='Optional rubberband tempo multiplier; reanalyze transformed WAV')
@@ -148,7 +148,7 @@ def main():
         subprocess.run(['rubberband', '--tempo', str(args.tempo), str(args.input), str(source)], check=True)
     result = analyze(source, args.bpm_hint * args.tempo, args.beats_per_bar)
     args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
-    save_plot(result, args.out.with_suffix('.svg'))
+    save_plot(result, args.out.with_suffix('.png'))
     print(json.dumps({'bpm': result['bpm'], 'analysis': result['analysis']}))
 
 

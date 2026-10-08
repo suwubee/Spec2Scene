@@ -20,7 +20,7 @@ export async function renderFrames(options) {
     throw new Error('Existing render: use a new directory or matching --resume configuration');
   }
   const session = await browser();
-  const backend = {browser: session.version(), executable: process.env.SCENE_CHROMIUM || 'playwright-chromium'};
+  const backend = {browser: session.version(), executable: process.env.SCENE_CHROMIUM || 'playwright-chromium', softwareGL: process.env.SCENE_SOFTWARE_GL === '1'};
   if (prior && JSON.stringify(prior.backend) !== JSON.stringify(backend)) {
     await session.close();
     throw new Error('Render backend changed');
@@ -37,6 +37,7 @@ export async function renderFrames(options) {
       const check = auditPage(page);
       await prepare(page, url);
       await sceneReady(page);
+      await page.evaluate(({width,height}) => window.__scene.resize?.(width,height), {width,height});
       try {
         while (next < queue.length && !failed) {
           const frame = queue[next++];
@@ -67,6 +68,7 @@ export async function renderFrames(options) {
               if (attempt === 2) throw error;
               await page.reload({waitUntil: 'networkidle'});
               await sceneReady(page);
+              await page.evaluate(({width,height}) => window.__scene.resize?.(width,height), {width,height});
             }
           }
           await atomic(dest, png);

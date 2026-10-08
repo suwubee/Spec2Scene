@@ -1,0 +1,3 @@
+-r ../requirements.txt
+scipy>=1.14,<2
+# Optional CPU separation; install separately with requirements-demucs.txt.

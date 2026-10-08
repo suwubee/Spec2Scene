@@ -3,7 +3,7 @@ import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
-import {mkdtemp, mkdir, readFile, writeFile, rm, access} from 'node:fs/promises';
+import {mkdtemp, mkdir, readFile, writeFile, rm, access, cp, symlink} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {run} from '../tools/lib/cli.mjs';
 import {browser} from '../tools/lib/browser.mjs';
@@ -15,7 +15,23 @@ import {snap} from '../tools/snap.mjs';
 import {evaluateVideo} from '../tools/pose/evaluate-video.mjs';
 import {makeRelease} from '../tools/package/make-release.mjs';
 
+if(process.argv.includes('--help')){console.log('Usage: node scripts/validate-projects.mjs [--isolated] [--offline]\nIsolated mode generates fixtures in a temporary repository. Offline mode skips model download/inference.');process.exit(0);}
 const root = fileURLToPath(new URL('../', import.meta.url));
+// An isolated temporary repository keeps the working checkout's projects/ read-only.
+if(process.argv.includes('--isolated')){
+  const fixture=await mkdtemp(path.join(os.tmpdir(),'scene-fixture-'));
+  try{
+    for(const name of ['scripts','templates','tracks','tools','playbook','package.json','package-lock.json','.gitignore'])await cp(path.join(root,name),path.join(fixture,name),{recursive:true});
+    await mkdir(path.join(fixture,'projects'));await symlink(path.join(root,'node_modules'),path.join(fixture,'node_modules'),'dir');
+    await run('git',['init','--quiet'],{cwd:fixture});
+    const child=spawn(process.execPath,[path.join(fixture,'scripts/validate-projects.mjs'),...(process.argv.includes('--offline')?['--offline']:[])],{cwd:fixture,stdio:'inherit'});
+    console.log(`OWNED isolated validator pid=${child.pid}`);const completed=once(child,'exit');
+    try{const [code]=await completed;if(code!==0)throw new Error(`Isolated browser validation failed (${code})`);}
+    finally{if(child.exitCode===null&&child.signalCode===null){child.kill('SIGTERM');await completed;}}
+  }finally{await rm(fixture,{recursive:true,force:true});}
+  process.exit(0);
+}
+const offline=process.argv.includes('--offline');
 const evidenceBase = process.env.SCENE_EVIDENCE_DIR || os.tmpdir();
 await mkdir(evidenceBase, {recursive: true});
 const evidence = await mkdtemp(path.join(evidenceBase, 'scene-validation-'));
@@ -24,7 +40,7 @@ const owned = [], servers = [];
 let chromium, observationTimer;
 
 async function serve(directory) {
-  for (let port = 39920; port <= 39939; port++) {
+  for (let port = 39920; port <= 39929; port++) {
     const child = spawn(process.execPath, [path.join(root, 'tools/serve.mjs'), '--root', directory, '--port', String(port)], {stdio: ['ignore', 'pipe', 'pipe']});
     let errors = '';
     child.stderr.on('data', chunk => { errors += chunk; });
@@ -55,15 +71,18 @@ try {
   await assert.rejects(run('bash', ['scripts/new-project.sh', 'motion-games', 'demo-a'], {cwd: root}));
   await assert.rejects(run('bash', ['scripts/new-project.sh', 'motion-games', '../escape'], {cwd: root}));
   console.log('PASS generator rejects existing project and path traversal');
-  await run('bash', ['scripts/fetch-models.sh', '--project', 'projects/demo-a', '--kind', 'pose'], {cwd: root});
-  console.log('PASS official local model/runtime download and integrity verification');
+  if(!offline){await run('bash', ['scripts/fetch-models.sh', '--project', 'projects/demo-a', '--kind', 'pose'], {cwd: root});
+  console.log('PASS official local model/runtime download and integrity verification');}
+  else console.log('SKIP pose model download/inference: offline validation forbids model downloads');
   const urls = [];
   for (const project of owned) urls.push(await serve(project));
   chromium = await browser({args: ['--no-sandbox', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']});
   const context = await chromium.newContext({permissions: ['camera'], viewport: {width: 1366, height: 768}});
   const page = await context.newPage();
-  const errors = [], external = [];
+  const errors = [], external = [], expectedMissing = [];
+  page.on('response', response=>{if(offline&&response.status()===404&&response.url().endsWith('/vision_bundle.mjs'))expectedMissing.push(response.url());});
   page.on('console', message => {
+    if(offline&&message.type()==='error'&&message.location().url.endsWith('/vision_bundle.mjs')&&message.text().includes('404'))return;
     if (message.type() === 'error' && message.text() !== 'INFO: Created TensorFlow Lite XNNPACK delegate for CPU.') errors.push(message.text());
   });
   page.on('pageerror', error => errors.push(error.message));
@@ -80,15 +99,13 @@ try {
   console.log('PASS motion synthetic skeleton, hands-free hold, default autoplay lock, trusted-click sound');
   await page.locator('#camera').click();
   await page.waitForFunction(() => window.__starter.source === 'camera' || window.__starter.cameraError, null, {timeout: 60000});
-  assert.equal(await page.evaluate(() => window.__starter.cameraErrorDetail || ''), '');
-  await page.waitForFunction(() => window.__starter.cameraFrames >= 2);
-  await page.locator('#stop').click();
-  assert.equal(await page.locator('video').evaluate(video => video.srcObject), null);
-  assert.equal(external.length, 0);
-  console.log('PASS real local model with fake camera initializes; stop releases media; external requests=0');
+  if(offline){assert.ok(await page.evaluate(()=>window.__starter.cameraError));assert.equal(expectedMissing.length,1);console.log('PASS absent local model reports recoverable camera error; real inference SKIP');}
+  else{assert.equal(await page.evaluate(() => window.__starter.cameraErrorDetail || ''), '');
+    await page.waitForFunction(() => window.__starter.cameraFrames >= 2);console.log('PASS real local model with fake camera initializes');}
+  await page.locator('#stop').click();assert.equal(await page.locator('video').evaluate(video => video.srcObject),null);assert.equal(external.length,0);
   // Leave the page alive beyond the historic telemetry timer; do not block the user's tool call.
-  console.log('INFO observing local runtime network for 65 seconds while verifying other tracks');
-  const observation = new Promise(resolve => { observationTimer = setTimeout(resolve, 65000); });
+  console.log(offline?'INFO offline resource isolation checked':'INFO observing local runtime network for 65 seconds while verifying other tracks');
+  const observation = new Promise(resolve => { observationTimer = setTimeout(resolve, offline?1:65000); });
   for (const [index, label] of [[1, 'music'], [2, 'simulation']]) {
     const tab = await context.newPage();
     tab.on('pageerror', error => errors.push(error.message));
@@ -137,7 +154,7 @@ try {
   console.log('PASS release package hash verification, extraction and independent browser startup');
   await observation;
   assert.equal(external.length, 0); assert.deepEqual(errors, []);
-  console.log('PASS 65-second telemetry observation: external requests=0; page errors=0');
+  console.log(offline?'PASS offline pages: external requests=0; page errors=0':'PASS 65-second telemetry observation: external requests=0; page errors=0');
   console.log('SKIP optional licensed real-person recordings: no datasets bundled; no real-person accuracy claim');
 } finally {
   clearTimeout(observationTimer);
