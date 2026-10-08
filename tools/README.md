@@ -57,3 +57,7 @@ python3 -m venv .venv
 ## v0.4 执行与回归
 
 `tools/watchdog.mjs --help`：源码 60 分钟无变化后，按自有 PID 结束、等待退出、通过检查点重启，重启次数有上限。`scripts/validate-v04.mjs <临时输出>` 直接验证通用构件、字幕和正侧动作，保留失败图。`scripts/validate-projects.mjs --isolated --offline` 用临时仓库生成三产线夹具并显式 SKIP 模型推理，避免下载及修改当前 projects。
+
+## v0.4.1 播放验收
+
+`timeout 360s npm run test:playback -- /tmp/scene-player-evidence` 在临时仓库通过生成器创建样片，使用默认自动播放策略、未静音 Chromium，测按钮与解码波形起点、20 秒音频推进、真实帧率、自动画质、慢网和弱机；同时验证显式截图模式与逆序像素一致。该回归已接入 npm test 和三产线浏览器验收。当前 projects 不写入，原始 JSON 与截图保留在指定临时目录；Windows/D3D11、真人听审和独立审美另行验收。详见[播放层](../tracks/music-video/player/README.md)。

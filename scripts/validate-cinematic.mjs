@@ -52,12 +52,12 @@ try{
   report.performance={warmSeekMs:times,p50:(times[2]+times[3])/2,max:times.at(-1),scope:'await seek + GPU readback; shader initialization excluded; software only'};
   await o.page.evaluate(async()=>{await window.__scene.resize(640,360);await window.__scene.seek(15);if(window.__scene.canvas.width!==640)throw Error('resize');});
   report.resize='PASS';await o.page.close();
-  const live=await openMvPage(b,{baseUrl:server.url,page:'index.html',query:'quality=high',w:640,h:360,readyTimeout:90000,diag:{echo:'problems'}});
-  report.realtime=await live.page.evaluate(async()=>{const e=window.__scene;await Promise.all([e.seek(3),e.seek(40),e.seek(2)]);return e.inspect();});
-  assert.equal(report.realtime.time,2,'seek calls must finish in submission order');
-  assert.equal(report.realtime.quality.requested,'high');assert.equal(report.realtime.quality.actual,'high');
-  report.performance.quality={requested:report.realtime.quality.requested,actual:report.realtime.quality.actual,offline:report.realtime.quality.offlineQuality};
-  await capture(live,2,'realtime-low.png');await live.page.close();
+  const live=await openMvPage(b,{baseUrl:server.url,page:'index.html',query:'mode=capture&quality=final',w:640,h:360,readyTimeout:90000,diag:{echo:'problems'}});
+  report.fixedCapture=await live.page.evaluate(async()=>{const e=window.__scene;await Promise.all([e.seek(3),e.seek(40),e.seek(2)]);return e.inspect();});
+  assert.equal(report.fixedCapture.time,2,'seek calls must finish in submission order');
+  assert.equal(report.fixedCapture.quality.requested,'final');assert.equal(report.fixedCapture.quality.actual,'high');
+  report.performance.quality={requested:report.fixedCapture.quality.requested,actual:report.fixedCapture.quality.actual,offline:report.fixedCapture.quality.offlineQuality};
+  await capture(live,2,'fixed-capture-high.png');await live.page.close();
  }
  for(const kind of (a.quick?[]:a.kits?String(a.kits).split(','):['snowfield','station','river','interior','architecture','garden','vegetation','sky','materials','particles'])){
   const day=['garden','vegetation','materials'].includes(kind)?'&day=1':'';

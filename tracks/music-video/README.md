@@ -20,7 +20,11 @@
 
 [引擎 v0.3](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
 
-页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。实时播放和离线渲染同一路径。原生字幕在后期末端合成进画布；额外 DOM 不在画布捕获内。seek 与 resize 必须 await。`sample/shots.json` 是实际驱动相机与转场的数据。
+默认页面使用[实时播放层](player/README.md)：点击播放程序合成配乐，音频作为主时钟，Worker 绘制，自动/高/中/低画质、缓冲进度、真实 fps 与字幕开关。中/低档使用简化样片场景；高档保留完整电影场景。
+
+显式 `?mode=capture` 或 `?quality=final` 页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`，固定高画质，禁用音频与自适应。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。两种模式共享镜头表、相机与世界时间语义，调度和画质路径严格分离。原生字幕在后期末端合成进画布；实时示例使用的 DOM 字幕不在画布捕获内。seek 与 resize 必须 await。`sample/shots.json` 是实际驱动相机与转场的数据。
+
+G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面亲自点击播放，测按钮和首声 ≤1 秒、20 秒音频推进 19.6–20.4 秒、自动最终档与冷启动/稳定帧 p90，慢网和弱机各一次。截图不能替代该子项。
 
 正式渲染前记录源码/数据摘要、浏览器、图形后端、尺寸和种子；固定 fps，帧逐个原子写入，只在相同配置续渲，缺帧拒绝编码。共享服务器默认单 worker，预先估算磁盘；小尺寸稀疏预览通过后再出 final。
 

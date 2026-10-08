@@ -1,6 +1,6 @@
 {
   "name": "spec2scene",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "From spec to scene: methods, templates and tools",
   "type": "module",
@@ -13,7 +13,8 @@
     "test:browser": "node scripts/validate-projects.mjs",
     "test:cinematic": "node scripts/validate-cinematic.mjs",
     "test:hygiene": "node tools/hygiene.mjs",
-    "test:v04": "node scripts/validate-v04.mjs"
+    "test:v04": "node scripts/validate-v04.mjs",
+    "test:playback": "node scripts/validate-playback.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0",

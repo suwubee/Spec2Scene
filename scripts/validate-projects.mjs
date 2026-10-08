@@ -6,6 +6,7 @@ import {once} from 'node:events';
 import {mkdtemp, mkdir, readFile, writeFile, rm, access, cp, symlink} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {run} from '../tools/lib/cli.mjs';
+import {validatePlayback} from '../tools/test/playback-browser.mjs';
 import {browser} from '../tools/lib/browser.mjs';
 import {renderFrames} from '../tools/render-frames.mjs';
 import {encode} from '../tools/encode.mjs';
@@ -109,16 +110,17 @@ try {
   for (const [index, label] of [[1, 'music'], [2, 'simulation']]) {
     const tab = await context.newPage();
     tab.on('pageerror', error => errors.push(error.message));
-    await tab.goto(urls[index]);
-    await tab.waitForFunction(() => window.__scene?.ready);
+    await tab.goto(urls[index]+(index===1?'?mode=capture&w=640&h=360':''));
+    await tab.waitForFunction(() => window.__scene?.ready, null, {timeout:90000});
     await tab.evaluate(() => window.__scene.seek(1.5));
     if (index === 2) { await tab.locator('#provenance').click(); assert.match(await tab.locator('#status').textContent(), /程序生成/); }
     await tab.screenshot({path: path.join(evidence, `${label}-desktop.png`)});
     await tab.close();
     console.log(`PASS ${label} browser page and scene contract`);
   }
+  await validatePlayback({url:urls[1],out:path.join(evidence,'playback')});
   const frames = path.join(evidence, 'frames'), repeated = path.join(evidence, 'repeated');
-  const config = {url: urls[1], identity: 'synthetic-validation-v1', fps: 12, count: 12, width: 800, height: 450};
+  const config = {url: urls[1]+'?mode=capture&w=800&h=450', identity: 'synthetic-validation-v1', fps: 12, count: 12, width: 800, height: 450};
   await renderFrames({...config, out: frames});
   await renderFrames({...config, out: repeated, reverse: true});
   await renderFrames({...config, out: frames, resume: true});
@@ -150,7 +152,7 @@ try {
   const unpacked = path.join(evidence, 'unpacked'); await mkdir(unpacked);
   await run('tar', ['-xzf', archive, '-C', unpacked]);
   const unpackedUrl = await serve(unpacked), tab = await context.newPage();
-  await tab.goto(unpackedUrl); await tab.waitForFunction(() => window.__scene?.ready); await tab.close();
+  await tab.goto(unpackedUrl); await tab.waitForFunction(() => window.__scene?.ready, null, {timeout:90000}); await tab.close();
   console.log('PASS release package hash verification, extraction and independent browser startup');
   await observation;
   assert.equal(external.length, 0); assert.deepEqual(errors, []);

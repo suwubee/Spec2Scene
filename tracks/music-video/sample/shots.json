@@ -70,7 +70,8 @@
         8
       ]
     ],
-    "exposure": 1
+    "exposure": 1,
+    "caption": "月光留在脚印里"
   },
   {
     "id": "station-arrival",
@@ -132,7 +133,8 @@
       ]
     ],
     "dissolve": 1.2,
-    "exposure": 1
+    "exposure": 1,
+    "caption": "一盏灯，等一场雨"
   },
   {
     "id": "station-focus",
@@ -205,7 +207,8 @@
         2.8
       ]
     ],
-    "exposure": 1
+    "exposure": 1,
+    "caption": "空座旁的呼吸"
   },
   {
     "id": "station-turn",
@@ -266,7 +269,8 @@
         4
       ]
     ],
-    "exposure": 1
+    "exposure": 1,
+    "caption": "目光回向来处"
   },
   {
     "id": "station-departure",
@@ -327,6 +331,7 @@
         5.6
       ]
     ],
-    "exposure": 1
+    "exposure": 1,
+    "caption": "雨声渐远"
   }
 ]

@@ -77,3 +77,9 @@ The independent production gates are **G1** (concept, shots, reference frames) â
 | Execution | Command timeouts, bounded context reads, restart checkpoints, a 60-minute source-stall watchdog | No automatic independent review or deployment approval |
 
 Run `npm run test:browser -- --isolated --offline` to generate fixtures with the normal project generator inside a temporary repository without touching this checkout's projects or downloading models. `npm run test:v04 -- <temporary-evidence-directory>` checks screenshots and identical same-time/reverse renders under the default autoplay policy. Software rendering is evidence of functionality, not a real-time GPU claim. No real-person, listening, model-inference or production acceptance is implied. API details: [v0.4 kits](tracks/music-video/kits/v04.md).
+
+## Real-time playback v0.4.1
+
+Music-video projects now start with the [shared player](tracks/music-video/player/README.md): synchronous trusted-click media playback, an audio master clock, Worker rendering, ordered idle shader compilation, adaptive quality, measured fps, buffering progress and subtitles. Medium/low previews use distant character geometry and batched scenery; high retains the cinematic pipeline. Explicit `?mode=capture` or `?quality=final` selects fixed high-quality deterministic capture with no audio or adaptation.
+
+`npm test` and isolated browser validation exercise audible decoded signal, a 20-second audio clock, slow networking and CPU throttling. Run `timeout 360s npm run test:playback -- /tmp/scene-player-evidence` separately. Reviewers must click the live page themselves; screenshots do not approve playback. Software rendering and decoded signal do not establish target GPU performance or human speaker listening.
