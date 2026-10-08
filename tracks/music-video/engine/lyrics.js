@@ -1,3 +1,4 @@
+import {placeSubtitle} from './composition.js';
 // Author: suwubee
 // engine/lyrics.js — Canvas2D lyric / title / credits overlay, drawn AFTER post (stays crisp) and
 // composited 1:1 in the final pass. Pure function of t: draw(t) clears and redraws everything.
@@ -213,6 +214,13 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
 
   function measure(text, font) { g.font = font; return g.measureText(text).width; }
 
+  let subjects=[];
+  const placements=[];
+  function avoid(box){
+    if(config.avoidCharacters===false||!subjects.length)return {dx:0,dy:0};
+    const result=placeSubtitle(box,subjects,{width:W,height:H,margin:Math.max(8,20*S)});placements.push(result);
+    return {dx:result.x0-box.x0,dy:result.y0-box.y0};
+  }
   function drawBottom(L, t) {
     const size = (L.style?.size || bottom.size) * S;
     const font = `400 ${size}px "${FONT_SERIF}"`;
@@ -225,6 +233,7 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
     if (typeof place === 'number') y = place * H;
     else if (place === 'picture' || barH < size * 1.8) y = barH + PH * 0.9; // no room in the bar (e.g. ?h=402) → inside the picture
     else y = H - barH / 2; // centred in the lower bar
+    const shift=avoid({x0:x-12*S,y0:y-size,x1:x+total+12*S,y1:y+size});x+=shift.dx;y+=shift.dy;
     for (let i = 0; i < L.chars.length; i++) {
       const c = L.chars[i];
       if (!c.space) glyph(c.c, x + widths[i] / 2, y, size, charState(c, t, L), FONT_SERIF, 400, bottom.color, bottom.glow);
@@ -236,9 +245,10 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
     const st = L.style;
     const size = (st.size || 50) * S;
     const colGap = (st.colGap || 2.1) * size;
-    const x = (st.x ?? 0.84) * W - L.col * colGap;
+    let x = (st.x ?? 0.84) * W - L.col * colGap;
     let y = barH + PH * (st.y ?? 0.16);
     const step = size * (1 + (st.tracking ?? 0.28));
+    const shift=avoid({x0:x-size,y0:y-size*.3,x1:x+size,y1:y+L.chars.length*step});x+=shift.dx;y+=shift.dy;
     for (const c of L.chars) {
       if (c.space) { y += step * 0.55; continue; }
       glyph(c.c, x, y + size / 2, size, charState(c, t, L), FONT_SERIF, 400, st.color || '#eef2f7', st.glow || 'rgba(160,188,228,0.55)');
@@ -569,9 +579,10 @@ export function createLyrics({ width, height, pictureHeight, song, config = {}, 
   }
 
   const api = {
-    canvas, lines,
+    canvas, lines, placements,
     /** draw the overlay for film time t; returns the drawn bbox {x0,y0,x1,y1} (canvas px) or null */
-    draw(t, { hideLyrics = false } = {}) {
+    draw(t, { hideLyrics = false, characterBounds = [] } = {}) {
+      placements.length=0;subjects=characterBounds.map(b=>({x0:b.x0*W,x1:b.x1*W,y0:barH+b.y0*PH,y1:barH+b.y1*PH}));
       const visible = [];
       if (!hideLyrics) for (const L of lines) if (t >= L.visStart && t <= L.fadeEnd) visible.push(L);
       const vt = titles.filter((T) => t >= T.t0 && t <= T.t1);

@@ -26,7 +26,7 @@ if (track === '--help' || track === '-h') {
     await put('CLAUDE.md', '# 项目入口\n\n遵守 AGENTS.md，先填 SPEC.md，再按 docs/track.md 实现。审核者独立复跑 tests 与查看截图；实际输入和合成输入分别报告。\n');
     await put('assets/README.md', '# 用户素材\n\n由用户放置获授权的音乐、图像、地图、模型等；逐项在 docs/licenses.md 登记权利来源、许可、署名、商用及再分发边界。工具许可不授予素材权利。相机数据默认不保存。\n');
     await put('docs/licenses.md', '# 素材与依赖许可\n\n| 内容 | 来源 | 许可版本 | 署名 | 商用/再分发 | 证据 |\n|---|---|---|---|---|---|\n');
-    await put('docs/track.md', (await readFile(path.join(repo, 'tracks', track, 'README.md'), 'utf8')).replace('(SPEC.md)', '(../SPEC.md)').replace('(../../tools/README.md)', '(../tools.local/README.md)').replaceAll('(directing/', '(../directing/').replaceAll('(engine/', '(../engine/').replaceAll('(character/', '(../character/').replace('(../../templates/REVIEW-music-video.md)', '(REVIEW-music-video.md)'));
+    await put('docs/track.md', (await readFile(path.join(repo, 'tracks', track, 'README.md'), 'utf8')).replace('(SPEC.md)', '(../SPEC.md)').replace('(../../tools/README.md)', '(../tools.local/README.md)').replaceAll('(directing/', '(../directing/').replaceAll('(engine/', '(../engine/').replaceAll('(character/', '(../character/').replaceAll('(kits/', '(../kits/').replace('(../../templates/REVIEW-music-video.md)', '(REVIEW-music-video.md)').replaceAll('(../../templates/', '('));
     await put('docs/QA.md', (await readFile(path.join(repo, 'tracks', track, 'QA.md'), 'utf8')).replace('(../../templates/ui-acceptance-checklist.md)', '(ui-acceptance-checklist.md)').replace('(../../playbook/06-testing.md)', '(testing.md)'));
     await put('docs/ui-acceptance-checklist.md', await readFile(path.join(repo, 'templates/ui-acceptance-checklist.md'), 'utf8'));
     await put('docs/testing.md', await readFile(path.join(repo, 'playbook/06-testing.md'), 'utf8'));
@@ -44,6 +44,7 @@ if (track === '--help' || track === '-h') {
       await put('index.html', await readFile(path.join(repo, 'templates/starters/music-video/index.html'), 'utf8'));
       await put('tools.local/check-anatomy.mjs', (await readFile(path.join(repo, 'tools/check-anatomy.mjs'), 'utf8')).replaceAll('../tracks/music-video/', '../'));
       await put('tests/anatomy.test.mjs', "import test from 'node:test'; import assert from 'node:assert/strict'; import {checkAnatomy} from '../tools.local/check-anatomy.mjs'; test('all character action samples pass anatomy constraints',()=>assert.deepEqual(checkAnatomy().failures,[]));\n");
+      for (const name of ['CONCEPT-music-video.md','GATE-music-video.md']) await put('docs/'+name,await readFile(path.join(repo,'templates',name),'utf8'));
       await put('docs/REVIEW-music-video.md', await readFile(path.join(repo, 'templates/REVIEW-music-video.md'), 'utf8'));
       await put('render.config.json', JSON.stringify({fps: 24, width: 1920, height: 1080, count: 1440, sceneContract: 'window.__scene={ready,canvas,seek(t),capture()}'}, null, 2));
     }

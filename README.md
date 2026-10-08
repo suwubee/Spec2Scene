@@ -52,7 +52,7 @@ Start with a mood book and an imagery translation table. Let moonlit footprints 
 
 Every shot needs foreground, middle ground and background, half-float HDR and tone mapping, motivated lighting, atmospheric depth, lens-driven depth of field and a camera track. Character hinge limits and anatomy checks run in `npm test`. See the [directing quality bar](tracks/music-video/directing/05-quality-bar.md).
 
-Independent reviewers must pass G1 (mood/shots), G2 (anatomy/performance) and G3 (complete preview). Self-review cannot approve a gate. `npm run test:cinematic` generates keyframes, eight-view turntables, action sequences, pixel repeatability and software-rendering measurements. Evidence is ignored under `validation/v0.2/artifacts/`; the [validation report](validation/v0.2/README.md) states review and hardware limits.
+Independent reviewers must pass G1 (concept/frames), G1b (engine rerender), G2G3 (complete film/performance/subtitles) and FINAL. Self-review cannot approve a gate. `npm run test:cinematic` generates keyframes, eight-view turntables, action sequences, pixel repeatability and software-rendering measurements. Evidence is ignored under `validation/v0.2/artifacts/`; the [validation report](validation/v0.2/README.md) states review and hardware limits.
 
 ## License and responsibility
 
@@ -61,3 +61,19 @@ Original repository content: [Apache-2.0](LICENSE), copyright suwubee and contri
 ## Cinematic engine v0.3
 
 The complete authorized cinematic engine is ported with content removed, retaining HDR post, sky, terrain, water, materials, particles and deterministic offline tools. See [engine](tracks/music-video/engine/README.md), [kits](tracks/music-video/kits/README.md), and [preview / validation tools](tools/cinematic/README.md). `npm run test:cinematic` writes full-resolution evidence only into an ignored generated project. The character workstream is independent.
+
+
+## Version 0.4.0: capabilities and evidence limits
+
+The independent production gates are **G1** (concept, shots, reference frames) → **G1b** (rerender with the current engine) → **G2G3** (complete song, performance, subtitles) → **FINAL**. Automated library checks cannot sign a creative gate. See the [complete concept template with a fictional example](templates/CONCEPT-music-video.md), [gate submission template](templates/GATE-music-video.md), [changelog](CHANGELOG.md), and [validation record](validation/v0.4/README.md).
+
+| Area | Implemented and exercised | Unverified or limited |
+|---|---|---|
+| Sky and atmosphere | Per-frame lunar phase, neutral low moon disc, ray-marched cloud sea with self shadow and silver edges, project terrain fog | Complex embedded geometry in clouds; target GPU performance |
+| Reusable scene parts | Basin/jar/puddle planar reflections, telephoto mountain subdivisions, indoor moonlight bounce and diffuse fill, detailed procedural rocks | Full GI, fluid simulation, extreme close-ups, semantic city LOD |
+| Camera and post | Shot exposure/WB override global defaults; absolute-time shot curves; current-draw shaft uniforms | Real-device full-song synchronization and frame budget |
+| Character | Crossfades, additive head motion, seated hands on knees, knees held close, restrained bun highlights; anatomy and front/side sequences | Medium-shot faces, hands and cloth; arbitrary slope IK and complete contact/collision |
+| Lyrics | Preserved vocals, silence-delimited phrases, ordered paragraphs, proportional line windows, reviewer approval and ±0.3 s onset validation, subject-aware subtitle placement | Real-song recognition accuracy and human listening; proportional boundaries remain estimates |
+| Execution | Command timeouts, bounded context reads, restart checkpoints, a 60-minute source-stall watchdog | No automatic independent review or deployment approval |
+
+Run `npm run test:browser -- --isolated --offline` to generate fixtures with the normal project generator inside a temporary repository without touching this checkout's projects or downloading models. `npm run test:v04 -- <temporary-evidence-directory>` checks screenshots and identical same-time/reverse renders under the default autoplay policy. Software rendering is evidence of functionality, not a real-time GPU claim. No real-person, listening, model-inference or production acceptance is implied. API details: [v0.4 kits](tracks/music-video/kits/v04.md).

@@ -48,3 +48,21 @@ scripts/fetch-models.sh --kind demucs --project projects/demo
 字幕接入：DOM 使用 `subtitleLayer(element, alignment.lines, {fontFamily, direction:'vertical'})`；画布使用 `createLyrics({song:alignment, config:{fontFamily,direction:'horizontal'}})`。电影引擎传 `{lyrics:true, alignment, fonts, timeline}`，其中 timeline.lyricsConfig 控制字号/位置/方向；字体文件由项目提供。两条路径都只显示严格的 `locked:true`，旧数据缺少锁定标记时也不显示。横排/竖排和标点由适配器保留，未提供锁定数据不会生成替代字幕。
 
 合成自测程序生成 12 个谐波“人声”单元与伴奏，已知起点包含非 10 ms 刻度、重复同音高和不同长度。断言平均起点误差 ≤65 ms、最大 ≤120 ms，另外覆盖模型缺失、静音、手工确认/解锁、无效校正和重跑保存。此测试不证明真实歌声或 Demucs 分离质量；真实音频/真人听审缺失应明确 SKIP。`SCENE_PYTHON` 可让 npm test 使用安装了依赖的解释器。
+
+
+## v0.4 乐句模式与行级批准
+
+`timeout 600s python3 tools/music/lyrics/align.py --mode phrase --input <混音> --vocal-stem <等长人声> --lyrics <文本或JSON> --out <输出> --threshold-db -38 --silence .25 --minimum-phrase .15`。人声保留为输出目录 `vocals.wav`，不会在临时目录退出时删除。没有人声或可用本地 Demucs 时乐句模式明确失败，不用混音活动冒充人声；不隐式联网。
+
+文本空行划分段落；JSON 行可设 `paragraph`，顶层 `paragraphs:[{id,phraseStart,phraseEnd}]` 给出闭区间、1 起算的乐句序号。无锚点时先按段落字数和乐句时长保序分配，再在段内分配行；歧义时提供锚点。同一乐句跨段落可让相邻范围共享边界乐句，最终按整句字数重新分界，不创造静音或段落时间窗。行数少于乐句数、倒序、遗漏乐句均报错，不跨间奏强行合并。
+
+乐句内行与字按演唱单元数比例切分，输出 `onsetSource` 区分静音起点与比例估计；这是行窗估计，不是逐字识别。候选行 `locked:false`、`reviewerApproved:false`。确认校正需同时填写原有 `confirmed:true`、`reviewer` 和以下字段：
+
+```json
+{"id":"1","confirmed":true,"reviewer":"reviewer-id","onsetReference":1.2,
+ "approval":{"approved":true,"reviewer":"reviewer-id","reference":"REVIEW-G2G3-r01.md","humanListened":false}}
+```
+
+`onsetReference` 是审核认可的发声起点；锁定行 start 必须在其 ±0.3 秒内，end 不晚于下一行 start。`approval.reference` 指向批准依据，审核人不能由程序代填。`humanListened:false` 明确未真人听审；批准比例估计不等于获得了真实逐字时间。修改后自动解除锁定，不能沿用旧批准。旧逐字模式保留启发式锁定兼容，并明确 `reviewerApproved` 字段区分独立批准。
+
+`timeout 15s python3 tools/music/lyrics/phrase.py --selftest` 无第三方依赖；音频端到端自测仍需音乐依赖。字幕两条适配器均支持 composition 人物包围盒避让：原生场景导出 `character.object` 或 `characters`；DOM 提供 `composition(t)`。字框优先上移、再换边；拥挤时 `resolved:false` / `data-avoidance=review-required`，需要调整构图。

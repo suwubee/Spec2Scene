@@ -6,4 +6,9 @@
 
 每次角色替换体型、服装、动作或 IK 参数，都要重新跑人体结构检查：骨长、肘膝单向限位、肩髋颈腕范围、手与躯干、脚与地面、脚跟到前掌的支撑点滑移、支撑中段膝角（接近伸直）、同侧臂腿反向/对侧臂腿同向、手指不反折、左右镜像。离散采样不是连续无碰撞证明；峰值前后加密采样，保留最差时刻和失败 JSON。
 
-G2 证据使用中性灰底和三点光：正面/侧面两行转台、八方向转台、每动作正/侧各八帧（每格至少 480×640）、面部正/3⁄4/侧特写、五种基础手势的掌面/侧面特写，以及衣服遮挡下的无外套版本；另核对回头眼线和落脚前中后。用户提供的已绑定 glTF/GLB/VRM 同样经过限位和实际骨架检查，缺资产回归必须写 SKIP。实现者自审只负责发现缺陷；独立审核者逐张检查重心、手部和衣服穿插。English: Attention precedes movement. Anatomy checks are necessary; visual review of balance and silhouette remains mandatory.
+G2G3 证据使用中性灰底和三点光：正面/侧面两行转台、八方向转台、每动作正/侧各八帧（每格至少 480×640）、面部正/3⁄4/侧特写、五种基础手势的掌面/侧面特写，以及衣服遮挡下的无外套版本；另核对回头眼线和落脚前中后。用户提供的已绑定 glTF/GLB/VRM 同样经过限位和实际骨架检查，缺资产回归必须写 SKIP。实现者自审只负责发现缺陷；独立审核者逐张检查重心、手部和衣服穿插。English: Attention precedes movement. Anatomy checks are necessary; visual review of balance and silhouette remains mandatory.
+
+
+v0.4 动作接口：`actor.update('sitKnees', t, {blend:{from:'pushWindow',time:3,weight:u}, additive:[{action:'lookUp',time:t,weight:.3}]})`。u 由绝对时间计算，0/1 严格对应两端；`sit` / `sitKnees` 为坐姿膝上手位，`hugKnees` 为低座抱膝（基准支撑高度 0.24 m，随角色缩放，场景需放置对应支撑物）。过渡解除未经证明的接触标签，检查脚底穿地；混合本身不保证扶手接触或衣物无穿插。需精确手部接触时用 handTargets 再解 IK。所有姿态都要正侧连续序列，不能仅看终点。
+
+已知不足：中景脸、手、皮肤与衣料的真实感仍未达标；发髻降低高光只修正轮廓亮环，不代表人物中景通过。中远景/背影/剪影为推荐景别，但不能让所有镜头都失去表演和景别变化。

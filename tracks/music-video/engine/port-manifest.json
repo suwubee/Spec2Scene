@@ -22,9 +22,9 @@
     "sourceBytes": 28938,
     "sourceSHA256": "3aa4af615e2aedbf70f4271326b383e4fbc09ba133fa1ae74829101f0c7de52c",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable.",
-    "portedBytes": 26222,
-    "portedSHA256": "b559881337cf2b293fd17c431cd93ba2a1bd3e152ea194be43069dbcb35484ce"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
+    "portedBytes": 26681,
+    "portedSHA256": "75bb77707a84e48cad05a7cdae82ea028a328155050b90b8bf39baf5710f5635"
   },
   {
     "module": "geo.js",
@@ -40,9 +40,9 @@
     "sourceBytes": 32529,
     "sourceSHA256": "183a8346d1e9830e9101d6a06317c3a09a0996c8c293b042359ced9d9703f10d",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable.",
-    "portedBytes": 32199,
-    "portedSHA256": "14164ae4b3a8caff7f280b5c299b741891ec01d4776cd7301e8362e40672d47c"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
+    "portedBytes": 32911,
+    "portedSHA256": "e4a8dddbb5cd4355e38cb97f1c809d930fb1fb6f9941b1859c3cd3f35a132983"
   },
   {
     "module": "materials.js",
@@ -76,9 +76,9 @@
     "sourceBytes": 150092,
     "sourceSHA256": "b29801f9a8346f3e2558adba4cd69c6786986c61f71ae3f1da41e7ad1db8eb96",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable.",
-    "portedBytes": 150503,
-    "portedSHA256": "a6ba77c3c988baab595c25e21a95068e91cd8c79e911cae52f99aa32ce7d359d"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
+    "portedBytes": 150569,
+    "portedSHA256": "93eeddfab5ef06624efce6cf050c33379e469f4658f8d9d3b2fb514ef7dcd6e6"
   },
   {
     "module": "post.js",
@@ -103,18 +103,18 @@
     "sourceBytes": 117665,
     "sourceSHA256": "8c7a9682893f5a54d43b073a195e679a2a7e54eda332da0f7ddad4abd29fb890",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable.",
-    "portedBytes": 116443,
-    "portedSHA256": "e56af325e532ac2f1fdad4b5bbf518752dfbab52cca4e916c76cbfbe1790bd53"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
+    "portedBytes": 116871,
+    "portedSHA256": "51f2cf8ce04e021cbe1eec492e0707815c2530ade2060dc58bf6c526ed4af2e2"
   },
   {
     "module": "terrain.js",
     "sourceBytes": 114659,
     "sourceSHA256": "ef58e0a9711624a793caa17aae8407ee1e7afc7dc83c0b2248ffcca9eb4aa97f",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
-    "portedBytes": 110257,
-    "portedSHA256": "c4a5d4581e84f972032e8153b879bcca4dce1e64605a07d2fb2bbd8c76213728"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4: deterministic frame channels and reusable scene interfaces.",
+    "portedBytes": 110878,
+    "portedSHA256": "3ac80f4658d82c3837548f0735a0bad7535279cf78e1aae8bc547ca6611b64b0"
   },
   {
     "module": "util.js",

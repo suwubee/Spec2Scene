@@ -36,7 +36,7 @@ function sculptHead(skin,feminine){
 }
 export function makeFace(head,skin,{body,hairStyle}){
   const feminine=body==='feminine',sculpt=sculptHead(skin,feminine);head.add(sculpt);const headRest=sculpt.geometry.attributes.position.array.slice();
-  const hair=material('cloth',{color:0x291b16,roughness:.76}),lip=material('skin',{color:0xa76c60,roughness:.55}),dark=material('skin',{color:0x624138}),white=material('skin',{color:0xa59f8b,roughness:.3}),iris=material('skin',{color:0x4d4636,roughness:.34}),pupil=material('metal',{color:0x111712,metalness:0,roughness:.22});
+  const hair=material('cloth',{color:0x291b16,roughness:.94,specularIntensity:.08}),lip=material('skin',{color:0xa76c60,roughness:.55}),dark=material('skin',{color:0x624138}),white=material('skin',{color:0xa59f8b,roughness:.3}),iris=material('skin',{color:0x4d4636,roughness:.34}),pupil=material('metal',{color:0x111712,metalness:0,roughness:.22});
   const eyes=[],brows=[],locks=[];
   for(const sign of [-1,1]){
     ellipsoid(head,.024,[.36,1,.62],[sign*(feminine?.081:.087),-.006,-.003],skin);

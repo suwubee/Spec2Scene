@@ -40,6 +40,7 @@ export const SKY_DEFAULTS = {
   moonScale: 2.2,             // x real angular size (0.53 deg)
   moonRadiance: 28,           // disc radiance above the atmosphere (observed ~18-20 at 30 deg elevation) — overexposes on purpose
   moonTint: [1.0, 0.965, 0.92],
+  lunarDiscNeutrality: 0,     // 0 physical extinction, 1 equal-luminance pearl; world may override
   moonPhaseAngle: 21,         // deg (0 = full). ~96.7 % illuminated waxing gibbous
   moonTilt: 1,                // 1 = physical parallactic rotation (lunar north toward the celestial pole), 0 = north up
   latitude: 31,               // observer latitude (temperate)
@@ -1745,7 +1746,7 @@ export function createSky(ctx, opts = {}) {
     U.uNight.value.set(o.nightTint[0], o.nightTint[1], o.nightTint[2], nightAmt);
     U.uMW.value.set(0.0016 * o.milkyWay, 0, 0, 0);
     // moon visibility from the ground (above horizon)
-    const tMoonCam = transmittanceJS(camH / 1000, moonDir[1], o.mie);
+    const tMoonCam = lunarTransmittance(transmittanceJS(camH / 1000, moonDir[1], o.mie), F.w.lunarDiscNeutrality ?? o.lunarDiscNeutrality);
     const tSunCam = transmittanceJS(camH / 1000, sunDir[1], o.mie);
     // ---- clouds ----
     const covBase = cloud;
@@ -1812,12 +1813,14 @@ export function createSky(ctx, opts = {}) {
     const right = norm(cross(f, north));
     const toward = [-f[0], -f[1], -f[2]];
     U.uMoonFrame.value.set(right[0], north[0], toward[0], right[1], north[1], toward[1], right[2], north[2], toward[2]);
-    // phase: bright limb toward the (projected) sun; fixed phase angle (same moon face & phase all film)
+    // phase: bright limb toward the (projected) sun; per-frame world channel; options are the fallback
     let ps = [sunDir[0] - f[0] * dot(sunDir, f), sunDir[1] - f[1] * dot(sunDir, f), sunDir[2] - f[2] * dot(sunDir, f)];
     let psx = dot(ps, right), psy = dot(ps, north);
     if (Math.hypot(psx, psy) < 1e-3) { psx = 0.5; psy = -0.86; }
     const pl = Math.hypot(psx, psy); psx /= pl; psy /= pl;
-    const al = o.moonPhaseAngle * D2R;
+    const phaseAngle = F.w.moonPhaseAngle ?? o.moonPhaseAngle;
+    if (!Number.isFinite(phaseAngle)) throw new TypeError("finite moonPhaseAngle required");
+    const al = phaseAngle * D2R;
     U.uMoonSun.value.set(Math.sin(al) * psx, Math.sin(al) * psy, Math.cos(al));
     // ---- halos ----
     const hazeAmt = 0.45 + 0.55 * mist;
@@ -1843,7 +1846,7 @@ export function createSky(ctx, opts = {}) {
       rainWest: o.rainCell[1], rainZ: o.rainCell[2], clearRegion: o.rainCell[3], view: [camPos.x, camPos.y, camPos.z, smooth(o.rainRegionX[0], o.rainRegionX[1], camPos.x)], rainBlob: o.rainCloudBlob,
       shapeScale: o.shapeScale, ext: o.cloudDensity, shellBase, shellTop, maxDist: U.uCD.value.z,
     };
-    Object.assign(info, { t: F.t, day, sunDir, moonDir, sunRad, moonRad, moonAngR: moonAng, sunAngR: sunAng, key: moonKey ? 'moon' : 'sun', keyDir: kDir, keyCol: kCol, cloudParams: P, moonAbove, sunAbove, tMoonCam, tSunCam });
+    Object.assign(info, { t: F.t, day, sunDir, moonDir, sunRad, moonRad, moonPhaseAngle: phaseAngle, moonAngR: moonAng, sunAngR: sunAng, key: moonKey ? 'moon' : 'sun', keyDir: kDir, keyCol: kCol, cloudParams: P, moonAbove, sunAbove, tMoonCam, tSunCam });
     return P;
   }
 
@@ -1857,7 +1860,7 @@ export function createSky(ctx, opts = {}) {
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
     const outW = ctx.width || size.x, outH = ctx.pictureHeight || ctx.height || size.y;
     const camKey = camera ? camera.matrixWorld.elements.map((x) => x.toFixed(5)).join(',') + camera.projectionMatrix.elements.map((x) => x.toFixed(5)).join(',') : 'none';
-    const key = `${t}|${quality}|${camKey}|${JSON.stringify([w.sunElev, w.moonElev, w.cloudCover, w.rain, w.moonGap, w.mist, w.sunAzim, w.moonAzim])}`;
+    const key = `${t}|${quality}|${camKey}|${JSON.stringify([w.sunElev, w.moonElev, w.cloudCover, w.rain, w.moonGap, w.mist, w.sunAzim, w.moonAzim, w.moonPhaseAngle, w.lunarDiscNeutrality, o.moonPhaseAngle, o.lunarDiscNeutrality])}`;
     if (key === lastKey) return api;
     lastKey = key;
     const P = computeUniforms(F, camPos);

@@ -9,7 +9,7 @@ import {makeBoot,addTailoring,makeScarf} from './wardrobe.js';
 import {makeProps,poseForProp,propNames} from './props.js';
 import {loftField,union,isoSurface,skinGeometry,tube,garmentShell} from './surface.js';
 import {smooth,clamp} from './math.js';
-export {poseAt} from './motion.js';
+export {poseAt,blendPoses} from './motion.js';
 export {inspectRig} from './rig.js';
 const cache=new Map();
 export function createCharacter({body='masculine',height=body==='feminine'?1.66:1.78,headRatio=body==='feminine'?7.4:7.6,shoulderWidth=1,posture=0,coat=true,scarf=true,backpack=false,hat=false,coatColor=0x635346,coatStyle='long',hairStyle=body==='feminine'?'shoulder':'short',prop='none'}={}){

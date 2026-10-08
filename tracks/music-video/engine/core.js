@@ -1,3 +1,4 @@
+import {characterBounds} from './composition.js';
 // Author: suwubee
 // engine/core.js — the deterministic film engine. One code path for the real-time player and the
 // offline frame renderer: renderFrame(t) is a pure function of t (film seconds).
@@ -37,6 +38,13 @@ export const DEFAULT_WORLD_STATE = {
   skyGrade: null, exposureBias: 0, timeOfDay: 'night',
 };
 export const defaultWorld = { at: () => ({ ...DEFAULT_WORLD_STATE }), isDefault: true };
+
+export function shotPostAt(state,global,shot,tLocal,override={}){
+  const worldPost=deepMerge(state.post||{},state.grade?{grade:state.grade}:{});
+  const params=mergePost(worldPost,global||{},typeof shot.post==='function'?shot.post(tLocal,state):shot.post||{},shot.grade?{grade:shot.grade}:{},override);
+  params.exposure+=state.exposureBias||0;
+  return params;
+}
 
 /**
  * ctx.rng — two conventions in one deterministic object:
@@ -348,9 +356,7 @@ export async function createEngine(opts = {}) {
     let P = null, wsum = 0, fovY = 30, gain = 1, lfade = 1;
     for (const L of layers) {
       const shot = L.shot, inst = L.inst;
-      const worldPost = deepMerge(state.post || {}, state.grade ? { grade: state.grade } : {});
-      const Pl = mergePost(worldPost, shot.post || {}, shot.grade ? { grade: shot.grade } : {}, opts.postOverride || {}, ropts.post || {});
-      Pl.exposure += state.exposureBias || 0;
+      const Pl = shotPostAt(state, opts.postOverride, shot, L.tLocal, ropts.post || {});
       if (!inst) {
         renderer.setRenderTarget(post.sceneTarget); renderer.setClearColor(0x000000, 1); renderer.autoClear = true;
         renderer.render(emptyScene, emptyCam);
@@ -379,7 +385,8 @@ export async function createEngine(opts = {}) {
     P = { ...P, fade: (P.fade ?? 1) * fadeOf(t) * lfade };
     if (ropts.debug !== undefined) P.debug = ropts.debug;
     // lyrics overlay (after post, crisp)
-    const lyrBox = lyrics && ropts.lyrics === true ? lyrics.draw(t) : null;
+    const subjects = lyrics && ropts.lyrics === true ? layers.flatMap(L => L.inst ? characterBounds(L.inst.camera,L.inst.characters || (L.inst.character?.object ? [L.inst.character.object] : [])) : []) : [];
+    const lyrBox = lyrics && ropts.lyrics === true ? lyrics.draw(t, {characterBounds:subjects}) : null;
     post.uploadLyrics(lyrics ? lyrics.canvas : null, lyrBox);
     post.finish({ params: P, frame, multi, gain, fovY, weave });
     if (ropts.sync !== false) gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px1);

@@ -53,3 +53,7 @@ python3 -m venv .venv
 ## v0.3 完整电影工具
 
 音乐视频使用 [cinematic/README.md](cinematic/README.md) 的移植离线工具，含半分辨率预览片段、严格身份续渲、BT.709 编码、像素确定性、叠化校验、字体子集化与 PID 优先级让路。原通用工具仍用于其他产线。
+
+## v0.4 执行与回归
+
+`tools/watchdog.mjs --help`：源码 60 分钟无变化后，按自有 PID 结束、等待退出、通过检查点重启，重启次数有上限。`scripts/validate-v04.mjs <临时输出>` 直接验证通用构件、字幕和正侧动作，保留失败图。`scripts/validate-projects.mjs --isolated --offline` 用临时仓库生成三产线夹具并显式 SKIP 模型推理，避免下载及修改当前 projects。

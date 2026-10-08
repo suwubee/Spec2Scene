@@ -69,3 +69,7 @@ engine.dispose();
 来源经验保留为测量方法，不沿用来源的性能数字作为本次成绩：半浮点多 tap 后期通常受带宽限制；半分辨率景深/云和预烘焙噪声较有效；大规模 instancing 在软件后端可能比合批更慢；懒创建和 shader 编译应与稳态 seek 分开计时；用真实 RT 内容与 GPU 同步采样，不能只测 JS 提交。多 worker 吞吐不一定提高，线程/CPU 必须受限。
 
 离线命令、预算、续渲、字体子集化和优先级让路见 [tools/cinematic](../../../tools/cinematic/README.md)。试验台和样片证据由 `node scripts/validate-cinematic.mjs` 生成到项目 out/；独立 G1/G2/G3 仍需要审核人。云底、自阴影、贴片植物近景、屏幕空间雾、解析雨光和薄膜反射都有近似，不能把程序化画面当实拍或真实数据验证。
+
+## v0.4 帧通道与场景接口
+
+月相使用 world.moonPhaseAngle，月盘中和使用 lunarDiscNeutrality。全局 postOverride 是镜头默认值，shot.post/grade 优先；seek 的显式 post 最高。逐帧曲线和谷雾地形契约见 [v0.4](../kits/v04.md)。字符包围盒用于原生字幕避让；返回无法避让的情况须调整构图。

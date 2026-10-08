@@ -9,10 +9,11 @@
 1. 写[意境书](directing/01-mood-first.md)，定义情绪温度、世界、色彩、光与 3–5 母题。
 2. 填[意象转译表](directing/01b-imagery-translation.md)。从情绪选择替代意象；例如让脚印承接月光，用大景小人和留白承载孤独。禁止逐句图解。
 3. 按[镜头语言](directing/02-camera-language.md)和[分镜模板](directing/03-shot-list-template.md)写完整镜头表，产出每段气氛样张；停在 **G1**，等待独立审核 PASS。
-4. 实现[角色与表演](directing/04-performance.md)，运行人体检查，生成八方向转台与关键动作序列；停在 **G2**，等待独立审核 PASS。
-5. 接入完整音乐时间轴与三维场景，渲染稀疏预览、全曲联系表、关键帧及至少三段连续帧；按[质量底线](directing/05-quality-bar.md)停在 **G3**，等待独立审核 PASS。
-6. 冻结字幕和镜头后正式渲染、编码与 QA。所有 FAIL 必须保留证据、修复并重新送审。自审不算独立审核。
+4. **G1b**：用本轮引擎重渲 G1 样张，检查镜头迁移、材质、角色、曝光与月相；附引擎版本/源码摘要，独立 PASS 后推进。
+5. **G2G3**：接入全曲、角色表演和锁定字幕；提交人体检查、八方向转台、正侧连续动作、全曲联系表、至少三段连续帧、字幕批准与逆序像素对照，等待独立 PASS。
+6. **FINAL**：冻结镜头/字幕/输入摘要，复验全曲覆盖、音画同步、编码 QA 与所有失败轮；独立 PASS 后可正式渲染。部署另需明确授权。自审和库回归不代签作品关卡。
 
+导演稿使用 [CONCEPT](../../templates/CONCEPT-music-video.md)，送审文件使用 [GATE](../../templates/GATE-music-video.md)。文件命名 `GATE-<关卡>-rNN.md` / `REVIEW-<关卡>-rNN.md`，旧轮不覆盖；`review.json` schema 2 顺序为 G1→G1b→G2G3→FINAL。
 审核模板：[REVIEW-music-video](../../templates/REVIEW-music-video.md)。记录可以由 `tools/review-gates.mjs` 检查顺序、审核人区别、证据与版本；工具不代签，也不能证明审核人实际看过图。编排者仅在已获并行授权时调用独立审核会话，否则交给人类审核。
 
 ## 实现契约

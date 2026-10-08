@@ -2136,6 +2136,7 @@ export function createLightShaft(ctx, opts = {}) {
     depthWrite: false, depthTest: true, side: THREE.FrontSide,
   }, blendProps(THREE, 'add')));
   const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.name = 'mvLightShaft'; mesh.renderOrder = 20;
+  mesh.onBeforeRender = () => { mat.uniformsNeedUpdate = true; };
   const own = lensUniforms(THREE, ctx);
   const O = new THREE.Vector3(), Uv = new THREE.Vector3(), Vv = new THREE.Vector3(), Dv = new THREE.Vector3(), M = new THREE.Matrix3(), tmp = new THREE.Vector3(), cam = new THREE.Vector3();
   const setGeom = (w) => {

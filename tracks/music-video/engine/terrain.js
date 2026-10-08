@@ -1,3 +1,4 @@
+import {fogTerrain} from './fog-terrain.js';
 import { gnoise1, gnoise2, makeRng, hash21, GLSL_NOISE } from './noise.js';
 /** Independent terrain/atmosphere configuration; no project layout is bundled. */
 export function createTerrainLibrary(config = {}) {
@@ -178,6 +179,8 @@ uniform vec3 vBeamO;
 uniform vec4 vHazeB;                              // x: night aerial-haze brightness boost
 uniform float vEastSh;                            
 uniform vec2 vWet;                                // x: west-bank wetness (world.wetness), y: east-bank dew
+uniform sampler2D vGroundMap; uniform vec4 vGroundBounds; uniform float vCustomGround;
+vec2 vGround(vec3 p){return texture(vGroundMap, (p.xz-vGroundBounds.xy)/vGroundBounds.zw).rg;}
 uniform vec4 vFogV;                               // valley fog pooled low in the distance: x sigma0 (1/m), y scale height (m), z start distance (m), w gain
 
 const float V_PI = 3.14159265358979;
@@ -223,7 +226,7 @@ vec4 vPlot(vec3 P, out float Lp){
   Lp = L;
   return vec4(h, f, e);
 }
-float vWaterMist(vec3 P){ float hw = vRiverHW(P.z); return mix(0.22, 1.0, smoothstep(hw - 36.0, hw + 16.0, abs(P.x - vRiverCX(P.z)))); }
+float vWaterMist(vec3 P){ if(vCustomGround>0.5)return mix(1.0,0.22,vGround(P).y); float hw = vRiverHW(P.z); return mix(0.22, 1.0, smoothstep(hw - 36.0, hw + 16.0, abs(P.x - vRiverCX(P.z)))); }
 float vMistNoise(vec2 xz){
   vec2 n = texture(vNoiseTex, (xz + vMistN.zw) * vMistN.y).rg;
   float v = n.r * 0.6 + n.g * 0.4;
@@ -526,7 +529,7 @@ vec4 vAtmosJ(vec3 P, float isSky, float jit){
 #else
       float bank = (0.2 + 1.7 * smoothstep(0.38, 0.74, bn.x * 0.75 + bn.y * 0.25)) * vWaterMist(pm);
 #endif
-      float od = vExpODm(o.y + d.y * ta, d.y, tb - ta, vFogV.x, vFogV.y) * bank;
+      float od = vExpODm(o.y + d.y * ta - (vCustomGround>0.5?vGround(pm).x:0.0), d.y, tb - ta, vFogV.x, vFogV.y) * bank;
       float tr = exp(-min(od, 30.0));
       Lv += Tacc * (1.0 - tr) * C0 * (0.75 + 0.5 * bn.y);
       Tacc *= tr; tauV += od;
@@ -605,10 +608,13 @@ function bakeNoiseTexture(THREE, N = 256, seed = 'valley-noise') {
 function createAtmosphere(ctx, opts = {}) {
   const { THREE } = ctx;
   const sky = opts.sky;
+  const ground = opts.terrain ? fogTerrain(opts.terrain) : null;
+  const horizon = ground?.skylineAt || opts.skylineAt || skylineAt;
   const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
   const V4 = () => new THREE.Vector4();
   const noiseTex = bakeNoiseTexture(THREE);
   const U = {
+    vGroundMap:{value:ground?.texture||noiseTex}, vGroundBounds:{value:ground?.bounds||new THREE.Vector4(0,0,1,1)}, vCustomGround:{value:ground?1:0},
     vCam: { value: V() }, vTime: { value: 0 },
     vMoonDir: { value: V(0, 1, 0) }, vMoonCol: { value: V() }, vSunDir: { value: V(0, -1, 0) }, vSunCol: { value: V() },
     vKey: { value: new THREE.Vector4(1, 0, 1, 1) },
@@ -652,8 +658,8 @@ function createAtmosphere(ctx, opts = {}) {
     // terrain visibility of sun & moon (skyline at their azimuth, seen from the camera region)
     const ref = [cp.x, Math.max(cp.y, 2), cp.z];
     const sunR = sky ? sky.info.sunAngR / (Math.PI / 180) : 0.33, moonR = sky ? sky.info.moonAngR / (Math.PI / 180) : 0.58;
-    const sunSky = w.sunElev > -3 && w.sunElev < 15 ? skylineAt(ref, w.sunAzim) : -90;
-    const moonSky = w.moonElev > -3 && w.moonElev < 15 ? skylineAt(ref, w.moonAzim) : -90;
+    const sunSky = w.sunElev > -3 && w.sunElev < 15 ? horizon(ref, w.sunAzim) : -90;
+    const moonSky = w.moonElev > -3 && w.moonElev < 15 ? horizon(ref, w.moonAzim) : -90;
     state.sunVis = smooth(-sunR, sunR, w.sunElev - sunSky);
     state.moonVis = smooth(-moonR, moonR, w.moonElev - moonSky);
     state.sunSkyline = sunSky; state.moonSkyline = moonSky;
@@ -715,7 +721,7 @@ function createAtmosphere(ctx, opts = {}) {
   return {
     THREE, uniforms, swayUniforms, glsl, update, state, noiseTex, sky,
     setMirror(on) { U.vMirror.value = on ? 1 : 0; },
-    dispose() { noiseTex.dispose(); },
+    dispose() { noiseTex.dispose(); ground?.dispose(); },
   };
 }
 

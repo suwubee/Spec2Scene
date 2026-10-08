@@ -21,3 +21,5 @@
 常见“丑”的原因与修复：平光→明确主光和暗面；无景深→先拉开空间再调光圈；等距排列→用尺度与聚散变化；过饱和→缩小强调色面积；镜头不动或乱动→为乐句写观看目标；逐句切换→把多个语义组织成一段空间体验；脚印像灯带→降低发光、保留凹陷与方向；人物像卡通→先改头身比、轮廓与材质，再加面部细节。
 
 English: Measure the composition, but judge the image. A technically valid frame can still fail the mood, lighting or performance review.
+
+当前关卡依次 G1（意境/分镜/样张）→G1b（新引擎重渲）→G2G3（全曲/表演/字幕）→FINAL。库自测不代签独立审美或真实听审；中景人物手脸继续列为不足。

@@ -67,11 +67,21 @@ def selftest(output=None):
     write_json(root/'aligned'/'alignment_corrections.json',data)
     rerun = pipeline(root/'mix.wav',root/'text.json',root/'aligned',vocal_stem=root/'stem.wav',visualize=False)
     assert rerun['lines'][0]['lockReason'] == 'reviewer-confirmed'
+    # Phrase candidates are never auto-approved, even with clean synthetic vocal activity.
+    phrase_result = pipeline(root/'mix.wav',root/'text.json',root/'phrases',vocal_stem=root/'stem.wav',
+                             mode='phrase',silence=.5,visualize=False)
+    assert len(phrase_result['lines']) == 3 and not any(l['locked'] for l in phrase_result['lines'])
+    assert (root/'phrases'/'vocals.wav').read_bytes() == (root/'stem.wav').read_bytes()
+    first = phrase_result['lines'][0]
+    approved = corrections(phrase_result, {'inputSHA256':phrase_result['inputSHA256'],'textSHA256':phrase_result['textSHA256'],
+        'lines':[{'id':'1','confirmed':True,'reviewer':'synthetic-reviewer','onsetReference':expected[0],
+                  'approval':{'approved':True,'reviewer':'synthetic-reviewer','reference':'synthetic-only','humanListened':False}}]})
+    assert approved['lines'][0]['reviewerApproved'] and not approved['lines'][0]['humanListened']
     report = {'status':'PASS','scope':'procedural harmonic syllables, not real singing or separation quality',
               'syllables':len(actual),'onsetMeanErrorSeconds':float(error.mean()),'onsetMaxErrorSeconds':float(error.max()),
               'autoLockedLines':sum(l['locked'] for l in result['lines']),
               'checks':['DP onset error','same-pitch repeated syllables','variable durations','mixture fallback',
-                        'silence SKIP','English approximation','manual lock/unlock','invalid corrections rejected','rerun preserves corrections'],
+                        'silence SKIP','English approximation','manual lock/unlock','invalid corrections rejected','rerun preserves corrections','phrase pipeline retains stem and requires reviewed onset'],
               'realSong':'SKIP no authorized regression audio','demucsInference':'SKIP optional model inference not part of synthetic alignment test'}
     write_json(root/'report.json',report); print(json.dumps(report))
     if context:

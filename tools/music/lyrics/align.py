@@ -6,7 +6,8 @@ import json
 import os
 from pathlib import Path
 import re
-import tempfile
+import shutil
+from phrase import detect_phrases, phrase_windows, approve_line
 
 # Set before loading numerical libraries; do not inherit unbounded BLAS defaults.
 for _key in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMBA_NUM_THREADS'):
@@ -41,17 +42,21 @@ def read_lines(file):
     raw = Path(file).read_text(encoding='utf-8')
     data = json.loads(raw) if Path(file).suffix.lower() == '.json' else raw.splitlines()
     if isinstance(data, dict):
-        data = data['lines']
+        paragraphs = {str(p['id']): p for p in data.get('paragraphs', [])}
+        data = [{**{k:v for k,v in paragraphs.get(str(l.get('paragraph', '1')), {}).items() if k in ('phraseStart','phraseEnd')}, **l} if isinstance(l, dict) else l for l in data['lines']]
     if not isinstance(data, list):
         raise ValueError('lyrics must be a list of lines')
     rows = []
+    paragraph = 1
     for item in data:
         line = {'text': item} if isinstance(item, str) else dict(item)
         if not isinstance(line.get('text'), str):
             raise ValueError('line text must be a string')
         if not line['text'].strip():
+            paragraph += 1
             continue
-        line = {k: line[k] for k in ('text', 'start', 'end') if k in line}
+        line.setdefault('paragraph', str(paragraph))
+        line = {k: line[k] for k in ('text', 'start', 'end', 'paragraph', 'phraseStart', 'phraseEnd') if k in line}
         line['units'] = units(line['text'])
         if not 1 <= len(line['units']) <= 128:
             raise ValueError('each line needs 1..128 sung units')
@@ -250,13 +255,19 @@ def corrections(result, data):
             line['words'][-1]['end'] = change['end']
         if modified:
             line['locked'], line['lockReason'] = False, 'edited; review required'
+            line['reviewerApproved'] = False
+            for key in ('approval','onsetReference','onsetErrorSeconds','reviewer'):
+                line.pop(key, None)
         if change.get('confirmed') is True:
             reviewer = change.get('reviewer', '').strip()
             if not reviewer:
                 raise ValueError('confirmed corrections require reviewer')
-            line.update(locked=True, lockReason='reviewer-confirmed', reviewer=reviewer)
+            if result.get('mode') == 'phrase':
+                approve_line(line, change)
+            else:
+                line.update(locked=True, lockReason='reviewer-confirmed', reviewer=reviewer, reviewerApproved=True)
         elif change.get('confirmed') is False:
-            line.update(locked=False, lockReason='reviewer-unlocked')
+            line.update(locked=False, lockReason='reviewer-unlocked', reviewerApproved=False)
     validate(result)
     return result
 
@@ -312,10 +323,12 @@ def plots(result, f, output, font=None):
 
 
 def pipeline(source, lyrics, output, *, vocal_stem=None, model_dir=None, separation='auto', threshold=.8,
-             correction_file=None, font=None, max_seconds=600, fmin=65, fmax=1000, visualize=True):
+             correction_file=None, font=None, max_seconds=600, fmin=65, fmax=1000, visualize=True, mode='syllable', threshold_db=-38, silence=.25, minimum_phrase=.15):
     import numpy as np
     import librosa
     from separate import separate
+    if mode not in ('phrase','syllable'):
+        raise ValueError('unknown alignment mode')
     if not .5 <= threshold <= 1 or not 0 < max_seconds <= 1800 or not 40 <= fmin < fmax <= 2000:
         raise ValueError('invalid threshold, duration budget or pitch range')
     source, output = Path(source), Path(output)
@@ -328,22 +341,41 @@ def pipeline(source, lyrics, output, *, vocal_stem=None, model_dir=None, separat
     input_hash = hashlib.file_digest(source.open('rb'), 'sha256').hexdigest()
     text_hash = hashlib.sha256(json.dumps(rows, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     stem, sep_status = vocal_stem, 'SKIP separation disabled; mixture activity fallback'
-    with tempfile.TemporaryDirectory(prefix='scene-lyrics-stem-') as temp:
-        if stem:
-            sep_status = 'USER supplied vocal stem; separation not verified'
-        elif separation != 'off':
-            stem, sep_status = separate(source, model_dir, Path(temp)/'vocals.wav', max_seconds)
-        voice = y
-        if stem:
-            if abs(librosa.get_duration(path=stem)-duration) > .05:
-                raise ValueError('vocal stem must match mix duration within 50 ms')
-            voice, _ = librosa.load(stem, sr=sr, mono=True)
-            voice = np.pad(voice[:len(y)], (0, max(0,len(y)-len(voice))))
-        f = features(voice, sr, fmin, fmax)
-    spans, grouping = windows(rows, f)
+    if stem:
+        sep_status = 'USER supplied vocal stem; separation not verified'
+    elif separation != 'off':
+        stem, sep_status = separate(source, model_dir, output/'vocals.wav', max_seconds)
+    if mode == 'phrase' and not stem:
+        raise ValueError('phrase mode requires a separated vocal stem; '+sep_status)
+    voice = y
+    if stem:
+        if abs(librosa.get_duration(path=stem)-duration) > .05:
+            raise ValueError('vocal stem must match mix duration within 50 ms')
+        retained = output/'vocals.wav'
+        if Path(stem).resolve() != retained.resolve():
+            if Path(stem).suffix.lower() == '.wav':
+                shutil.copyfile(stem, retained)
+            else:
+                import soundfile as sf
+                original, original_sr = librosa.load(stem, sr=None, mono=False)
+                sf.write(retained, original.T, original_sr, subtype='FLOAT')
+        voice, _ = librosa.load(stem, sr=sr, mono=True)
+        voice = np.pad(voice[:len(y)], (0, max(0,len(y)-len(voice))))
+    f = features(voice, sr, fmin, fmax)
+    phrase_evidence = []
+    if mode == 'phrase':
+        # Non-centred 10 ms RMS gives an explicit acoustic onset coordinate.
+        hop = sr//100
+        padded = np.pad(voice, (0, (-len(voice)) % hop))
+        db = 20*np.log10(np.sqrt(np.mean(padded.reshape(-1,hop)**2,axis=1))+1e-9)
+        phrases = [(a,min(b,duration)) for a,b in detect_phrases(db, threshold_db=threshold_db, silence=silence, minimum=minimum_phrase)]
+        spans, phrase_evidence = phrase_windows(rows, phrases)
+        grouping = .49
+    else:
+        spans, grouping = windows(rows, f)
     lines = []
     for i, (row, (a, b)) in enumerate(zip(rows, spans)):
-        edges = split_line(a,b,len(row['units']),f)
+        edges = np.linspace(a,b,len(row['units'])+1) if mode == 'phrase' else split_line(a,b,len(row['units']),f)
         words = []
         for j, unit in enumerate(row['units']):
             x,y_ = edges[j:j+2]; lo,hi = round(x*100), max(round(x*100)+1,round(y_*100))
@@ -353,11 +385,16 @@ def pipeline(source, lyrics, output, *, vocal_stem=None, model_dir=None, separat
             words.append({**unit, 'start': round(float(x),4), 'end': round(float(y_),4), 'confidence': round(confidence,4)})
         confidence = float(np.percentile([w['confidence'] for w in words],25))
         lines.append({'id':str(i+1),'text':row['text'],'start':words[0]['start'],'end':words[-1]['end'],
-                      'words':words,'confidence':round(confidence,4),'locked':confidence>=threshold,
+                      'words':words,'confidence':round(confidence,4),'locked':mode != 'phrase' and confidence>=threshold,
+                      'reviewerApproved':False,'paragraph':row.get('paragraph'),
+                      **(phrase_evidence[i] if phrase_evidence else {}),
                       'lockReason':'confidence-threshold' if confidence>=threshold else 'review-required'})
-    result = {'schema':1,'status':'CANDIDATE' if lines else 'SKIP','reason':None if lines else 'No vocal activity; manual windows or better stem required',
+    result = {'schema':1,'mode':mode,'vocalStem':'vocals.wav' if stem else None,
+              'vocalStemSHA256':hashlib.sha256((output/'vocals.wav').read_bytes()).hexdigest() if stem else None,
+              'lineLockStandard':{'onsetToleranceSeconds':.3,'endNoLaterThanNextStart':True,'reviewerApprovalRequired':mode=='phrase'},
+              'phraseParameters':{'thresholdDb':threshold_db,'silenceSeconds':silence,'minimumSeconds':minimum_phrase} if mode=='phrase' else None,'status':'CANDIDATE' if lines else 'SKIP','reason':None if lines else 'No vocal activity; manual windows or better stem required',
               'duration':len(voice)/sr,'inputSHA256':input_hash,'textSHA256':text_hash,'separation':sep_status,
-              'method':'pYIN + activity/flux/timbre/pitch onset candidates + monotonic duration DP',
+              'method':'silence + ordered paragraphs + character-proportional line windows' if mode=='phrase' else 'pYIN + activity/flux/timbre/pitch onset candidates + monotonic duration DP',
               'confidenceThreshold':threshold,'confidenceCalibrated':False,'lines':lines,
               'limitations':['Acoustic alignment is not speech recognition.','English syllables are orthographic approximations.',
                              'Mixture confidence is capped at 0.49; auto-lock requires a stem.','Human listening and visual review remain necessary.']}
@@ -385,6 +422,10 @@ def main():
         p.add_argument('--'+key, type=Path)
     p.add_argument('--separation',choices=['auto','off','demucs'],default='auto')
     p.add_argument('--threshold',type=float,default=.8)
+    p.add_argument('--mode',choices=['syllable','phrase'],default='syllable')
+    p.add_argument('--threshold-db',type=float,default=-38)
+    p.add_argument('--silence',type=float,default=.25)
+    p.add_argument('--minimum-phrase',type=float,default=.15)
     p.add_argument('--max-seconds',type=float,default=600)
     p.add_argument('--fmin',type=float,default=65); p.add_argument('--fmax',type=float,default=1000)
     p.add_argument('--selftest',action='store_true')
@@ -396,7 +437,7 @@ def main():
         p.error('--input, --lyrics and --out required')
     result = pipeline(args.input,args.lyrics,args.out,vocal_stem=args.vocal_stem,model_dir=args.model_dir,
                       separation=args.separation,threshold=args.threshold,correction_file=args.corrections,font=args.font,
-                      max_seconds=args.max_seconds,fmin=args.fmin,fmax=args.fmax)
+                      max_seconds=args.max_seconds,fmin=args.fmin,fmax=args.fmax,mode=args.mode,threshold_db=args.threshold_db,silence=args.silence,minimum_phrase=args.minimum_phrase)
     print(json.dumps({'status':result['status'],'lines':len(result['lines']),'locked':sum(l['locked'] for l in result['lines']),
                       'separation':result['separation']}, ensure_ascii=False))
 
