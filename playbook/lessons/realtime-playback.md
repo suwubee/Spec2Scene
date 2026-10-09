@@ -25,3 +25,7 @@
 v0.4.3 已把单引擎常驻、后台预热、运行时 RT resize、固定灯光签名和暖机后零新程序检查接入通用播放器；浏览器回归仍只证明软件后端与起步样片，不能代替目标设备的真人实时审核。
 
 English: never rebuild on quality changes or change shader defines; keep warmed sets resident; observe zero new program identities during playback. Diagnostics are evidence, not a residency implementation.
+
+## v0.5 默认选择
+
+以上 Worker/分层方案保留为实验性，默认不用。新项目默认[点击逐镜预热与常驻](../../tracks/music-video/realtime/README.md)。用户同机实测优先于架构推断；历史重建/灯数组合修复不免除懒建和分层复杂度的回归风险。见[无声与闪烁教训](v05-playback-and-flicker.md)。

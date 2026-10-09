@@ -78,11 +78,13 @@ G1 意境/分镜/样张、G1b 新引擎重渲、G2G3 全曲/表演/字幕、FINA
 
 接口见 [v0.4 构件](tracks/music-video/kits/v04.md)、[导演稿](templates/CONCEPT-music-video.md)、[版本记录](CHANGELOG.md)及[本轮验收](validation/v0.4/README.md)。`npm run test:v04 -- <临时证据目录>` 直接测试仓库通用构件；图像和原始日志只留临时输出。目标 GPU、真人听审、真实模型推理与生产环境无本轮通过声明。保留 `wip/v021-partial` 参考分支，不自动推送。
 
-## v0.4.1 实时播放
+## v0.5 默认实时播放
 
-[通用播放器](tracks/music-video/player/README.md)随音乐视频 starter 生成：无依赖点击入口、媒体主时钟、Worker 构建与单帧绘制、按镜头顺序 compileAsync、自动/高/中/低画质、实际交付 fps 与缓冲进度、字幕开关。中低档使用远景角色与合批场景预览，高档保持完整电影管线。截图必须显式打开 `?mode=capture`（或 `?quality=final`），固定高画质，不运行音频或自适应。
+[默认播放器](tracks/music-video/realtime/README.md)采用点击 → 逐镜代表帧真实渲染预热 → 音频驱动画面，场景与引擎常驻。点击手势中同步 play()+pause() 解锁；只在媒体 error 换源，无超时判失败；慢网先用墙钟并提示载入中，音频就绪后对齐接管；阻止声音和失败均可点击恢复。原 [tracks/music-video/player](tracks/music-video/player/README.md) 保留为**实验性，默认不用**，通过 experimental.html 或 ?player=experimental 选择。截图仍显式 ?mode=capture 或 ?quality=final，固定高画质、确定性 seek，无音频。
 
-`npm test` 和 `npm run test:browser -- --isolated --offline` 都验收真实点击、首声、20 秒音频推进、慢网与弱机；可独立运行 `timeout 360s npm run test:playback -- /tmp/scene-player-evidence`。测试使用临时仓库生成器，当前 projects 不变。G2G3 和 FINAL 加入“实时可看”必检子项，审核人必须亲自点实时页播放；软件帧率、解码信号不代表目标 GPU 或真人听审。[本轮验证与限制](validation/v0.4.1/README.md)。
+`timeout 960s npm run test:playback -- <临时证据目录>` 测默认策略与严格用户激活、去 webdriver 特征、音频延迟 5 秒/25 秒、最终解码信号和同步。生成项目新增 `npm run check:flicker`：24 Hz seek 与 60 Hz 实时策略双路、硬切 ±1/4.5/25 ms、64×36 全局 spike/step 和 16×9 局部 spike，输出 rows.json、flags.txt、联系表。60 Hz 是时间采样密度，不是实际显示帧率声明；候选需逐帧审核。
+
+每部新 MV 按[区分度规则](playbook/12-distinct-worlds.md)建立自己的世界观和禁用清单；SET-brief 写差异说明与自查，AD 评审 1 首项查禁用清单。只复用底层引擎与改型改色的通用构件。经验见[同机对比、稳定技术栈与七类闪烁](playbook/lessons/v05-playback-and-flicker.md)，实测与边界见[v0.5 验证](validation/v0.5/README.md)。库回归不代签独立审美、真人听审、目标 GPU 或生产验收。
 
 ## 许可与责任
 

@@ -37,7 +37,7 @@ test('synthetic demo wave is finite, audible PCM with the promised duration',()=
   assert.ok(peak>1000&&peak<32767);assert.throws(()=>demoWave(100000));
 });
 
-test('generated real-time page: trusted sound, 20-second clock, auto quality, slow network and weak CPU',{timeout:360000},async()=>{
+test('experimental layered page: trusted sound, 20-second clock, auto quality, slow network and weak CPU',{timeout:360000},async()=>{
   const base=process.env.SCENE_EVIDENCE_DIR||os.tmpdir();await mkdir(base,{recursive:true});
   const out=await mkdtemp(path.join(base,'scene-player-'));
   console.log(`Playback evidence retained: ${out}`);await validateGeneratedPlayback(out);

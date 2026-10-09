@@ -23,3 +23,5 @@ flowchart LR
 English: Feedback becomes a measurable specification. Implementers supply reproducible evidence; reviewers run checks independently. Merge first, test the merged revision, release as a separate authorized action, then verify delivered bytes and real browser behavior. A passing local report does not prove production correctness.
 
 需要持续打磨空间、材质和镜头的项目，继续阅读[深做制作法](11-deep-production.md)：最多四个主场景、多变体、一场景一负责人、四阶段制作、美术总监评审与集成契约。
+
+音乐视频 v0.5 使用[逐镜预热常驻播放器](../tracks/music-video/realtime/README.md)，并按[独立世界规则](12-distinct-worlds.md)设计。原分层播放器是实验选项。

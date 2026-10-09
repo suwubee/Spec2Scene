@@ -45,3 +45,12 @@
 | 私有内容与许可证 | tools/hygiene.mjs、固定哈希 three.js MIT、THIRD_PARTY.md |
 
 本轮测试与限制见 v0.2/README.md。自动全绿不代替独立审美或真机验收。
+
+## v0.5 通用增补
+
+| 约束 | 实现/规则 | 复验入口 |
+|---|---|---|
+| 点击同步解锁、逐镜预热、常驻音频驱动 | tracks/music-video/realtime | tools/test/realtime.test.mjs、test:playback |
+| error 才换源、5/25 秒慢网、可见恢复 | realtime/audio.js | 默认与严格激活浏览器、状态机单测 |
+| 24/60 Hz 双路、切点加密、全局/局部闪烁 | tools/flicker-check.mjs、realtime/timing.js | 算法夹具、真实生成引擎短区间、项目 check:flicker |
+| 世界观、禁用清单、改型改色、AD 首项 | playbook/12-distinct-worlds.md、CONCEPT/ART-BIBLE/SET-brief/AD-review | 独立审核；自动测试不代签 |

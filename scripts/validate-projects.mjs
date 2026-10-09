@@ -6,6 +6,7 @@ import {once} from 'node:events';
 import {mkdtemp, mkdir, readFile, writeFile, rm, access, cp, symlink} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {run} from '../tools/lib/cli.mjs';
+import {validateRealtime} from '../tools/test/realtime-browser.mjs';
 import {validatePlayback} from '../tools/test/playback-browser.mjs';
 import {browser} from '../tools/lib/browser.mjs';
 import {renderFrames} from '../tools/render-frames.mjs';
@@ -118,6 +119,7 @@ try {
     await tab.close();
     console.log(`PASS ${label} browser page and scene contract`);
   }
+  await validateRealtime({url:urls[1],out:path.join(evidence,'resident')});
   await validatePlayback({url:urls[1],out:path.join(evidence,'playback')});
   const frames = path.join(evidence, 'frames'), repeated = path.join(evidence, 'repeated');
   const config = {url: urls[1]+'?mode=capture&w=800&h=450', identity: 'synthetic-validation-v1', fps: 12, count: 12, width: 800, height: 450};

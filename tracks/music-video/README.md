@@ -6,7 +6,7 @@
 
 ## 必经顺序
 
-1. 写[意境书](directing/01-mood-first.md)，定义情绪温度、世界、色彩、光与 3–5 母题。
+1. 写[意境书](directing/01-mood-first.md)，定义情绪温度、独立世界观（时代/地域/建筑语汇/材质/色彩/季节/天气/开场与结尾）、光与 3–5 母题；设计书必须有禁用清单（以往标志物/布局/机位），只复用底层引擎和改型改色的通用构件。
 2. 填[意象转译表](directing/01b-imagery-translation.md)。从情绪选择替代意象；例如让脚印承接月光，用大景小人和留白承载孤独。禁止逐句图解。
 3. 按[镜头语言](directing/02-camera-language.md)和[分镜模板](directing/03-shot-list-template.md)写完整镜头表，产出每段气氛样张；停在 **G1**，等待独立审核 PASS。
 4. **G1b**：用本轮引擎重渲 G1 样张，检查镜头迁移、材质、角色、曝光与月相；附引擎版本/源码摘要，独立 PASS 后推进。
@@ -22,11 +22,11 @@
 
 [引擎 v0.3](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
 
-默认页面使用[实时播放层](player/README.md)：点击播放程序合成配乐，音频作为主时钟，Worker 绘制，自动/高/中/低画质、缓冲进度、真实 fps 与字幕开关。中/低档使用简化样片场景；高档保留完整电影场景。
+默认页面使用[逐镜预热常驻播放器](realtime/README.md)：点击栈同步 play()+pause() 解锁，逐镜实际 renderFrame 预热后正式播放；一个完整电影引擎与场景常驻，音频驱动画面。慢网暂用墙钟且持续提示载入中，音频就绪后对齐接管；只在 error 换源，失败可重试。原[分层播放器](player/README.md)保留为实验性，通过 experimental.html 选择，默认不用。
 
-显式 `?mode=capture` 或 `?quality=final` 页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`，固定高画质，禁用音频与自适应。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。两种模式共享镜头表、相机与世界时间语义，调度和画质路径严格分离。原生字幕在后期末端合成进画布；实时示例使用的 DOM 字幕不在画布捕获内。seek 与 resize 必须 await。`sample/shots.json` 是实际驱动相机与转场的数据。
+显式 `?mode=capture` 或 `?quality=final` 页面暴露 `window.__scene={ready,canvas,seek(t),capture(),resize(w,h)}`，固定高画质，禁用音频与自适应。画面是时间、种子与参数的纯函数，支持倒序 seek 和叠化。两种模式共享完整电影引擎、镜头表、相机与世界时间；实时路径额外应用 cutSafe，离线 seek 不偏移。原生字幕在后期末端合成进画布；实时示例使用的 DOM 字幕不在画布捕获内。seek 与 resize 必须 await。`sample/shots.json` 是实际驱动相机与转场的数据。
 
-G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面亲自点击播放，测按钮和首声 ≤1 秒、20 秒音频推进 19.6–20.4 秒、自动最终档与冷启动/稳定帧 p90，慢网和弱机各一次。截图不能替代该子项。
+G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面亲自点击播放，测按钮可用 ≤1 秒，单列预热耗时、网络等待与就绪至首声 ≤1 秒；20 秒音频推进 19.6–20.4 秒，固定尺寸与冷启动/稳定帧 p90，慢网和弱机各一次。发布前运行 npm run check:flicker 并逐项审阅候选。截图不能替代该子项。
 
 正式渲染前记录源码/数据摘要、浏览器、图形后端、尺寸和种子；固定 fps，帧逐个原子写入，只在相同配置续渲，缺帧拒绝编码。共享服务器默认单 worker，预先估算磁盘；小尺寸稀疏预览通过后再出 final。
 

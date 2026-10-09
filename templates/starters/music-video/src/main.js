@@ -1,3 +1,4 @@
+import {createCutSafe,hardCuts} from '../realtime/timing.js';
 import {createEngine} from '../engine/core/index.js';
 import {createScenes} from '../sample/scenes.js';
 import {world} from './shots.js';
@@ -15,6 +16,9 @@ try {
     return {scene,update(){const {action,time,angle}=studioState;model.object.rotation.y=angle;model.update(action,time,{distance:action==='walk'||action==='windWalk'?time*.38:undefined});const p=model.rig.root.position;model.object.position.set(-p.z*Math.sin(angle),0,-p.z*Math.cos(angle));}};};
   const engine=await createEngine({canvas,shots,scenes,world,width,height,quality:'final'}),originalSeek=engine.seek;
   engine.seek=async(t,o)=>{const s=await originalSeek(t,o);slider.value=s.t;status.textContent=`${s.t.toFixed(2)} / 60 秒 · ${s.t<30?'雪夜旷野':'雨夜站台'} · 确定性截图`;return s;};
+  const cutSafe=createCutSafe(hardCuts(shots),{fps:engine.fps,duration:engine.duration});
+  engine.renderRealtime=(t,options={sync:true})=>engine.renderFrame(cutSafe(t),options);
+  engine.hardCuts=hardCuts(shots);
   window.__scene=engine;engine.engine=engine;engine.info=()=>engine.inspect();window.__mv=engine;
   engine.characterFrame=async(action,t,angle=0)=>{studioState={action,time:t,angle};const shot={id:'studio',set:'studio',start:0,end:60,t0:0,t1:60,position:[[0,[0,1.15,4.6]]],target:[[0,[0,.95,0]]],focal:[[0,20]],focus:[[0,4.6]],fstop:[[0,8]]};await engine.seek(t,{layers:[{shot,tLocal:t,weight:1,gain:1,fade:1}]});};
   await engine.seek(Number(params.get('t'))||0);window.addEventListener('pagehide',()=>{engine.dispose();});

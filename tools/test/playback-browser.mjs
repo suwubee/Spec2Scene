@@ -23,7 +23,7 @@ export async function playbackFixture() {
 }
 
 // Limit software shader workers, raster threads and browser CPU affinity; record only our own PID.
-async function launch(out) {
+export async function launch(out, {strict = false} = {}) {
   let executablePath=process.env.SCENE_CHROMIUM||chromium.executablePath(),env={...process.env,LP_NUM_THREADS:'2',OMP_NUM_THREADS:'2'};
   if(process.platform==='linux') {
     const shim=path.join(out,'nproc.so');
@@ -36,13 +36,13 @@ async function launch(out) {
     await writeFile(wrapper,`#!/bin/sh\necho $$ > ${quote(path.join(out,'browser.pid'))}\nexec taskset -c ${cpus.join(',')} env LD_PRELOAD=${quote(shim)} MV_NPROC=2 ${quote(executablePath)} "$@"\n`,{mode:0o700});
     executablePath=wrapper;
   }
-  const browser=await chromium.launch({headless:true,executablePath,env,timeout:30000,ignoreDefaultArgs:['--mute-audio'],
-    args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader','--num-raster-threads=2','--renderer-process-limit=2']});
+  const browser=await chromium.launch({headless:true,executablePath,env,timeout:30000,ignoreDefaultArgs:['--mute-audio', ...(strict ? ['--enable-automation'] : [])],
+    args:[...(strict ? ['--autoplay-policy=document-user-activation-required', '--disable-blink-features=AutomationControlled'] : []),'--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader','--num-raster-threads=2','--renderer-process-limit=2']});
   if(process.platform==='linux')console.log(`OWNED playback browser pid=${(await readFile(path.join(out,'browser.pid'),'utf8')).trim()}`);
   return browser;
 }
 
-async function instrument(page) {
+export async function instrument(page) {
   await page.addInitScript(()=>{
     window.__probe={clicks:[],samples:[]};
     document.addEventListener('click',event=>{
@@ -61,13 +61,15 @@ async function instrument(page) {
         if(media.currentTime>click.t && click.advance===undefined)click.advance=now;
         p.analyser.getFloatTimeDomainData(wave);
         if(wave.some(v=>Math.abs(v)>.0001)&&click.signal===undefined)click.signal=now;
-        if(click.advance!==undefined&&click.signal!==undefined||now-click.at>20000)clearInterval(timer);
+        if(click.advance!==undefined&&click.signal!==undefined||now-click.at>240000)clearInterval(timer);
       },5);
     },true);
   });
 }
 
 export async function validatePlayback({url,out}) {
+  const baseUrl = url;
+  url = new URL("experimental.html", url + "/").href;
   await mkdir(out,{recursive:true});const browser=await launch(out);
   const report={status:'RUNNING',pid:process.pid,browser:browser.version(),autoplay:'default',muted:false,backend:'SwiftShader; 2 shader workers / 2 CPUs on Linux',runs:[],limits:['SKIP target Windows/ANGLE D3D11: no target device','SKIP human speaker listening: analyser measures decoded signal only','SKIP independent aesthetic review: implementation regression only']};
   try {
@@ -251,7 +253,7 @@ export async function validatePlayback({url,out}) {
       const actor=createDistantCharacter();scene.add(actor.object);
       const camera=new THREE.PerspectiveCamera(35,320/360,.05,50);camera.position.set(0,1,3.6);camera.lookAt(0,.95,0);
       window.__distantFrame=(angle,t)=>{actor.object.rotation.y=angle;actor.update('windWalk',t,{distance:t*.22});renderer.render(scene,camera);return canvas.toDataURL('image/png').split(',')[1];};
-    },url);
+    },baseUrl);
     const images=[],labels=[];
     for(const [view,angle] of [['front',0],['side',Math.PI/2],['back',Math.PI]])for(const t of [1,1.125,1.25]) {
       const file=path.join(out,`distant-${view}-${t}.png`);

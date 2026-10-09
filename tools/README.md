@@ -61,3 +61,17 @@ python3 -m venv .venv
 ## v0.4.1 播放验收
 
 `timeout 360s npm run test:playback -- /tmp/scene-player-evidence` 在临时仓库通过生成器创建样片，使用默认自动播放策略、未静音 Chromium，测按钮与解码波形起点、20 秒音频推进、真实帧率、自动画质、慢网和弱机；同时验证显式截图模式与逆序像素一致。该回归已接入 npm test 和三产线浏览器验收。当前 projects 不写入，原始 JSON 与截图保留在指定临时目录；Windows/D3D11、真人听审和独立审美另行验收。详见[播放层](../tracks/music-video/player/README.md)。
+
+## 音乐视频闪烁检查
+
+生成项目运行服务后：
+
+```bash
+timeout 600s npm run check:flicker -- --timeout 540000 --out out/flicker-r01
+```
+
+仓库工具：`node tools/flicker-check.mjs --url http://127.0.0.1:39920 --out <临时证据目录> [--start 0 --end 60 --width 640 --height 360]`。只接收回环 39920–39929，不启动其他服务。场景需 `window.__scene={ready,canvas,seek,renderRealtime,hardCuts,duration}`；starter 已接入。`renderRealtime` 使用与默认播放器相同的 cutSafe 策略，离线 seek 不改时间。每条路径从新页面开始。
+
+按 24 Hz 与 60 Hz 时间网格顺序采样，硬切附加 ±1/±4.5/±25 ms。64×36 RGB 相邻平均差检测 spike/step，16×9 个 4×4 像素块检测局部 spike。默认全局阈值 12、局部阈值 28（0–255），相邻/跨帧差比 3；可用 `--global-threshold`、`--local-threshold`、`--ratio` 调整并随报告保存。不是实时 60 fps 性能测量。
+
+输出 `rows.json`、`flags.txt`、全部缩略图与候选邻帧/概览联系表（每页 ≤12 图、960 px 宽，最多 60 页；超出帧数写入 omittedContactFrames，全部缩略图与 flags 仍保留）。单进程顺序绘制，默认最多 30000 样本、最长 300000 ms；`--max-samples` 上限 60000，超预算提前拒绝，禁止覆盖已有轮次。长片按区间分批；软件后端可增加明确超时。原始图像只留项目 out/ 或临时目录。工具 COMPLETE 表示扫描完成，spike/step 候选含正常硬切；审核者须逐帧解释并记录结论。超时/页面错误保留失败 rows/flags，发布前重新检测。
