@@ -68,9 +68,9 @@ function ctxRng(setId) {
  *   lyrics: true/false, msaa: samples (default 4 final, 0 preview), setsBase (URL for set modules)
  */
 export async function createEngine(opts = {}) {
-  const width = opts.width || 1920;
-  const height = opts.height || 1080;
-  const pictureHeight = Math.min(height, opts.pictureHeight || Math.round(width / 2.38806));
+  let width = opts.width || 1920;
+  let height = opts.height || 1080;
+  let pictureHeight = Math.min(height, opts.pictureHeight || Math.round(width / 2.38806));
   const fps = opts.fps || TIMELINE.FPS || 24;
   let quality = opts.quality === 'preview' ? 'preview' : 'final';
   const canvas = opts.canvas || document.createElement('canvas');
@@ -102,17 +102,17 @@ export async function createEngine(opts = {}) {
   const frames = Math.ceil(duration * fps - 1e-9);
 
   let lyrics = null;
-  let fontInfo = [];
+  let fontInfo = [], lyricCoverage = null;
   if (opts.lyrics === true) {
     const F = await loadFonts(opts.fonts || {});
-    fontInfo = F.faces;
+    fontInfo = F.faces; lyricCoverage = F.coverage;
     for (const f of F.faces) if (!f.ok) errors.push(`font failed to load: ${f.file}`);
     lyrics = createLyrics({ width, height, pictureHeight, song:opts.alignment||song, config: timeline.lyricsConfig || {}, coverage: F.coverage, onMissing: (m) => errors.push(m) });
   }
 
   const msaa = opts.msaa ?? qualityInfo.msaa;
   const post = createPost(renderer, { width, height: pictureHeight, canvasWidth: width, canvasHeight: height, quality, msaa, renderScale: opts.renderScale ?? qualityInfo.renderScale, hdrType: opts.hdrType });
-  const aspect = width / pictureHeight;
+  let aspect = width / pictureHeight;
 
   // ---- shared context handed to every Set ----
   const baseCtx = {
@@ -455,6 +455,20 @@ export async function createEngine(opts = {}) {
     renderer, canvas, post, audio, song, world, lyrics, timeline, fontInfo, caps, errors,
     width, height, pictureHeight, fps, duration, frames, quality, qualityInfo, ctx: baseCtx,
     seek, renderFrame, bench, getSet, preload,
+    /** Serialised resize; scene factories and shader materials remain resident. */
+    resize(w,h,{renderScale=opts.renderScale ?? qualityInfo.renderScale,pictureHeight:ph=Math.min(h,Math.round(w/2.38806))}={}) {
+      const job=chain.then(()=>{
+        if(![w,h,ph].every(n=>Number.isInteger(n)&&n>=16&&n<=4096)||ph>h||!(renderScale>0&&renderScale<=1))throw new RangeError('render dimensions out of bounds');
+        post.resize({width:w,height:ph,canvasWidth:w,canvasHeight:h,renderScale});
+        width=w;height=h;pictureHeight=ph;aspect=w/ph;renderer.setSize(w,h,false);
+        Object.assign(baseCtx,{width,height,pictureHeight,aspect});
+        baseCtx.uniforms.uRes.value.set(post.internalSize.width,post.internalSize.height);
+        for(const inst of setInstances.values()) {inst.camera.aspect=aspect;inst.camera.updateProjectionMatrix();inst.resize?.(w,h,baseCtx);}
+        if(lyrics){lyrics.dispose();lyrics=createLyrics({width,height,pictureHeight,song:opts.alignment||song,config:timeline.lyricsConfig||{},coverage:lyricCoverage,onMissing:m=>errors.push(m)});}
+        Object.assign(engine,{width,height,pictureHeight,lyrics});
+        return engine;
+      });chain=job.catch(()=>{});return job;
+    },
     setIds() { return [...new Set((timeline.shots || []).map((s) => s.set))]; },
     dispose() {
       for (const inst of setInstances.values()) if (inst && inst.dispose) inst.dispose();

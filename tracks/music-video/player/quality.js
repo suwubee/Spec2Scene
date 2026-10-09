@@ -1,10 +1,19 @@
 // Real-time policy. Capture never instantiates this controller.
 export {programCount, programIdentitySet, createCompileMonitor, assertNoQualityRebuild, assertNoNewPrograms} from './compile-monitor.js';
 export const PRESETS = Object.freeze({
-  high: Object.freeze({scale:1, msaa:2, shadow:2048, particles:1, pipeline:'final', simplified:false, dof:true}),
-  medium: Object.freeze({scale:.65, msaa:0, shadow:1024, particles:.5, pipeline:'preview', simplified:true, dof:false}),
-  low: Object.freeze({scale:.5, msaa:0, shadow:0, particles:.25, pipeline:'preview', simplified:true, dof:false}),
+  high: Object.freeze({scale:1, msaa:0, shadow:2048, particles:1, volumetric:true, reflections:true, dof:true, post:true}),
+  medium: Object.freeze({scale:.65, msaa:0, shadow:1024, particles:.5, volumetric:false, reflections:false, dof:false, post:true}),
+  low: Object.freeze({scale:.5, msaa:0, shadow:512, particles:.25, volumetric:false, reflections:false, dof:false, post:false}),
 });
+export function postForQuality(level) {
+  const q=PRESETS[level];if(!q)throw new Error('Unknown quality');
+  return {dof:{enabled:q.dof},...(!q.post?{grain:{amount:0},bloom:{strength:0},halation:{strength:0},streak:{strength:0}}:{})};
+}
+export function chooseStartMode(choice, warm) {
+  if(choice==='a'||choice==='b')return choice;
+  if(choice!=='auto')throw new Error('Unknown start mode');
+  return !warm?.done && Number.isFinite(warm?.etaMs) && warm.etaMs<=20000 ? 'b' : 'a';
+}
 export function percentile(values, fraction=.9) {
   if (!values.length) return null;
   const sorted=[...values].sort((a,b)=>a-b);

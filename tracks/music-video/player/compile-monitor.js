@@ -45,6 +45,7 @@ export function assertNoQualityRebuild(reportOrSwitches) {
 }
 
 export function assertNoNewPrograms(before, after) {
+  if(before instanceof Set && after instanceof Set){const added=[...after].filter(p=>!before.has(p));if(added.length)throw new Error(`playback compiled ${added.length} new program identities`);return true;}
   if (Number.isFinite(before) && Number.isFinite(after) && after > before) throw new Error(`playback compiled ${after - before} new programs`);
   return true;
 }

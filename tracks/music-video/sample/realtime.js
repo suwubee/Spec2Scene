@@ -2,6 +2,7 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {createDistantCharacter} from './distant-character.js';
 import {makeRng} from '../engine/noise.js';
+import {ensureFixedLightLayout} from '../player/fixed-lights.js';
 import {mergeGeometries} from '../engine/vendor/BufferGeometryUtils.js';
 
 export function createRealtimeScene(ctx,kind) {
@@ -37,7 +38,7 @@ export function createRealtimeScene(ctx,kind) {
     box([2.6,.12,.6],[-4,.56,-5],wood);for(const x of [-4.9,-3.1])box([.09,.5,.5],[x,.25,-5],metal);
     character.object.position.set(-3,.04,-27);character.object.rotation.y=Math.PI;
   }
-  const count=Math.round(1600*q.particles),positions=new Float32Array(count*3),base=new Float32Array(count*3);
+  const count=1600,positions=new Float32Array(count*3),base=new Float32Array(count*3);
   for(let i=0;i<count;i++)base.set([(rng()-.5)*60,rng()*18,-rng()*90],i*3);
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
   const particles=new THREE.Points(geo,new THREE.PointsMaterial({color:snow?0xc6d9e8:0x8caabe,size:snow?.06:.035,transparent:true,opacity:.65}));scene.add(particles);
@@ -52,10 +53,12 @@ export function createRealtimeScene(ctx,kind) {
     const merged=mergeGeometries(batch.geometries);batch.geometries.forEach(g=>g.dispose());
     const m=new THREE.Mesh(merged,mat);m.castShadow=batch.cast;m.receiveShadow=batch.receive;scene.add(m);
   }
-  return {scene,camera,character,update(t){
+  ensureFixedLightLayout(scene,'outdoor');
+  let active=count;
+  return {scene,camera,character,applyQuality(preset){active=Math.round(count*preset.particles);geo.setDrawRange(0,active);},update(t){
     if(snow) {character.update('windWalk',t,{distance:t*.22});character.object.position.set(.4,.02,-28);}
     else character.update('stand',t);
-    for(let i=0;i<count;i++){positions[i*3]=base[i*3]+Math.sin(t*.3+i)*.25;positions[i*3+1]=(base[i*3+1]-t*(snow?.4:9)%18+18)%18;positions[i*3+2]=base[i*3+2];}
+    for(let i=0;i<active;i++){positions[i*3]=base[i*3]+Math.sin(t*.3+i)*.25;positions[i*3+1]=(base[i*3+1]-t*(snow?.4:9)%18+18)%18;positions[i*3+2]=base[i*3+2];}
     geo.attributes.position.needsUpdate=true;
   },dispose(){const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])if(m)ms.add(m);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());}};
 }

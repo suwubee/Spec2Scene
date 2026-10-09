@@ -23,9 +23,7 @@ export async function createEngine({canvas,shots,scenes,world=defaultEnvironment
       return {shot:shot.id,...measureComposition({scene:inst.scene,camera:inst.camera,characters:actor?[actor]:[],...options})};},
     inspect(){return {time:current,quality:native.qualityInfo,drawCalls:native.renderer.info.render.calls,triangles:native.renderer.info.render.triangles,errors:native.errors};},
     async resize(w,h){if(!Number.isInteger(w)||!Number.isInteger(h)||w<16||h<16||w>4096||h>4096)throw new Error('render dimensions out of bounds');
-      // Recreate fixed-size render targets and procedural libraries through the same factory contract.
-      api.ready=false;native.dispose();native=await createFilmEngine({canvas,width:w,height:h,world,quality,timeline,sets,lyrics:false,postOverride:post,...options});
-      const methods={seek:api.seek,resize:api.resize,dispose:api.dispose};Object.assign(api,native,methods);await seek(current);api.ready=true;return api;},
+      api.ready=false;await native.resize(w,h);Object.assign(api,{width:native.width,height:native.height,pictureHeight:native.pictureHeight,lyrics:native.lyrics});await seek(current);api.ready=true;return api;},
     dispose(){disposed=true;api.ready=false;native.dispose();}
   };
   await api.seek(0);api.ready=true;return api;

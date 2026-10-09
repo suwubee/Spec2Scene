@@ -118,10 +118,13 @@ void main(){
 // ---- dilate tiles (max over ±DIL tiles) ----
 const FS_DILATE = HEAD + /* glsl */ `
 uniform sampler2D tT;
+uniform int uDilation;
 void main(){
   ivec2 p = ivec2(gl_FragCoord.xy); ivec2 mx = textureSize(tT, 0) - 1;
   float m = 0.0;
-  for (int y = -DIL; y <= DIL; y++) for (int x = -DIL; x <= DIL; x++) m = max(m, texelFetch(tT, clamp(p + ivec2(x, y), ivec2(0), mx), 0).r);
+  for (int y = -DIL; y <= DIL; y++) for (int x = -DIL; x <= DIL; x++) {
+    if (abs(x) <= uDilation && abs(y) <= uDilation) m = max(m, texelFetch(tT, clamp(p + ivec2(x, y), ivec2(0), mx), 0).r);
+  }
   fragColor = vec4(m, 0.0, 0.0, 1.0);
 }`;
 
@@ -496,12 +499,12 @@ export function displayTransform(rgb, P) {
 export function createPost(renderer, opts) {
   const quality = opts.quality || 'final';
   // preview: internal picture width capped at 960 px (half of 1080p; full res for small canvases)
-  const scale = opts.renderScale ?? (quality === 'preview' ? Math.min(1, 960 / opts.width) : 1.0);
-  const PW = opts.width, PH = opts.height;                  // picture size on canvas
-  const CW = opts.canvasWidth, CH = opts.canvasHeight;       // canvas size
-  const iw = Math.max(2, Math.round(PW * scale)), ih = Math.max(2, Math.round(PH * scale));
-  const hw = Math.ceil(iw / 2), hh = Math.ceil(ih / 2);
-  const refScale = CH / 1080;                               // px scaling vs the 1080p reference
+  let scale = opts.renderScale ?? (quality === 'preview' ? Math.min(1, 960 / opts.width) : 1.0);
+  let PW = opts.width, PH = opts.height;                  // picture size on canvas
+  let CW = opts.canvasWidth, CH = opts.canvasHeight;       // canvas size
+  let iw = Math.max(2, Math.round(PW * scale)), ih = Math.max(2, Math.round(PH * scale));
+  let hw = Math.ceil(iw / 2), hh = Math.ceil(ih / 2);
+  let refScale = CH / 1080;                               // px scaling vs the 1080p reference
   const rings = quality === 'preview' ? 2 : 3;
   const taps = makeTaps(rings);
   const NTAPS = taps.length;
@@ -520,7 +523,7 @@ export function createPost(renderer, opts) {
   const accumRT = mk(iw, ih);   // this layer's composite (DOF, FX, exposure × WB × gain, vignette) — linear
   const dispRT = mk(PW, PH);    // display-referred accumulator: Σ weight × developed layer (picture resolution)
   const dofA = mk(hw, hh), dofB = mk(hw, hh), dofC = mk(hw, hh);
-  const tw = Math.ceil(hw / 8), th = Math.ceil(hh / 8);
+  let tw = Math.ceil(hw / 8), th = Math.ceil(hh / 8);
   const tileA = mk(tw, th), tileB = mk(tw, th);
   const LEVELS = quality === 'preview' ? 5 : 6;
   const down = [], up = [];
@@ -543,7 +546,7 @@ export function createPost(renderer, opts) {
   lyrTex.minFilter = lyrTex.magFilter = THREE.NearestFilter;
   lyrTex.generateMipmaps = false; lyrTex.flipY = false; lyrTex.needsUpdate = true;
   const lyrBox = new THREE.Vector4(0, 0, 0, 0);
-  const picY0 = Math.round((CH - PH) / 2);   // lower bar height (GL y of the picture's bottom row)
+  let picY0 = Math.round((CH - PH) / 2);   // lower bar height (GL y of the picture's bottom row)
 
   // ---- grading LUTs (one per tone/grade key, small LRU: dissolves develop two shots per frame) ----
   const luts = new Map();
@@ -590,8 +593,8 @@ export function createPost(renderer, opts) {
   const blackTex = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1);
   blackTex.needsUpdate = true;
 
-  const maxCocHalf = Math.max(2, Math.round(DEFAULT_POST.dof.maxRadius * scale * refScale / 2)); // ½-res px
-  const DIL = Math.max(1, Math.ceil(maxCocHalf / 8));
+  let maxCocHalf = Math.max(2, Math.round(DEFAULT_POST.dof.maxRadius * scale * refScale / 2)); // ½-res px
+  const DIL = 8; // Supports up to 4096px canvas height without changing a program key.
 
   const mat = (fs, uniforms, defines = {}) => new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3, vertexShader: VS, fragmentShader: fs, uniforms, defines,
@@ -602,7 +605,7 @@ export function createPost(renderer, opts) {
   const M = {
     prefilter: mat(FS_PREFILTER, { tColor: U(null), tDepth: U(depthTex), uLens: U(new THREE.Vector4()), uMaxCoc: U(maxCocHalf) }),
     tilemax: mat(FS_TILEMAX, { tA: U(dofA.texture) }),
-    dilate: mat(FS_DILATE, { tT: U(tileA.texture) }, { DIL }),
+    dilate: mat(FS_DILATE, { tT: U(tileA.texture), uDilation: U(Math.ceil(maxCocHalf / 8)) }, { DIL }),
     gather: mat(FS_GATHER, { tA: U(dofA.texture), tTile: U(tileB.texture), uTexel: U(new THREE.Vector2(1 / hw, 1 / hh)), uMaxCoc: U(maxCocHalf), uFrame: U(0), uTaps: U(taps) }, { NTAPS, RINGS: rings }),
     fill: mat(FS_FILL, { tB: U(dofB.texture), tA: U(dofA.texture), tTile: U(tileB.texture), uTexel: U(new THREE.Vector2(1 / hw, 1 / hh)), uMaxCoc: U(maxCocHalf), uFillK: U(rings === 3 ? 0.16 : 0.2) }),
     bloom1: mat(FS_BLOOM1, { tA: U(dofA.texture), tC: U(dofC.texture), tImg: U(null), uSrcTexel: U(new THREE.Vector2(1 / hw, 1 / hh)), uExposure: U(1), uHalThresh: U(1) }),
@@ -714,6 +717,8 @@ export function createPost(renderer, opts) {
 
   /** bloom/streaks/glow + develop pass for the current accumRT content (one layer), added into dispRT × weight */
   function develop(P, weight, weave) {
+    const glowOn=P.bloom.strength>0||P.halation.strength>0||P.streak.strength>0;
+    if(glowOn) {
     // --- bloom chain from the accumulated composite (already exposed per layer) ---
     const b1 = M.bloom1img;
     b1.uniforms.tImg.value = accumRT.texture;
@@ -761,10 +766,12 @@ export function createPost(renderer, opts) {
     G.uHal.value.fromArray(P.halation.tint).multiplyScalar(P.halation.strength);
     G.uStreak.value.fromArray(P.streak.tint).multiplyScalar(streakOn ? P.streak.strength : 0);
     pass(M.glow, glowRT, 'glow');
+    }
     // --- develop pass: lens + glow + this layer's LUT → display accumulator (× weight) ---
     const F = developMat(P.debug | 0);
     const u = F.uniforms;
     u.tSharp.value = accumRT.texture;
+    u.tGlow.value = glowOn ? glowRT.texture : blackTex;
     u.tLut.value = lutFor(P);
     u.uWeight.value = weight;
     u.uWeave.value.set((weave[0] * P.weave * refScale) / PW, (weave[1] * P.weave * refScale) / PH);
@@ -773,7 +780,7 @@ export function createPost(renderer, opts) {
     const k = P.lens.distortion / Math.max(1e-6, r2max);
     const halfDiag = 0.5 * Math.hypot(PW, PH);
     u.uDist.value.set(k, 1 / (1 + k * r2max), (P.lens.ca * refScale) / halfDiag, (P.lens.ca * refScale * 0.6) / halfDiag);
-    u.uImgK.value = 1 - kB;
+    u.uImgK.value = 1 - P.bloom.strength;
     renderer.setViewport(0, 0, PW, PH);
     pass(F, dispRT, 'develop');
     api._lastDevelop = F;
@@ -787,6 +794,36 @@ export function createPost(renderer, opts) {
     quality,
     NTAPS,
     uploadLyrics,
+    /** Resize storage, preserving materials, program keys, targets and MSAA. */
+    resize({width, height, canvasWidth, canvasHeight, renderScale = scale}) {
+      if (![width,height,canvasWidth,canvasHeight].every(n => Number.isInteger(n) && n >= 2 && n <= 4096) || !(renderScale > 0 && renderScale <= 1)) throw new RangeError('post dimensions out of bounds');
+      PW=width; PH=height; CW=canvasWidth; CH=canvasHeight; scale=renderScale;
+      iw=Math.max(2,Math.round(PW*scale)); ih=Math.max(2,Math.round(PH*scale));
+      hw=Math.ceil(iw/2); hh=Math.ceil(ih/2); tw=Math.ceil(hw/8); th=Math.ceil(hh/8);
+      refScale=CH/1080; picY0=Math.round((CH-PH)/2);
+      maxCocHalf=Math.max(2,Math.round(DEFAULT_POST.dof.maxRadius*scale*refScale/2));
+      renderer.setRenderTarget(null);
+      for(const rt of [sceneRT,accumRT,fxRT,mbRT]) rt?.setSize(iw,ih);
+      dispRT.setSize(PW,PH);
+      for(const rt of [dofA,dofB,dofC]) rt.setSize(hw,hh);
+      for(const rt of [tileA,tileB]) rt.setSize(tw,th);
+      let w=hw,h=hh;
+      for(let i=0;i<LEVELS;i++){w=Math.max(1,Math.ceil(w/2));h=Math.max(1,Math.ceil(h/2));down[i].setSize(w,h);up[i]?.setSize(w,h);}
+      for(const rt of [stA,stB,glowRT]) rt.setSize(down[0].width,down[0].height);
+      for(const name of ['gather','fill']) M[name].uniforms.uTexel.value.set(1/hw,1/hh);
+      M.dilate.uniforms.uDilation.value=Math.min(DIL,Math.ceil(maxCocHalf/8));
+      M.bloom1.uniforms.uSrcTexel.value.set(1/hw,1/hh);
+      M.bloom1img.uniforms.uSrcTexel.value.set(2/iw,2/ih);
+      M.streak.uniforms.uTexel.value.set(1/stA.width,1/stA.height);
+      M.layerPass.uniforms.uAspect.value=PW/PH;
+      for(const m of develops.values())m.uniforms.uAspect.value=PW/PH;
+      for(const m of prints.values())m.uniforms.uPicOrigin.value.set(0,picY0);
+      if(lyrTex.image.width!==CW||lyrTex.image.height!==CH){lyrTex.dispose();lyrTex.image={data:new Uint8Array(CW*CH*4),width:CW,height:CH};lyrTex.needsUpdate=true;}
+      lyrBox.set(0,0,0,0);M.lyrics.uniforms.uCanvasH.value=CH;M.lyrics.uniforms.uCanvas.value.set(CW,CH);
+      Object.assign(api.internalSize,{width:iw,height:ih});
+      return api.internalSize;
+    },
+    get renderTargets(){return [sceneRT,accumRT,dispRT,fxRT,mbRT,dofA,dofB,dofC,tileA,tileB,stA,stB,glowRT,...down,...up].filter(Boolean);},
 
     /** begin a new frame */
     begin() { layerCount = 0; },

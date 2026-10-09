@@ -92,7 +92,7 @@ export async function validatePlayback({url,out}) {
       }
       const row={kind,errors};report.runs.push(row);
       try {
-        await page.goto(url,{waitUntil:'domcontentloaded'});
+        await page.goto(url+'?start=a',{waitUntil:'domcontentloaded'});
         await page.waitForFunction(()=>window.__player?.buttonReadyMs>0);
         row.buttonReadyMs=await page.evaluate(()=>__player.buttonReadyMs);
         assert.ok(row.buttonReadyMs<=1000,`${kind} button ready ${row.buttonReadyMs} ms`);
@@ -137,9 +137,14 @@ export async function validatePlayback({url,out}) {
           row.hud=await page.locator('#hud').textContent();assert.ok(!row.hud.includes(' 0 fps'));
           await page.screenshot({path:path.join(out,`${kind}.png`)});
           if(kind==='normal') {
-            await page.waitForFunction(()=>__player.compiles.some(c=>c.set==='station'),null,{timeout:20000});
+            await page.waitForFunction(()=>__player.warmPresented||__player.errors.length,null,{timeout:90000});
+            assert.deepEqual(await page.evaluate(()=>__player.errors),[]);
+            row.warm=await page.evaluate(()=>__player.warm);
+            assert.equal(row.warm.scenes,2);assert.equal(row.warm.steps,row.warm.total);
+            assert.equal(row.warm.programTotalEstimated,false);
+            assert.equal(row.warm.programs,row.warm.programTotal);
             row.prewarm=await page.evaluate(()=>({audioTime:__player.media.currentTime,compiles:__player.compiles}));
-            assert.ok(row.prewarm.audioTime<30,'next scene should compile in the idle lookahead window');
+            assert.equal(row.prewarm.compiles.length,2,'all scene factories compile once during startup');
           }
           await page.locator('#play').click();
           const paused=await page.evaluate(()=>__player.media.currentTime);await page.waitForTimeout(250);
@@ -153,18 +158,39 @@ export async function validatePlayback({url,out}) {
           assert.match(await page.locator('#subtitle').textContent(),/雨/);
           await page.screenshot({path:path.join(out,`${kind}-station.png`)});
           if(kind==='normal') {
+            row.programBaseline=await page.evaluate(()=>__player.warm.programs);
             await page.locator('#quality').selectOption('medium');
             await page.waitForFunction(()=>__player.quality==='medium');
             await page.locator('#quality').selectOption('high');
             await page.waitForFunction(()=>__player.quality==='high'||__player.errors.length,null,{timeout:90000});
             assert.deepEqual(await page.evaluate(()=>__player.errors),[]);
             assert.equal(await page.evaluate(()=>__player.choice),'high');
+            assert.deepEqual(await page.evaluate(()=>__player.renderSize),[1280,720]);
+            assert.equal(await page.evaluate(()=>__player.programs.at(-1).count),row.programBaseline);
             await page.screenshot({path:path.join(out,'manual-high.png')});
             await page.locator('#quality').selectOption('low');
             await page.waitForFunction(()=>__player.quality==='low');
             await page.waitForFunction(()=>document.querySelector('#hud').textContent.startsWith('低 ·')&&document.querySelector('#hud').textContent.includes('640×360'));
             await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(out,'mobile.png')});
             assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+            await page.locator('#quality').selectOption('medium');await page.waitForFunction(()=>__player.quality==='medium');
+            assert.deepEqual(await page.evaluate(()=>__player.renderSize),[832,468]);
+            const sweep=new Set(Array.from({length:61},(_,t)=>t));
+            for(const shot of await page.evaluate(()=>__player.shots))if(shot.dissolve)sweep.add(shot.start+shot.dissolve/2);
+            row.sweep=[];
+            for(const t of [...sweep].sort((a,b)=>a-b)){
+              const n=await page.evaluate(()=>__player.frames.length);
+              await page.locator('#timeline').fill(String(t));await page.locator('#timeline').dispatchEvent('input');
+              await page.waitForFunction(({t,n})=>__player.frames.length>n&&Math.abs(__player.lastRenderedTime-t)<.01,{t,n});
+              const result=await page.evaluate(()=>({t:__player.lastRenderedTime,count:__player.programs.at(-1).count,created:__player.diagnostics.sceneCreates}));
+              row.sweep.push(result);assert.equal(result.count,row.programBaseline);assert.equal(result.created,2);
+            }
+            row.residency=await page.evaluate(()=>({diagnostics:__player.diagnostics,memory:__player.memory,longTasks:__player.longTasks}));
+            assert.equal(row.residency.diagnostics.rebuilds,0);assert.equal(row.residency.diagnostics.newPrograms,0);assert.equal(row.residency.diagnostics.removedPrograms,0);
+            assert.ok(row.residency.diagnostics.switches.length>=3);
+            assert.ok(row.residency.diagnostics.switches.every(s=>!s.rebuilt&&!s.definesChanged));
+            assert.ok(row.residency.memory.totalBytes>0&&row.residency.memory.geometryBytes>0);
+            assert.equal(row.residency.longTasks.supported,true);
           }
         }
         assert.deepEqual(errors,[]);row.status='PASS';
@@ -172,6 +198,20 @@ export async function validatePlayback({url,out}) {
       } catch(error) {row.status='FAIL';row.failure=error.stack;await page.screenshot({path:path.join(out,`${kind}-failure.png`)}).catch(()=>{});throw error;}
       finally {await context.close();await writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2));}
     }
+    // Default autoplay, real muted unlock, then audible start only after a restored warm frame.
+    const waiting=await browser.newPage({viewport:{width:640,height:520}});await instrument(waiting);
+    await waiting.goto(url+'?start=b&w=640&h=360',{waitUntil:'domcontentloaded'});
+    await waiting.waitForFunction(()=>window.__player?.media.readyState>=3);
+    await waiting.locator('#play').click();
+    await waiting.waitForFunction(()=>__player.waiting&&__player.media.paused);
+    assert.ok(await waiting.evaluate(()=>__player.media.currentTime<.02));
+    assert.match(await waiting.locator('#status').textContent(),/正在准备画面/);
+    await waiting.screenshot({path:path.join(out,'wait-start.png')});
+    await waiting.waitForFunction(()=>__player.warmPresented&&!__player.waiting&&!__player.media.paused,null,{timeout:90000});
+    await waiting.waitForFunction(()=>__probe.clicks[0]?.signal!==undefined);
+    report.waitStart=await waiting.evaluate(()=>({warm:__player.warm,signal:__probe.clicks[0],time:__player.media.currentTime,frame:__player.lastRenderedTime,muted:__player.media.muted,errors:__player.errors}));
+    assert.deepEqual(report.waitStart.errors,[]);assert.equal(report.waitStart.muted,false);
+    await waiting.screenshot({path:path.join(out,'wait-start-ready.png')});await waiting.close();
     const capture=await browser.newPage({viewport:{width:640,height:520}});
     capture.setDefaultTimeout(90000);
     const captureErrors=[];capture.on('pageerror',error=>captureErrors.push(error.message));
@@ -187,6 +227,17 @@ export async function validatePlayback({url,out}) {
     });
     assert.equal(pixels.same,true);assert.equal(pixels.different,true);
     await capture.screenshot({path:path.join(out,'capture.png')});
+    const resize=await capture.evaluate(async()=>{
+      const renderer=__scene.renderer,post=__scene.post,inst=await __scene.getSet('snow'),programs=[...renderer.info.programs];
+      const targets=[...post.renderTargets],samples=post.sceneTarget.samples;
+      await __scene.seek(6);const original=__scene.capture();
+      await __scene.resize(320,240);await __scene.seek(6);const resized=__scene.capture();
+      const small={canvas:[__scene.canvas.width,__scene.canvas.height],internal:{...post.internalSize},aspect:inst.camera.aspect};
+      await __scene.resize(480,270);await __scene.seek(6);
+      return {sameRenderer:renderer===__scene.renderer,samePost:post===__scene.post,sameScene:inst===await __scene.getSet('snow'),sameTargets:targets.every((r,i)=>r===post.renderTargets[i]),samePrograms:programs.length===renderer.info.programs.length&&renderer.info.programs.every(p=>programs.includes(p)),sameSamples:samples===post.sceneTarget.samples,reversePixels:original===__scene.capture(),differentPixels:original!==resized,small};
+    });
+    for(const key of ['sameRenderer','samePost','sameScene','sameTargets','samePrograms','sameSamples','reversePixels','differentPixels'])assert.equal(resize[key],true,key);
+    assert.deepEqual(resize.small.canvas,[320,240]);assert.equal(resize.small.internal.width,320);report.resize=resize;
     assert.deepEqual(captureErrors,[]);report.capture={status:'PASS',quality:'high',reversePixelsIdentical:true,audio:false,adaptive:false};
     // Review the actual distant mesh from three directions over consecutive motion samples.
     await capture.evaluate(async base=>{

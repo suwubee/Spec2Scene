@@ -22,9 +22,9 @@
     "sourceBytes": 28938,
     "sourceSHA256": "3aa4af615e2aedbf70f4271326b383e4fbc09ba133fa1ae74829101f0c7de52c",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
-    "portedBytes": 26681,
-    "portedSHA256": "75bb77707a84e48cad05a7cdae82ea028a328155050b90b8bf39baf5710f5635"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes.",
+    "portedBytes": 27941,
+    "portedSHA256": "e6c294932e0752ac9e1709f5470f86873853892ee7ed67ed18b3171b73b00f54"
   },
   {
     "module": "geo.js",
@@ -85,9 +85,9 @@
     "sourceBytes": 47343,
     "sourceSHA256": "621c5d01e839de92b93ba1c7ade0732529a5317d89bce9e5d61a2251060ccd47",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers.",
-    "portedBytes": 47381,
-    "portedSHA256": "253055c60faa53df747fa697679a5101fd0116276097b672c1114690e64f8546"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes.",
+    "portedBytes": 49989,
+    "portedSHA256": "d6c995da1c12e406f2b0116c5a4330acf9065226c37437928e2b926ef4c259f4"
   },
   {
     "module": "procTex.js",
