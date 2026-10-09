@@ -12,11 +12,11 @@ import {tree,treeHash} from '../lib/tree.mjs';
 import {cli,required,run} from '../lib/cli.mjs';
 import {actions,handPoses} from '../../tracks/music-video/character/motion.js';
 import {checkAnatomy} from '../check-anatomy.mjs';
-const args=cli({out:{type:'string'},port:{type:'string',default:'39930'},quick:{type:'boolean'},sequence:{type:'string'}},'Usage: node tools/test/character-browser.mjs --out IGNORED_DIR [--port 39930] [--quick] [--sequence ACTION]\nGray studio, 600x800 frames, front/side action sequences, hands and face; default autoplay.');
+const args=cli({out:{type:'string'},port:{type:'string',default:'39920'},quick:{type:'boolean'},sequence:{type:'string'}},'Usage: node tools/test/character-browser.mjs --out IGNORED_DIR [--port 39920] [--quick] [--sequence ACTION]\nGray studio, 600x800 frames, front/side action sequences, hands and face; default autoplay.');
 if(!args)process.exit(0);
 if(args.sequence&&!actions.includes(args.sequence))throw new Error('unknown sequence action');
 const root=fileURLToPath(new URL('../../',import.meta.url)),out=path.resolve(required(args.out,'out')),port=Number(args.port);
-if(!Number.isInteger(port)||port<39930||port>39939)throw new Error('character ports: 39930–39939');
+if(!Number.isInteger(port)||port<39920||port>39929)throw new Error('character ports: 39920–39929');
 await run('git',['check-ignore',out],{cwd:root});await mkdir(out,{recursive:false});
 const report={status:'RUNNING',autoplay:'default',frames:[],errors:[],external:[],review:'PENDING independent review',assetRegression:'SKIP: no licensed user GLB/glTF/VRM was supplied; synthetic mappings tested separately',hardware:'SKIP: SwiftShader only'};
 const projectName=`character-review-${process.pid}`,project=path.join(root,'projects',projectName);let generated=false,server,b;
@@ -94,7 +94,10 @@ try{
  for(const handPose of Object.keys(handPoses)){await page.evaluate(handPose=>window.__characterReview.frame({handPose}),handPose);}
  report.render=await page.evaluate(()=>{const r=window.__characterReview.renderer,gl=r.getContext(),e=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),frame:[600,800]};});
  if(!args.quick&&!args.sequence){const anatomy=checkAnatomy();await writeFile(path.join(out,'anatomy.json'),JSON.stringify(anatomy,null,2));assert.equal(anatomy.status,'PASS');report.anatomy='PASS';}
- await page.goto(url);await page.waitForFunction(()=>window.__scene?.ready,null,{timeout:60000});
+ // The generated music-video starter exposes the capture engine only through
+ // its explicit fixed-quality query; the live page deliberately waits for a
+ // user click and has no __scene handle.
+ await page.goto(url+'?mode=capture');await page.waitForFunction(()=>window.__scene?.ready,null,{timeout:60000});
  for(const t of [0,15,35,50]){await page.evaluate(t=>window.__scene.seek(t),t);}report.sampleIntegration='PASS: generated sample seeks at 0, 15, 35 and 50 seconds';
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.external,[]);report.status='PASS';console.log(`PASS character browser; ${report.frames.length} full-size frames`);
 }catch(e){report.status='FAIL';report.failure=e.stack;throw e;}

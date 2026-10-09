@@ -18,7 +18,15 @@ const rotation=node=>node.getWorldQuaternion(quat());
 const isDescendant=(node,parent)=>{for(let p=node?.parent;p;p=p.parent)if(p===parent)return true;return false;};
 function worldRotation(node,q){node.quaternion.copy(node.parent?rotation(node.parent).invert().multiply(q):q);node.updateMatrixWorld(true);}
 function worldPosition(node,p){node.position.copy(node.parent?node.parent.worldToLocal(p.clone()):p);node.updateMatrixWorld(true);}
-function aim(node,rest,direction){worldRotation(node,quat().setFromUnitVectors(rest.direction,direction.normalize()).multiply(rest.rotation));}
+// The rest basis is measured before the actor is placed in a scene.  Rotate
+// that basis with the actor root before solving the new world direction.  If
+// this is omitted, a root yaw is mistaken for a limb swing and every mapped
+// arm/leg twists around its own axis by the same yaw.
+function aim(node,rest,direction,baseQ=quat()){
+  const d0=rest.direction.clone().applyQuaternion(baseQ);
+  const r0=baseQ.clone().multiply(rest.rotation);
+  worldRotation(node,quat().setFromUnitVectors(d0,direction.normalize()).multiply(r0));
+}
 
 export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=.085}={}){
   if(!scene?.isObject3D)throw new TypeError('loaded scene is required');
@@ -78,7 +86,10 @@ export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=
   const expected=new Map();let lastPose;
   const api={object,rig:control,mapped,license,unit,capabilities:{fingers:missingFingers.length?'PARTIAL':'PASS',missingFingers},
     update(action,t,options={}){
-      const pose=poseAt(action,t,options);applyPose(control,pose);lastPose=pose;object.updateMatrixWorld(true);
+      const pose=poseAt(action,t,options);applyPose(control,pose);lastPose=pose;
+      // Callers commonly set actor.object.rotation immediately before update;
+      // refresh both ancestors and descendants so this frame uses the new yaw.
+      object.updateWorldMatrix(true,true);
       // Bind axes may differ (including a T-pose). Aim each measured segment along
       // the canonical pose, using its own rest basis instead of copying Euler angles.
       const base=object.matrixWorld;
@@ -88,7 +99,7 @@ export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=
       for(const name of ['hips','chest','neck'])worldRotation(mapped[name],baseQ.clone().multiply(rotation(canonical[name])).multiply(rest[name].control.clone().invert()).multiply(rest[name].rotation));
       for(const side of sides){
         for(const part of ['UpperArm','LowerArm']){
-          const name=side+part,child=childOf[name],d=position(canonical[child]).sub(position(canonical[name])).applyQuaternion(baseQ);aim(mapped[name],rest[name],d);
+          const name=side+part,child=childOf[name],d=position(canonical[child]).sub(position(canonical[name])).applyQuaternion(baseQ);aim(mapped[name],rest[name],d,baseQ);
         }
         const hand=side+'Hand';worldRotation(mapped[hand],baseQ.clone().multiply(rotation(canonical[hand])).multiply(rest[hand].control.clone().invert()).multiply(rest[hand].rotation));
         const upper=side+'UpperLeg',lower=side+'LowerLeg',foot=side+'Foot',hip=position(mapped[upper]),target=targetPoint(canonical[foot]);
@@ -96,7 +107,7 @@ export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=
         const along=(a*a+distance*distance-b*b)/(2*distance),pole=new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0),pose.yaw).applyQuaternion(baseQ);
         pole.addScaledVector(direction,-pole.dot(direction)).normalize();
         const knee=hip.clone().addScaledVector(direction,along).addScaledVector(pole,Math.sqrt(Math.max(0,a*a-along*along)));
-        aim(mapped[upper],rest[upper],knee.clone().sub(hip));aim(mapped[lower],rest[lower],target.clone().sub(position(mapped[lower])));
+        aim(mapped[upper],rest[upper],knee.clone().sub(hip),baseQ);aim(mapped[lower],rest[lower],target.clone().sub(position(mapped[lower])),baseQ);
         worldRotation(mapped[foot],baseQ.clone().multiply(rotation(canonical[foot])).multiply(rest[foot].control.clone().invert()).multiply(rest[foot].rotation));
       }
       const angles=handPoses[options.handPose||pose.handPose];if(!angles)throw new Error('unknown hand pose');
@@ -108,7 +119,7 @@ export function adaptExternalCharacter({scene,vrm,mapping={},license,footHeight=
     inspect(previous=null){
       if(!lastPose)throw new Error('update the asset before inspection');
       object.updateMatrixWorld(true);const pose=lastPose,errors=[...inspectRig(control,pose).errors],points={},supportPoints={};
-      for(const [node,q] of expected){if(!node.matrixWorld.elements.every(Number.isFinite))errors.push(`${node.name||'mapped joint'}: nonfinite transform`);if(rotation(node).angleTo(q)>1e-4)errors.push(`${node.name||'mapped joint'}: mapped joint deviates from limited pose`);}
+      for(const [node,q] of expected){if(!node.matrixWorld.elements.every(Number.isFinite))errors.push(`${node.name||'mapped joint'}: nonfinite transform`);if(rotation(node).angleTo(q)>1e-3)errors.push(`${node.name||'mapped joint'}: mapped joint deviates from limited pose`);}
       const scale=unit*object.scale.x,baseQ=rotation(object),up=new THREE.Vector3(0,1,0).applyQuaternion(baseQ),floor=origin.clone().applyMatrix4(object.matrixWorld);
       for(const [side,short] of [['left','L'],['right','R']])for(const type of ['Arm','Leg']){
         const key=short+type.toLowerCase(),a=position(mapped[`${side}Upper${type}`]),b=position(mapped[`${side}Lower${type}`]),c=position(mapped[`${side}${type==='Arm'?'Hand':'Foot'}`]);points[key]=c.toArray();

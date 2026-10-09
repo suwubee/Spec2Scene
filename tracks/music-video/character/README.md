@@ -78,19 +78,31 @@ const result = avatar.inspect(); // PASS / FAIL，检查实际映射后的关节
 - `update()` 先对统一控制骨架执行关节限位，再重定向。`inspect(previousReport)` 检查实际关节的骨长、角度、相对躯干位置、足底高度和连续支撑滑移，并检测映射骨骼偏离已限位姿态。极端比例或脚形可能 FAIL，不能只凭控制骨架通过就忽略资产报告。
 - 不自动重做坏拓扑、修复资产蒙皮或转换缺失的手指；不驱动 VRM 表情、弹簧骨和所有原动画。没有提供获授权的真实 glTF/GLB/VRM 时，真实资产回归明确 SKIP；测试夹具只证明接口和数学。
 
+## 写实人物管线（推荐路径）
+
+需要中景或写实比例时，使用 `character/real/` 的通用适配层。项目先在自己的被忽略目录准备获授权的 MPFB2/MakeHuman GLB，再把项目拥有的 `GLTFLoader` 和许可记录传给 `prepareRealCharacter({url, loader, license})`。适配器会检查骨骼映射、父子链、均匀缩放、零骨长和足底锚点；没有资产时返回带有 `fallback` 原因的程序化人物，不能把程序夹具写成真实识别或真人验证。
+
+Quaternius UAL 的 CC0 动作片段通过 `retargetUALClips()` 重命名到目标骨架。走类片段保留目标骨长，站、呼吸、抬头、推窗和坐姿手放膝上由仓库统一动作控制器叠加；`update()` 仍与 `createCharacter()` 接口相同。片段驱动的 `inspect()` 会标记 `SKIP`，项目必须另拍正侧连续序列并检查接触与衣料。
+
+写实人物的默认外观是深色剪影：导入材质换成 `MeshPhysicalMaterial`，`specularIntensity:0`、粗糙度 1、环境光镜面为 0；长大衣/斗篷、围巾与低发髻由程序壳生成。`createOuterEdgeMaskPass()` 在预热时编译固定程序键的遮罩 pass，每帧只更新纹理，不根据人物实例增删 shader 变体；它只用于外缘轮廓光，仍需项目的实时与视觉审核。
+
+在同一写实比例、去掉贴图和不可见辅助网格后，参考预算从约 **41.6 万三角形、103 个网格** 收敛到约 **5.2 万三角形、10 个网格**。这是资产整理与程序壳的目标预算，不是任何用户模型的保证；导入后应记录实际三角形、网格、材质和纹理计数，并在目标硬件复测。
+
+资产获取由 `scripts/fetch-character-assets.sh --project projects/<name>` 完成：版本和 SHA-256 固定，下载只写入项目的 `assets/char/` 与 `tools/`，Blender 通过 `--background` headless 导出 GLB。UAL 的签名下载地址会变化，脚本要求用户在核对 CC0 页面后显式提供地址和摘要；Mixamo/CMU 只保留用户自取说明。许可和实际摘要写项目内 `assets/char/LICENSES.md`，仓库不保存模型、动画、贴图或生成文件。
+
 ## 验收与审核图
 
 ```bash
-SCENE_TEST_PORT_MIN=39930 SCENE_TEST_PORT_MAX=39939 npm test
+SCENE_TEST_PORT_MIN=39920 SCENE_TEST_PORT_MAX=39929 npm test
 node tools/check-anatomy.mjs --out out/character-check/anatomy.json
-node tools/test/character-browser.mjs --out out/character-review --port 39930
+node tools/test/character-browser.mjs --out out/character-review --port 39920
 ```
 
 可用 `--sequence lanternWalk` 复拍单个动作（含道具正侧姿势与雪地序列）。持灯动作的侧视相机从持灯侧拍摄，避免身体遮住提环。
 
-输出目录必须已被 git 忽略且不存在；父目录先自行建立。审核器仅使用角色分配端口 39930–39939，单浏览器、默认自动播放策略和 SwiftShader，记录服务 PID 并按 PID 结束、等待退出。若浏览器安装在项目专用目录，可设置 `PLAYWRIGHT_BROWSERS_PATH`；不要复用其他任务缓存。
+输出目录必须已被 git 忽略且不存在；父目录先自行建立。审核器仅使用 127.0.0.1:39920–39929，单浏览器、默认自动播放策略和 SwiftShader，记录服务 PID 并按 PID 结束、等待退出。若浏览器安装在项目专用目录，可设置 `PLAYWRIGHT_BROWSERS_PATH`；不要复用其他任务缓存。
 
-审核台也可用仓库本地服务打开 `tracks/music-video/character/review.html`，选择女性/男性、三款衣服、四种发型、道具、动作、时间、正/侧/背面与雪地逆光；手部近景将左臂展开，以免躯干遮挡掌面。生成项目的对应地址为 `character/review.html`。灰底审核使用主光/补光/轮廓光，细节光源随相机调整；雪地模式使用固定低角度逆光与侧光。
+审核台也可用仓库本地服务打开 `tracks/music-video/character/review.html`，选择女性/男性、三款衣服、四种发型、道具、动作、时间、正/侧/背面与雪地逆光；手部近景将左臂展开，以免躯干遮挡掌面。生成项目的对应地址为 `character/review.html`。灰底审核使用主光/补光/轮廓光，细节光源随相机调整；雪地模式使用固定低角度逆光与侧光。浏览器验收只使用 127.0.0.1:39920–39929。
 
 自动输出正/侧两行的女性/男性 × 长大衣/斗篷/短外套/毛衣转台、八向转台、全部 17 个动作的正/侧各八帧、行走/提灯行走/风中行走/推窗/推门的外套对照、正/3⁄4/侧脸，以及五种手势的掌面/侧面特写、三种女性发型、鞋、四种道具姿势。新增雪地低角度逆光/侧光：每个动作远景与中远景各八帧，行走/提灯/风中行走另拍风帽斗篷版本。**每一格直接保留 600×800 像素**，不压进横向小缩略图。还验证新建项目测试、样片 seek、倒序/刷新后的 PNG 字节一致、浏览器错误与外部请求。
 

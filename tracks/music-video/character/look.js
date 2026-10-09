@@ -9,6 +9,36 @@ const luminance = color => 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.
 const asMaterials = material => Array.isArray(material) ? material : [material];
 const finite = (value, fallback) => Number.isFinite(value) ? value : fallback;
 
+/**
+ * Make the material used by imported characters and garment shells.  External
+ * GLBs often arrive with MeshStandardMaterial; setting roughness alone leaves
+ * its grazing-angle Fresnel highlight visible inside a backlit silhouette.
+ * MeshPhysicalMaterial exposes an explicit zero specular term and keeps a
+ * stable shader signature for every character instance.
+ */
+export function createSilhouetteMaterial(source = {}, { color = WOOL_ALBEDO, preserveMap = false } = {}) {
+  const sourceColor = source?.color?.isColor ? source.color : new THREE.Color(...color);
+  const material = new THREE.MeshPhysicalMaterial({
+    color: sourceColor.clone(),
+    map: preserveMap ? (source.map || null) : null,
+    alphaMap: preserveMap ? (source.alphaMap || null) : null,
+    alphaTest: Number.isFinite(source.alphaTest) ? source.alphaTest : 0,
+    transparent: Boolean(source.transparent),
+    opacity: Number.isFinite(source.opacity) ? source.opacity : 1,
+    side: source.side ?? THREE.FrontSide,
+    shadowSide: source.shadowSide ?? source.side ?? THREE.FrontSide,
+    roughness: 1,
+    metalness: 0,
+    specularIntensity: 0,
+    envMapIntensity: 0,
+    clearcoat: 0,
+    sheen: 0,
+  });
+  material.name = source.name ? `${source.name}:silhouette` : 'character-silhouette';
+  material.userData.spec2sceneSilhouette = true;
+  return material;
+}
+
 /** Return a stable distance based rim strength for a shot or a scene preset. */
 export function rimIntensityForShot(shot = {}, { far = 0.28, medium = 0.2, near = 0.12 } = {}) {
   const distance = Number(shot.distance ?? shot.subjectDistance ?? shot.scale);

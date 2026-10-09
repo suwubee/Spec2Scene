@@ -4,6 +4,8 @@ import * as THREE from '../../tracks/music-video/engine/vendor/three.module.js';
 import {createCharacter,adaptExternalCharacter,loadExternalCharacter} from '../../tracks/music-video/character/index.js';
 import {createSkeleton,applyPose,inspectRig} from '../../tracks/music-video/character/rig.js';
 import {poseAt,gait,handPoses,actions} from '../../tracks/music-video/character/motion.js';
+import {adaptRealCharacter,prepareRealCharacter,retargetAnimationClip,createOuterEdgeMaskPass} from '../../tracks/music-video/character/real/index.js';
+import {createSilhouetteMaterial} from '../../tracks/music-video/character/look.js';
 
 function topology(geometry){
  const edges=new Map(),adj=new Map(),index=geometry.index.array;
@@ -116,6 +118,41 @@ test('external complete fingers are articulated and actual corruption/nonfinite 
  fixture.mapping.leftIndexIntermediate.rotation.x=.7;assert.ok(actor.inspect().errors.some(e=>e.includes('deviates')));
  actor.update('stand',1);fixture.mapping.leftUpperLeg.position.x=NaN;assert.ok(actor.inspect().errors.some(e=>e.includes('nonfinite')));dispose(actor);
  const invalid=externalFixture();invalid.mapping.hips.position.y=NaN;assert.throws(()=>adaptExternalCharacter({...invalid,license:'fixture'}),/finite/);
+});
+
+test('external adapter preserves limb roll when the character root has 0/90/180 degree yaw',()=>{
+ let bindLocal;
+ for(const yaw of [0,Math.PI/2,Math.PI]){
+  const fixture=externalFixture(),actor=adaptExternalCharacter({...fixture,license:'Synthetic yaw fixture'});
+  try{
+   actor.object.rotation.y=yaw;
+   actor.update('stand',1);
+   const report=actor.inspect();
+   assert.deepEqual(report.errors,[],`yaw ${yaw}`);
+   // A root yaw is a placement transform.  The mapped limb's local rotation
+   // must match the zero-yaw solve; a yaw-dependent delta is the old bug.
+   for(const side of ['left','right'])for(const type of ['UpperArm','LowerArm','UpperLeg','LowerLeg']){
+    const bone=fixture.mapping[side+type];
+    const key=side+type;
+    if(yaw===0)bindLocal??=new Map();
+    if(yaw===0)bindLocal.set(key,bone.quaternion.clone());
+    else assert.ok(bone.quaternion.angleTo(bindLocal.get(key))<1e-3,`${key} yaw ${yaw} local roll`);
+   }
+  } finally { dispose(actor); }
+ }
+});
+
+test('real character path retargets UAL clips, uses no-specular shells, and falls back without assets',async()=>{
+ const make=await prepareRealCharacter({});
+ const fallback=make({coat:false,scarf:false});
+ try { assert.ok(fallback.object);assert.equal(typeof fallback.update,'function');fallback.update('sitKnees',1);assert.equal(fallback.inspect().errors.length,0); }
+ finally {dispose(fallback);}
+ const source=new THREE.AnimationClip('Walk_Formal_Loop',1,[new THREE.QuaternionKeyframeTrack('upperarm_l.quaternion',[0,1],[0,0,0,1,0,0,0,1]),new THREE.VectorKeyframeTrack('pelvis.position',[0,1],[0,0,0,0,0,1])]);
+ const target=new THREE.Bone();target.name='UpperArm_L';const retargeted=retargetAnimationClip(source,{mapping:{upperarm_l:target},scale:2});assert.equal(retargeted.tracks[0].name,'UpperArm_L.quaternion');assert.deepEqual([...retargeted.tracks[1].values],[0,0,0,0,0,2]);
+ const material=createSilhouetteMaterial(new THREE.MeshStandardMaterial({color:0xffffff}));assert.equal(material.specularIntensity,0);assert.equal(material.roughness,1);material.dispose();
+ const fixture=externalFixture();const actor=adaptRealCharacter({...fixture,license:'Synthetic real-character fixture',coat:false,scarf:false,bun:false});
+ try { actor.update('pushWindow',1);assert.ok(actor.object.getObjectById(fixture.scene.id));assert.equal(typeof actor.beforeRender,'function');const pass=createOuterEdgeMaskPass({actor,width:16,height:16});assert.equal(pass.programKey,'character-outer-edge-v1');pass.resize(8,8);pass.dispose(); }
+ finally {dispose(actor);}
 });
 
 

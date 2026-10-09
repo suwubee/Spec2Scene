@@ -172,3 +172,11 @@ export function createCharacter({body='masculine',height=body==='feminine'?1.66:
 }
 
 export {loadExternalCharacter,adaptExternalCharacter} from './external.js';
+// Optional real-asset path.  It is kept in a submodule so importing the
+// procedural character does not load a model, a loader, or any project asset.
+export {
+  adaptRealCharacter, loadRealCharacter, prepareRealCharacter, prepareRealChar,
+  createExternalCharacter, createRealCharacter, retargetAnimationClip, retargetUALClips,
+  createProceduralWardrobe,
+  createOuterEdgeMaskPass, createRimOutlinePass, attachOuterEdgePass,
+} from './real/index.js';
