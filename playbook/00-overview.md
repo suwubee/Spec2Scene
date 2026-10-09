@@ -21,3 +21,5 @@ flowchart LR
 每个项目生成在 projects/<name>/。过程产物为 SPEC → REPORT → REVIEW → RELEASE，线上小范围修复用 HOTFIX。样板不等于最终产品，初始场景与合成骨架只用于验证工具和接口。
 
 English: Feedback becomes a measurable specification. Implementers supply reproducible evidence; reviewers run checks independently. Merge first, test the merged revision, release as a separate authorized action, then verify delivered bytes and real browser behavior. A passing local report does not prove production correctness.
+
+需要持续打磨空间、材质和镜头的项目，继续阅读[深做制作法](11-deep-production.md)：最多四个主场景、多变体、一场景一负责人、四阶段制作、美术总监评审与集成契约。

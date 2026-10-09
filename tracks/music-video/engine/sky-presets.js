@@ -1,3 +1,5 @@
+export { clampMoonPhase, moonLitFraction, clampMoonRadiance, moonDiscParameters, createMoonHalo, moonHalo, MOON_DISPLAY_MAX, MOON_CLAMP_K } from './moon-display.js';
+
 /** Opt-in art direction; cloud extinction keeps luminance but neutralizes lunar reddening. */
 export const SKY_PRESETS=Object.freeze({
   coldNight:{sky:{moonLightColor:[.48,.7,1],moonTint:[.65,.8,1],lunarCloudNeutrality:1,mie:4},channels:{sunElev:[[0,-24]],moonElev:[[0,8]],day:[[0,0]]}},

@@ -18,6 +18,8 @@
 
 ## 实现契约
 
+复杂作品按[深做制作法](../../playbook/11-deep-production.md)收敛到最多四个主场景，再填写 [ART-BIBLE](../../templates/ART-BIBLE.md)、[SET-brief](../../templates/SET-brief.md)、[PRODUCTION-PLAN](../../templates/PRODUCTION-PLAN.md)、[AD-review](../../templates/AD-review.md)、[DIRECTOR-DECISIONS](../../templates/DIRECTOR-DECISIONS.md) 与 [INTEGRATION](../../templates/INTEGRATION.md)。每场景一个负责人，空场与光→英雄画面→其余预设→收口，每阶段保留证据。
+
 [引擎 v0.3](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
 
 默认页面使用[实时播放层](player/README.md)：点击播放程序合成配乐，音频作为主时钟，Worker 绘制，自动/高/中/低画质、缓冲进度、真实 fps 与字幕开关。中/低档使用简化样片场景；高档保留完整电影场景。

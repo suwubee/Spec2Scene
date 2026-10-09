@@ -19,6 +19,7 @@
 // See engine/README.md for the full API, exposure numbers, performance and known issues.
 import { createMoonTexture } from './moon.js';
 import {skyPreset,lunarTransmittance} from './sky-presets.js';
+import {clampMoonPhase, moonDiscParameters} from './moon-display.js';
 import { makeRng, GLSL_HASH } from './noise.js';
 
 const D2R = Math.PI / 180;
@@ -1796,7 +1797,10 @@ export function createSky(ctx, opts = {}) {
     const moonAng = 0.2655 * D2R * o.moonScale, sunAng = 0.2665 * D2R * o.sunScale;
     const moonAbove = smooth(-1.2, 0.6, F.w.moonElev ?? Math.asin(moonDir[1]) / D2R);
     const sunAbove = smooth(-1.0, 0.6, F.w.sunElev ?? Math.asin(sunDir[1]) / D2R);
-    const mr = o.moonRadiance * moonAbove;
+    const phaseRequested = F.w.moonPhaseAngle ?? o.moonPhaseAngle;
+    if (!Number.isFinite(phaseRequested)) throw new TypeError("finite moonPhaseAngle required");
+    const phaseDisplay = moonDiscParameters({phase: phaseRequested, scale: o.moonScale, radiance: o.moonRadiance, exposure: F.w.exposureBias ?? 0, transmittance: lum(tMoonCam), tint: o.moonTint, whiteBalance: F.w.whiteBalance || [1, 1, 1], halo: o.halo});
+    const mr = phaseDisplay.radiance * moonAbove;
     const moonRad = [mr * o.moonTint[0] * tMoonCam[0], mr * o.moonTint[1] * tMoonCam[1], mr * o.moonTint[2] * tMoonCam[2]];
     const sr = o.sunRadiance * sunAbove;
     const sunRad = [sr * sunCol[0] * tSunCam[0], sr * sunCol[1] * tSunCam[1], sr * sunCol[2] * tSunCam[2]];
@@ -1818,23 +1822,22 @@ export function createSky(ctx, opts = {}) {
     let psx = dot(ps, right), psy = dot(ps, north);
     if (Math.hypot(psx, psy) < 1e-3) { psx = 0.5; psy = -0.86; }
     const pl = Math.hypot(psx, psy); psx /= pl; psy /= pl;
-    const phaseAngle = F.w.moonPhaseAngle ?? o.moonPhaseAngle;
-    if (!Number.isFinite(phaseAngle)) throw new TypeError("finite moonPhaseAngle required");
+    const phaseAngle = clampMoonPhase(phaseRequested);
     const al = phaseAngle * D2R;
     U.uMoonSun.value.set(Math.sin(al) * psx, Math.sin(al) * psy, Math.cos(al));
     // ---- halos ----
     const hazeAmt = 0.45 + 0.55 * mist;
     // halo = moonlight scattered by haze near the viewer: scales with the moon's extinction, coloured by it
     const tMoonL = lum(tMoonCam);
-    const haloBase = 0.15 * o.halo * moonAbove * nightAmt * hazeAmt * Math.sqrt(clamp(tMoonL / 0.75));
+    const haloBase = phaseDisplay.radiance > 0 ? 0.15 * o.halo * moonAbove * nightAmt * hazeAmt * Math.sqrt(clamp(tMoonL / 0.75)) : 0;
     const mcol = tMoonL > 1e-7 ? [o.moonTint[0] * tMoonCam[0] / tMoonL, o.moonTint[1] * tMoonCam[1] / tMoonL, o.moonTint[2] * tMoonCam[2] / tMoonL] : [1, 0.7, 0.4];
     U.uHaloW.value.set(haloBase * 0.3, 0, 1 / (4.5 * D2R), 1 / (14 * D2R));
     U.uHaloCol.value.set(mcol[0] * 0.95, mcol[1] * 0.98, mcol[2]);
-    U.uNearHalo.value.set(haloBase * 0.42, 1 / (1.15 * D2R), 0.9 * sunAbove * (0.5 + 0.5 * mist) * lum(tSunCam), 1 / (1.2 * D2R));
+    U.uNearHalo.value.set(phaseDisplay.halos.inner * moonAbove * nightAmt * hazeAmt, 1 / (1.15 * D2R), 0.9 * sunAbove * (0.5 + 0.5 * mist) * lum(tSunCam), 1 / (1.2 * D2R));
     U.uNearHaloCol.value.copy(U.uHaloCol.value);
     const tSunL = lum(tSunCam);
     if (tSunL > 1e-7) U.uSunHaloCol.value.set(sunCol[0] * tSunCam[0] / tSunL, sunCol[1] * tSunCam[1] / tSunL, sunCol[2] * tSunCam[2] / tSunL); else U.uSunHaloCol.value.set(1, 0.6, 0.3);
-    U.uFrontHalo.value = haloBase * 0.16;
+    U.uFrontHalo.value = phaseDisplay.halos.outer * moonAbove * nightAmt * hazeAmt;
     // ---- stars ----
     U.uStarP.value.set(o.stars * nightAmt * smooth(-4, -12, F.w.sunElev ?? -30), F.t, 0.22, 0);
     U.uMWStar.value.set(1, 0, 0, 0);
@@ -1846,7 +1849,7 @@ export function createSky(ctx, opts = {}) {
       rainWest: o.rainCell[1], rainZ: o.rainCell[2], clearRegion: o.rainCell[3], view: [camPos.x, camPos.y, camPos.z, smooth(o.rainRegionX[0], o.rainRegionX[1], camPos.x)], rainBlob: o.rainCloudBlob,
       shapeScale: o.shapeScale, ext: o.cloudDensity, shellBase, shellTop, maxDist: U.uCD.value.z,
     };
-    Object.assign(info, { t: F.t, day, sunDir, moonDir, sunRad, moonRad, moonPhaseAngle: phaseAngle, moonAngR: moonAng, sunAngR: sunAng, key: moonKey ? 'moon' : 'sun', keyDir: kDir, keyCol: kCol, cloudParams: P, moonAbove, sunAbove, tMoonCam, tSunCam });
+    Object.assign(info, { t: F.t, day, sunDir, moonDir, sunRad, moonRad, moonPhaseAngle: phaseAngle, moonAngR: moonAng, sunAngR: sunAng, key: moonKey ? 'moon' : 'sun', keyDir: kDir, keyCol: kCol, cloudParams: P, moonAbove, sunAbove, tMoonCam, tSunCam, moonDisplay: phaseDisplay });
     return P;
   }
 

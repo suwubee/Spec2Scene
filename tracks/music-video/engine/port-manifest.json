@@ -104,8 +104,8 @@
     "sourceSHA256": "8c7a9682893f5a54d43b073a195e679a2a7e54eda332da0f7ddad4abd29fb890",
     "comparison": "identical in both authorized snapshots",
     "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
-    "portedBytes": 116871,
-    "portedSHA256": "51f2cf8ce04e021cbe1eec492e0707815c2530ade2060dc58bf6c526ed4af2e2"
+    "portedBytes": 117410,
+    "portedSHA256": "fbd86e4796a04c6f6aeffd24a2b254c111ab6fa49fdbc446bdc9302f4221ee4e"
   },
   {
     "module": "terrain.js",

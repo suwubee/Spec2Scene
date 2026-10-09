@@ -40,7 +40,7 @@ scripts/new-project.sh motion-games my-motion
 
 | 位置 | 内容 |
 |---|---|
-| [playbook](playbook/00-overview.md) | 角色、规格、审核、测量、并行、测试、发布、打包、隐私及共享服务器 |
+| [playbook](playbook/00-overview.md) | 角色、规格、审核、测量、并行、测试、发布、打包、隐私及共享服务器；[深做制作法](playbook/11-deep-production.md) |
 | [经验索引](playbook/lessons/README.md) | 每条经验均有“现象→根因→修复→预防”；[覆盖对照](validation/coverage.md) |
 | [templates](templates/SPEC.md) | SPEC / REVIEW / REPORT / RELEASE / HOTFIX / UI 清单 / 任务提示词 |
 | [音乐视频](tracks/music-video/README.md) | 解析→分镜→世界曲线→确定性渲染→编码质检 |

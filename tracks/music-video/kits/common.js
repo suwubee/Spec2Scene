@@ -2,6 +2,7 @@
 import * as THREE from '../engine/vendor/three.module.js';
 import {createSky} from '../engine/sky.js';
 import {createMaterials} from '../engine/materials.js';
+import {disposeOwned} from '../engine/release.js';
 export function environment(ctx,{sky:options={},fog=.003,fill=.06}={}) {
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,ctx.aspect,.05,30000);
   const sky=createSky(ctx,{...options,budget:ctx.quality==='final'?'high':'low'});
@@ -17,6 +18,7 @@ export function environment(ctx,{sky:options={},fog=.003,fill=.06}={}) {
     dispose(){sky.dispose();materials.dispose();disposeObject(scene);}
   };
 }
-export function disposeObject(object){const geometries=new Set(),materials=new Set();object.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])if(m)materials.add(m);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}
+/** Release scene-owned resources; callers may pass shared cache resources to keep. */
+export function disposeObject(object, options = {}) { return disposeOwned(object, options); }
 export function mesh(geometry,material,position=[0,0,0]){const m=new THREE.Mesh(geometry,material);m.position.fromArray(position);m.castShadow=true;m.receiveShadow=true;return m;}
 export function box(size,material,position){return mesh(new THREE.BoxGeometry(...size),material,position);}

@@ -10,7 +10,7 @@ self.addEventListener('message',async({data})=>{
       canvas=data.canvas;
       const {createRuntime}=await import(data.module);
       runtime=await createRuntime({...data,progress,compile});
-      postMessage({type:'ready',capabilities:runtime.capabilities,shots:runtime.shots});
+      postMessage({type:'ready',capabilities:runtime.capabilities,shots:runtime.shots,diagnostics:runtime.diagnostics || null});
     } else if(data.type==='frame') {
       const result=await runtime.render(data.t,data.quality);
       const bitmap=canvas.transferToImageBitmap();

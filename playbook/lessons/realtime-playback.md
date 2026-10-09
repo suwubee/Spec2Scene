@@ -10,3 +10,15 @@
 | 慢网播放按钮失效，首声数字看似全绿 | 按钮等待音乐/字体/场景；测试自带静音或宽松自动播放参数 | 按钮始终可用、缓冲比例可见、待播请求可取消；默认策略与未静音浏览器实测 | 慢网和弱机各一次；解码信号、网络等待、真人听审分别记录 |
 
 仓库只回填方法、参数化工具、生成器和通用回归。作品、原始审核报告、实际音频与截图留在项目或临时证据目录。自动回归不代签独立“实时可看”关卡。
+
+## 实时播放三条铁律
+
+外部性能根因分析 `PERF_V32` 提炼出：自动降档销毁引擎会导致慢帧→降档→重新建场/编译→更慢的循环；逐镜建毁变体和播放中懒建会让驱动反复编译，compileAsync 本身不保证首次 draw 的材质、阴影和后期组合已编译。这里只保留因果，不收录原报告。
+
+1. **换档永不重建引擎，不改 shader defines。** 运行时只调分辨率、drawRange/实例数、uniform 或跳过 pass；MSAA 固定。比较引擎/renderer 身份、材质 defines 和程序身份，不能只比较 programs.length（删除旧程序再建同数量也应报警）。
+2. **预热后场景常驻。** 所有场景与变体一次创建，compileAsync 后逐镜代表时刻真实渲染，把阴影、反射、后期也预热。显存预算若不允许常驻，必须证明播放中仍不产生新程序。
+3. **播放中零新程序编译。** 暖机期和播放期分开计数，记录 renderer.info.programs 的存量和新出现身份；整曲或逐镜 seek 复验，换档单独检查。
+
+v0.4.2 只回填测量和约束检查钩子。现有播放器仍会换档重建、按需创建场景，诊断必须如实报出；常驻/预热及换档实现待后续回填，不在本轮宣称符合三条铁律。
+
+English: never rebuild on quality changes or change shader defines; keep warmed sets resident; observe zero new program identities during playback. Diagnostics are evidence, not a residency implementation.

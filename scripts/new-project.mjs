@@ -33,7 +33,7 @@ if (track === '--help' || track === '-h') {
     await put('docs/testing.md', await readFile(path.join(repo, 'playbook/06-testing.md'), 'utf8'));
     await put('docs/lessons.md', await readFile(path.join(repo, 'tracks', track, 'lessons.md'), 'utf8'));
     const rootPackage = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8'));
-    await put('package.json', JSON.stringify({name, private: true, type: 'module', scripts: {test: 'node --test tests/*.test.mjs',
+    await put('package.json', JSON.stringify({name, private: true, type: 'module', scripts: {test: 'node --test tests/*.test.mjs && node tools.local/check-syntax-and-load.mjs --root src --skip main.js',
       serve: 'node tools.local/serve.mjs --root . --port 39920', ...(track === 'music-video' ? {'render:final': 'node tools.local/render-final.mjs', 'render:preview': 'node tools.local/cinematic/preview.mjs --root .'} : {})}, engines: {node: '>=20'}, devDependencies: rootPackage.devDependencies}, null, 2) + '\n');
     await put('.gitignore', 'node_modules/\n.venv/\n__pycache__/\ncache/\nout/\nwork/\nvendor/\nassets/*\n!assets/README.md\n');
     const titles = {'music-video': '音乐视频 · 三维电影', '3d-simulation': '三维模拟 · 数据来源', 'motion-games': '体感游戏 · 本地骨架'};

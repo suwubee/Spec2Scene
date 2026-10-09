@@ -12,7 +12,7 @@ export function startPlayer({state,entry}) {
   let ready=false,busy=true,disposed=false,dirty=true,raf=0,lastPresent=null,lastHUD=0,startedAt=0;
   let applied=adaptive.level, nextIdleAt=0;
   const frames=[],completed=[],compiles=[];
-  Object.assign(state,{quality:adaptive.level,choice:adaptive.choice,frames,compiles,changes:adaptive.history,dropped:0,firstFrameMs:null,fps:null,p90:null});
+  Object.assign(state,{quality:adaptive.level,choice:adaptive.choice,frames,compiles,changes:adaptive.history,dropped:0,firstFrameMs:null,fps:null,p90:null,programs:[],qualitySwitches:[],qualityRebuilds:0});
   canvas.width=width;canvas.height=height;
   const display=canvas.getContext('bitmaprenderer');
   if(!display)throw new Error('当前浏览器不支持后台画面显示');
@@ -28,10 +28,12 @@ export function startPlayer({state,entry}) {
     if(data.type==='error') {fail(data.message);return;}
     if(data.type==='progress') {renderStatus.textContent=data.message;return;}
     if(data.type==='compile') {compiles.push(data);if(compiles.length>100)compiles.shift();return;}
-    if(data.type==='ready') {ready=true;busy=false;dirty=true;state.capabilities=data.capabilities;state.shots=data.shots;return;}
+    if(data.type==='ready') {ready=true;busy=false;dirty=true;state.capabilities=data.capabilities;state.shots=data.shots;state.diagnostics=data.diagnostics;return;}
     if(data.type==='idle') {busy=false;nextIdleAt=performance.now()+1000;return;}
     if(data.type==='frame') {
       state.renderSize=[data.bitmap.width,data.bitmap.height];
+      if (Number.isFinite(data.programs)) state.programs.push({at:performance.now(),quality:data.quality,count:data.programs});
+      state.qualityRebuilds=data.rebuilds||0;
       display.transferFromImageBitmap(data.bitmap);
       const now=performance.now(),ms=now-startedAt;
       busy=false;state.firstFrameMs ??= now;state.lastRenderedTime=data.t;state.quality=applied;

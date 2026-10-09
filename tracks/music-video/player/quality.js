@@ -1,4 +1,5 @@
 // Real-time policy. Capture never instantiates this controller.
+export {programCount, programIdentitySet, createCompileMonitor, assertNoQualityRebuild, assertNoNewPrograms} from './compile-monitor.js';
 export const PRESETS = Object.freeze({
   high: Object.freeze({scale:1, msaa:2, shadow:2048, particles:1, pipeline:'final', simplified:false, dof:true}),
   medium: Object.freeze({scale:.65, msaa:0, shadow:1024, particles:.5, pipeline:'preview', simplified:true, dof:false}),
