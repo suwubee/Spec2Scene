@@ -13,6 +13,7 @@ import {createCharacter} from '../index.js';
 import {adaptExternalCharacter} from '../external.js';
 import {createSilhouetteMaterial, applyCharacterLook} from '../look.js';
 import {inspectRig} from '../rig.js';
+import {attachOuterEdgePass} from './rim.js';
 
 const V=()=>new THREE.Vector3();
 const CANONICAL=['hips','chest','neck','leftUpperArm','leftLowerArm','leftHand','rightUpperArm','rightLowerArm','rightHand','leftUpperLeg','leftLowerLeg','leftFoot','rightUpperLeg','rightLowerLeg','rightFoot'];
@@ -114,7 +115,7 @@ function fallbackFactory(options={}){
   return actor;
 }
 
-function makeActor(scene,{license,mapping={},height=1.66,clips={},coat=true,scarf=true,bun=true,look=true,lookOptions={},...wardrobe}={}){
+function makeActor(scene,{license,mapping={},height=1.66,clips={},coat=true,scarf=true,bun=true,look=true,lookOptions={},outerEdge={},...wardrobe}={}){
   if(typeof license!=='string'||!license.trim())throw new Error('record the user-provided asset license before adaptation');
   normaliseScene(scene,height);const resolved=resolveMapping(scene,mapping);const adapter=adaptExternalCharacter({scene,mapping:resolved,license});
   convertMaterials(adapter.object,lookOptions);const clothes=addShell(adapter,{coat,scarf,bun,...wardrobe});
@@ -134,8 +135,12 @@ function makeActor(scene,{license,mapping={},height=1.66,clips={},coat=true,scar
       clothes.update(t,pose);api.lastPose=pose;return pose;
     },
     inspect(previous){if(lastClipAction)return {status:'SKIP',errors:[],reason:'clip-driven motion needs the project asset review sequence',capabilities:api.capabilities};return adapter.inspect(previous);},
-    beforeRender(renderer,scene,camera){api.outerEdgePass??=createOuterEdgeMaskPass({actor:api,width:options.maskWidth||512,height:options.maskHeight||512});return api.outerEdgePass.render(renderer,scene,camera);},
   };
+  // Created here, once (never lazily on first render). beforeRender()/installOuterEdge() only chain the scene hook; the mask is
+  // drawn when the engine's main pass starts, with that pass's final camera and target size.
+  if(outerEdge!==false)attachOuterEdgePass(api,outerEdge||{});
+  const update=api.update;
+  api.update=(action,t,options={})=>{const pose=update(action,t,options);api.outerEdgePass?.installedOn||api.installOuterEdge?.();return pose;};
   return api;
 }
 
@@ -169,20 +174,5 @@ export const createExternalCharacter=adaptRealCharacter;
 export const createRealCharacter=adaptRealCharacter;
 export const loadExternalCharacter=loadRealCharacter;
 
-/** A stable, prewarmable outer-edge mask pass. It never mutates shader defines per frame. */
-export function createOuterEdgeMaskPass({width=512,height=512,actor=null}={}){
-  if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1)throw new TypeError('positive mask dimensions required');
-  const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:true,stencilBuffer:false});target.texture.name='character-outer-edge-mask';
-  const maskMaterial=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});maskMaterial.name='character-outer-edge-mask';
-  const rimMaterial=new THREE.ShaderMaterial({uniforms:{uMask:{value:target.texture},uTexel:{value:new THREE.Vector2(1/width,1/height)},uColor:{value:new THREE.Color(0.62,.72,.9)},uStrength:{value:1}},vertexShader:'void main(){gl_Position=vec4(position,1.0);}',fragmentShader:'uniform sampler2D uMask;uniform vec2 uTexel;uniform vec3 uColor;uniform float uStrength;void main(){vec2 uv=gl_FragCoord.xy*uTexel;float c=texture2D(uMask,uv).r;float n=0.;for(int i=0;i<8;i++){float a=float(i)*.785398;vec2 d=vec2(cos(a),sin(a))*uTexel*2.5;n=max(n,(1.-texture2D(uMask,uv+d).r));}gl_FragColor=vec4(uColor,n*c*uStrength);}',depthTest:false,depthWrite:false,transparent:true});
-  rimMaterial.customProgramCacheKey=()=>'character-outer-edge-v1';
-  const pass={target,maskMaterial,rimMaterial,actor,signature:'character-outer-edge-v1',programKey:'character-outer-edge-v1',ready:false,
-    resize(w,h){if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1)throw new TypeError('positive mask dimensions required');target.setSize(w,h);rimMaterial.uniforms.uTexel.value.set(1/w,1/h);},
-    warm(renderer,scene,camera){if(renderer?.compile&&scene&&camera)renderer.compile(scene,camera);pass.ready=true;return pass;},
-    render(renderer,scene,camera){if(!renderer||!scene||!camera||!actor?.object)return pass;const previous=scene.overrideMaterial,hidden=[];for(const child of scene.children){if(child!==actor.object&&!actor.object.getObjectById(child.id))hidden.push([child,child.visible]),child.visible=false;}scene.overrideMaterial=maskMaterial;const old=renderer.getRenderTarget?.();renderer.setRenderTarget(target);renderer.clear?.();renderer.render(scene,camera);renderer.setRenderTarget(old||null);scene.overrideMaterial=previous;for(const [node,visible] of hidden)node.visible=visible;actor.object.userData.outerEdgeMask=target.texture;pass.ready=true;return pass;},
-    dispose(){target.dispose();maskMaterial.dispose();rimMaterial.dispose();pass.ready=false;},
-  };return pass;
-}
-export const createRimOutlinePass=createOuterEdgeMaskPass;
-
-export function attachOuterEdgePass(actor,options={}){if(!actor?.object)throw new TypeError('actor.object is required');const pass=createOuterEdgeMaskPass({actor,...options});actor.outerEdgePass=pass;actor.beforeRender=(renderer,scene,camera)=>pass.render(renderer,scene,camera);return pass;}
+// Outer-edge mask + rim live in rim.js (final-camera mask in scene.onBeforeRender, main-pass size, light-driven 1-2 px rim).
+export {createOuterEdgeMaskPass, createRimOutlinePass, attachOuterEdgePass, applyOuterEdgeRim, OUTER_EDGE_LAYER, OUTER_EDGE_PROGRAM} from './rim.js';

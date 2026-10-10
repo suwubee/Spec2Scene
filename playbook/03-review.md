@@ -14,4 +14,6 @@
 
 G1 检查意境书、意象转译表、色彩脚本、完整分镜和每段气氛样张；静音去字幕后应仍能感到情绪，重点拒绝逐句图解。G2 复跑人体约束测试，逐张查看八方向转台与关键动作序列，确认重心、关节方向与手部。G3 查看整曲联系表、每段关键帧、至少三段连续帧，记录实时性能，并按 music-video/directing/05-quality-bar.md 逐条评分。
 
+审核人还必须亲自复跑 [picture-qa](../tools/picture-qa/README.md)（`npm run qa:picture`，修复轮加 `--compare <上一轮> --claim <检查项>`），逐条核对配置里的豁免理由（`sky`、`allowStripes`、`skip`+`skipWhy`）；实现者交来的“已修复”若没有 ⑥ 显示问题区域确实变化的报告，一律按未修复打回。picture-qa PASS 只排除七类已知错误，不代签审美，见[画面关卡](14-picture-gate.md)。
+
 记录用 [音乐视频专用模板](../templates/REVIEW-music-video.md)，每条为“问题 → 证据截图路径 → 要求”。记录检查器 `tools/review-gates.mjs` 会拒绝自审、缺前置关卡或旧版本，但不能代替审核人亲自检查。工程工具库升级可交付待审代码与证据；未签署的样片关卡必须如实保持 PENDING，不能借库的单测绿灯声称成片获批。

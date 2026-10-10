@@ -15,6 +15,7 @@
 | deploy/test-evidence.mjs | `--source SITE --command '["npm","test"]' --out EVIDENCE.json` | 发布树摘要绑定通过测试；证据放源目录外 |
 | deploy/deploy-static.sh | `--config CONFIG.json [--activate]` | 默认准备 releases/version，激活前按配置比 MIME/缓存/字节 |
 | package/make-release.sh | `--source DIR --out OUTSIDE_SOURCE.tar.gz [--verify-hook EXECUTABLE]` | tar；排除、包内外 SHA-256、解压验证，钩子失败不出包 |
+| picture-qa/ | [画面自动质检](picture-qa/README.md)：`picture-qa.mjs --dir DIR [--config shots.json] [--compare PREV --claim stripes,…]`；`--selftest` | 纯 JS 像素统计（node:zlib），不依赖模型/GPU；合成回归样本；生成项目 `npm run qa:picture` |
 | pose/ | [独立说明](pose/README.md)：本地加载、滤波、视频评测、精确补丁和 SimPose 接口 | 模型另行下载到项目，无内置数据 |
 
 每个可执行入口均有 `--help`；浏览器库和纯函数通过各工具入口及 npm test 验证。--identity 必须由项目提供源码与输入摘要，工具不能自动发现页面全部外部输入；固定机器/GPU 后端，跨 GPU 的像素一致性不作保证。帧 QA 的色带是低色阶启发式，冻结以完全相同像素计算，编码视频另使用 FFmpeg freezedetect；有意静帧/黑场与真实色带需人工复核，--strict 将候选警告视为失败。音画长度检查不等于语义上的节拍同步。

@@ -13,4 +13,6 @@ description: 从获授权音频制作程序化音乐视频；适用于音乐解�
 
 入口参考：[总览](../../../../playbook/00-overview.md)、[工具](../../../../tools/README.md)。
 
+画面关卡：每轮看图目录先跑 `npm run qa:picture`（tools/picture-qa，纯像素、不依赖模型）全部 PASS 再送审；任何“已修复”必须附 `--compare <上一轮> --claim <检查项>`；人物用 character 组件、雪/冰/夯土用 kits/materials，不另写同类实现。见 playbook/14-picture-gate.md。
+
 强制 G1 意境分镜、G2 人体与表演、G3 成片预览。每关产出证据后停下，等待独立审核 PASS；实现者自审不算。使用 templates/REVIEW-music-video.md。编排者仅按已获授权安排独立会话或人类审核，不推定并行权限。

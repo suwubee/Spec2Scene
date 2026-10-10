@@ -151,7 +151,7 @@ test('real character path retargets UAL clips, uses no-specular shells, and fall
  const target=new THREE.Bone();target.name='UpperArm_L';const retargeted=retargetAnimationClip(source,{mapping:{upperarm_l:target},scale:2});assert.equal(retargeted.tracks[0].name,'UpperArm_L.quaternion');assert.deepEqual([...retargeted.tracks[1].values],[0,0,0,0,0,2]);
  const material=createSilhouetteMaterial(new THREE.MeshStandardMaterial({color:0xffffff}));assert.equal(material.specularIntensity,0);assert.equal(material.roughness,1);material.dispose();
  const fixture=externalFixture();const actor=adaptRealCharacter({...fixture,license:'Synthetic real-character fixture',coat:false,scarf:false,bun:false});
- try { actor.update('pushWindow',1);assert.ok(actor.object.getObjectById(fixture.scene.id));assert.equal(typeof actor.beforeRender,'function');const pass=createOuterEdgeMaskPass({actor,width:16,height:16});assert.equal(pass.programKey,'character-outer-edge-v1');pass.resize(8,8);pass.dispose(); }
+ try { actor.update('pushWindow',1);assert.ok(actor.object.getObjectById(fixture.scene.id));assert.equal(typeof actor.beforeRender,'function');const pass=createOuterEdgeMaskPass({actor,width:16,height:16});assert.equal(pass.programKey,'character-outer-edge-v2');pass.resize(8,8);pass.dispose();assert.ok(actor.outerEdgePass,'outer-edge pass is created with the actor, not lazily');assert.doesNotThrow(()=>actor.beforeRender(null,new THREE.Scene(),null)); }
  finally {dispose(actor);}
 });
 

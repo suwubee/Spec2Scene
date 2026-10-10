@@ -27,3 +27,5 @@
 - 需要导演决定：`<问题>`
 
 English: an art director reviews measurable space, layering, materials, light, atmosphere, props, determinism and budgets; revisions keep their failed evidence.
+
+picture-qa：本阶段看图目录的 report.json 全部 PASS（`npm run qa:picture`），豁免逐条有理由；修复轮附 `--compare --claim`。未附报告的阶段不进入本清单评审。

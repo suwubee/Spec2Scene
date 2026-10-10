@@ -97,3 +97,11 @@ English: dimensions, props by L1/L2/L3, motivated lights, atmosphere, lens prese
 | 收口 | `<填写>` | `<PENDING>` | `<D-编号>` | `<填写>` |
 
 唯一引擎授权负责人：`<角色>`；改动 ≤ 3 项：`<API/默认/影响面>`；旧画面逐字节对照：`<修改前后源码摘要、环境、全部基准帧哈希及命令>`。共享缓存：`<拥有者、完整参数签名、依赖者、创建顺序、dispose>`。未经用户授权不启用并行工作。
+
+## 画面质检配置（picture-qa）
+
+本场景在 `docs/picture-qa.shots.json` 的条目：`scenes.<scene-id>.shots[]`，每镜写 `t:[t0,t1]`、亮度带 `luma`、暖色上限 `warmMax`、天空 `sky`；设计出的规则纹理（层理、栏杆、瓦垄）写 `allowStripes:[{rect, why}]`（总面积 ≤ 35%）；跳过检查必须写 `skipWhy`。每轮看图目录先过 `npm run qa:picture`，修复轮附 `--compare --claim`。
+
+| 镜头 | t 区间 | 亮度带 lo–hi | 暖色上限 | 天空 | 豁免与理由 |
+|---|---|---|---|---|---|
+| `<shot-id>` | `<t0–t1>` | `<0.06–0.17>` | `<0.02>` | `<auto/none/rects>` | `<无 / 理由>` |

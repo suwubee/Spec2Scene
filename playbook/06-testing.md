@@ -13,3 +13,5 @@
 默认实时页使用逐镜 renderFrame 预热、常驻完整引擎、音频主时钟与单帧在途绘制。慢网可见墙钟预览，音频就绪对齐接管，错误才切源；Worker/分层作为实验选项。截图/确定性页必须显式选定，不允许通过 webdriver 隐式切换。审核同时确认字幕开关、暂停重播、慢网进度与错误提示。解码波形只能证明浏览器音频输出链有信号；真人听审、目标 GPU 与生产环境缺失各自 SKIP。参见[播放器契约](../tracks/music-video/realtime/README.md)。
 
 默认播放器还须在 `--autoplay-policy=document-user-activation-required`、关闭 webdriver 特征且未静音的浏览器里测 5 秒/25 秒音频响应延迟。无手势 play 必须被拒，点击同步 play()+pause()；预热结束后画面先行且载入提示可见，最终 analyser 有信号、音频接管同步、无静默降级。默认策略另跑，二者不互相代替。发布前运行闪烁双路扫描，所有候选须有人工连续帧结论。
+
+画面类项目另有像素级自动关卡 [picture-qa](../tools/picture-qa/README.md)：纯统计、不依赖模型，任何模型都能运行；回归样本全部由程序合成（`npm test` 中的 selftest），不存作品帧。规则与分工见[画面关卡](14-picture-gate.md)。

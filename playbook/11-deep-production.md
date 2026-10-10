@@ -52,4 +52,6 @@ English key points: keep at most four reusable master sets; one owner per set; w
 
 引擎修改只授权给**一个场景智能体/负责人**，全轮至多三项，先登记 API、默认值与影响面。其他场景提出需求，由授权者处理。新功能默认关闭或保持旧默认；同一浏览器、后端、尺寸和种子下，修改前后旧场景全部约定基准帧须逐字节相等（另存像素哈希），覆盖多个机位、时间与材质。不能以“看起来一样”代替对照；失败保留两轮证据并回退或修复。
 
-实现一轮修改→提交联系表→导演初审→决定日志→复验，四阶段都执行。看图目录与端口写入 PRODUCTION-PLAN，集成与导出继续按[成片交付](13-film-delivery.md)。
+实现一轮修改→**picture-qa 全 PASS**→提交联系表→导演初审→决定日志→复验，四阶段都执行。每一轮看图目录都附 `npm run qa:picture -- --dir <本轮>` 的 report.json/report.md/sheet.png；FAIL 不送导演。声称修复上一轮意见时必须附 `--compare <上一轮> --claim <检查项> [--roi …]`，⑥ 证明问题区域确实变化，否则视为未修复（[画面关卡](14-picture-gate.md)）。
+
+组件边界：人物只用人物组件并按[角色规范](../tracks/music-video/character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入；雪、冰、夯土只用[材质库](../tracks/music-video/kits/materials/README.md)。场景会话不改组件、不另写同类 shader；组件缺陷提给组件负责人，由其修复并补回归。看图目录与端口写入 PRODUCTION-PLAN，集成与导出继续按[成片交付](13-film-delivery.md)。

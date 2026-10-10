@@ -83,6 +83,14 @@
 | M13 | 渲染状态泄漏与未初始化纹理 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M14 | 景深、粒子与合成约定 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M15 | 软件渲染器成本 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M16 | 看不到自己的画面 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M17 | 声称已修复但画面没变 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M18 | 几何/投影误判为参数 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M19 | 大面积平涂 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M20 | 人物白描边 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M21 | 积云团与全帧灰雾 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M22 | 依赖渲染顺序的缓存 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M23 | 同类组件各写一份 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
 
 音乐视频 v0.2 追加经验见 [产线经验](../../tracks/music-video/lessons.md)：SVG 误读为二维媒介、逐句图解、反向肘膝没有自动拦截、自审冒充独立审核。导演方法、可运行三维引擎与三关证据共同防止重演。
@@ -96,3 +104,4 @@
 [v0.5 播放与闪烁](v05-playback-and-flicker.md)：同机用户实测、坚持已验证的技术栈、无声静默降级、闪烁七类原因和独立世界。
 
 - [v0.6：新世界、母题与成片交付](v06-world-and-delivery.md)。
+- [v0.7：画面关卡与模型分工](model-division.md)：强模型做组件、任意模型做装配、自动 QA 判定；修复声明必须附对比证据。

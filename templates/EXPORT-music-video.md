@@ -16,6 +16,7 @@
 
 ```bash
 timeout 30s node tools.local/review-gates.mjs --help
+timeout 1800s npm run qa:picture -- --dir out/keys --out out/qa-picture-final   # 全片每镜代表帧，必须全部 PASS
 timeout 7200s node tools.local/cinematic/render_frames.mjs --root . --port 39920 --quality final --range 0:1440 --workers 1 --taskset "$RENDER_CPUS" --out out/final
 timeout 7200s node tools.local/render-resume-guard.mjs --frames out/final --command out/render-argv.json --minutes 3 --expected 1440
 timeout 1800s node tools.local/cinematic/encode.mjs --frames out/final --audio assets/audio/music.wav --crf 14 --threads 2 --out out/master.mp4
@@ -26,6 +27,7 @@ timeout 1800s node tools.local/cinematic/qa.mjs out/share.mp4 --out out/qa-share
 
 渲染和监控是两个终端中的独立命令；监控不在渲染结束后才启动。`render-argv.json` 保存完整渲染命令的 JSON 字符串数组（包含 node、脚本及参数）。记录自己后台启动的 `$!`；停摆用 `kill -INT "$RENDER_PID"`，随后 `wait "$RENDER_PID"`，只操作本次 PID。优先级守卫也记录 PID，按 PID 停止并等待。续渲命令保持全部输出身份字段不变。
 
+- [ ] 正式渲染前全片每镜代表帧 picture-qa PASS，报告与豁免理由附 FINAL 记录。
 - [ ] 完整解码；黑帧/冻结候选逐项说明；音画长度与起点差 ≤ 50 ms。
 - [ ] BT.709 矩阵/primaries/transfer、tv range、yuv420p、AAC 48 kHz、faststart。
 - [ ] QA 无 FAIL；警告有审核意见；未以补帧隐藏失败。
