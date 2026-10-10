@@ -179,7 +179,7 @@ uniform vec3 vBeamO;
 uniform vec4 vHazeB;                              // x: night aerial-haze brightness boost
 uniform float vEastSh;                            
 uniform vec2 vWet;                                // x: west-bank wetness (world.wetness), y: east-bank dew
-uniform sampler2D vGroundMap; uniform vec4 vGroundBounds; uniform float vCustomGround;
+uniform sampler2D vGroundMap; uniform vec4 vGroundBounds; uniform float vCustomGround; uniform float vWaterMistEnabled;
 vec2 vGround(vec3 p){return texture(vGroundMap, (p.xz-vGroundBounds.xy)/vGroundBounds.zw).rg;}
 uniform vec4 vFogV;                               // valley fog pooled low in the distance: x sigma0 (1/m), y scale height (m), z start distance (m), w gain
 
@@ -226,7 +226,7 @@ vec4 vPlot(vec3 P, out float Lp){
   Lp = L;
   return vec4(h, f, e);
 }
-float vWaterMist(vec3 P){ if(vCustomGround>0.5)return mix(1.0,0.22,vGround(P).y); float hw = vRiverHW(P.z); return mix(0.22, 1.0, smoothstep(hw - 36.0, hw + 16.0, abs(P.x - vRiverCX(P.z)))); }
+float vWaterMist(vec3 P){ if(vWaterMistEnabled < 0.5)return 1.0; if(vCustomGround>0.5)return mix(1.0,0.22,vGround(P).y); float hw = vRiverHW(P.z); return mix(0.22, 1.0, smoothstep(hw - 36.0, hw + 16.0, abs(P.x - vRiverCX(P.z)))); }
 float vMistNoise(vec2 xz){
   vec2 n = texture(vNoiseTex, (xz + vMistN.zw) * vMistN.y).rg;
   float v = n.r * 0.6 + n.g * 0.4;
@@ -610,11 +610,13 @@ function createAtmosphere(ctx, opts = {}) {
   const sky = opts.sky;
   const ground = opts.terrain ? fogTerrain(opts.terrain) : null;
   const horizon = ground?.skylineAt || opts.skylineAt || skylineAt;
+  const moonColor = opts.moonColor || [0.62, 0.74, 0.98];
+  if (!Array.isArray(moonColor) || moonColor.length !== 3 || !moonColor.every(v => Number.isFinite(v) && v >= 0)) throw new Error('moonColor requires three nonnegative linear components');
   const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
   const V4 = () => new THREE.Vector4();
   const noiseTex = bakeNoiseTexture(THREE);
   const U = {
-    vGroundMap:{value:ground?.texture||noiseTex}, vGroundBounds:{value:ground?.bounds||new THREE.Vector4(0,0,1,1)}, vCustomGround:{value:ground?1:0},
+    vGroundMap:{value:ground?.texture||noiseTex}, vGroundBounds:{value:ground?.bounds||new THREE.Vector4(0,0,1,1)}, vCustomGround:{value:ground?1:0}, vWaterMistEnabled:{value: opts.waterMist === false ? 0 : 1},
     vCam: { value: V() }, vTime: { value: 0 },
     vMoonDir: { value: V(0, 1, 0) }, vMoonCol: { value: V() }, vSunDir: { value: V(0, -1, 0) }, vSunCol: { value: V() },
     vKey: { value: new THREE.Vector4(1, 0, 1, 1) },
@@ -645,7 +647,7 @@ function createAtmosphere(ctx, opts = {}) {
     // LIB_COMMON colour convention for moonlight (0.62,0.74,0.98), warmed by the sky's extinction tint when low
     const mI = li ? li.moon.intensity : 0.22 * (w.moonlight ?? 1);
     const mt = li ? li.moon.color : [1, 1, 1];
-    const mc = [0.62 * mt[0], 0.74 * mt[1], 0.98 * mt[2]];
+    const mc = [moonColor[0] * mt[0], moonColor[1] * mt[1], moonColor[2] * mt[2]];
     // day-for-night fill (director: shapes must read at night): moon x2.5, sky ambient x3.5, moonlit aerial haze
     const night = 1 - (w.day ?? 0);
     const d4n = x.dayForNight ?? 1;
@@ -781,6 +783,22 @@ void main(){
 }`;
 
 const FS_KIND = {
+  // Terrain attribute contract, without any river coordinates, plots, dikes or paths.
+  slope: /* glsl */ `
+  vec2 grain = texture(vNoiseTex, vW.xz * 0.19).rg;
+  float closeDetail = 1.0 - smoothstep(18.0, 110.0, length(vCam - vW));
+  vec3 alb = vCol * (0.88 + 0.24 * texture(vNoiseTex, vW.xz * 0.017).r);
+  alb *= mix(1.0, 0.8 + 0.4 * grain.r, closeDetail);
+  vec3 tangentNoise = vec3(grain.x - 0.5, 0.0, grain.y - 0.5);
+  N = normalize(N + (tangentNoise - N * dot(tangentNoise, N)) * closeDetail * 0.24);
+  float wet = clamp(vWet.x * vMatV.w, 0.0, 1.0);
+  alb *= 1.0 - wet * 0.25;
+#ifdef NO_SPEC
+  col = vShade(vW, N, V, alb, 1.0, 0.0, 1.0, 0.12, 0.0, 1.0);
+#else
+  col = vShade(vW, N, V, alb, mix(vMatV.y, 0.3, wet), vMatV.z, 1.0, 0.12, 0.0, 1.0);
+#endif
+  `,
   terrain: /* glsl */ `
   float dist = length(vCam - vW);
   vec2 nt = texture(vNoiseTex, vW.xz * 0.085).rg;

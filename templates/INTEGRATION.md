@@ -33,3 +33,22 @@
 实现者提交 `GATE-<stage>-rNN.md`；独立审核者提交 `REVIEW-<stage>-rNN.md`。集成负责人只核对接口、证据版本和失败记录，不代替美术或真人验收。
 
 English: scene factories share a clock, coordinate system, lifecycle and explicit preview path; integration checks continuity, determinism, resource ownership and quality-switch diagnostics.
+
+## 镜头与世界曲线（v0.6）
+
+| 原镜/新镜 ID | 拆分/插镜半开时间区间 | 音乐事件 | 曝光/白平衡 | 快门角/子帧数 | 世界时间映射 |
+|---|---|---|---|---|---|
+| `<填写>` | `<总时长不变>` | `<填写>` | `<逐镜值>` | `<填写>` | `<正反映射>` |
+
+| world 字段 | 单位/范围/默认 | 插值/切点 | 使用场景 |
+|---|---|---|---|
+| `<相位/光照/雾/风/母题/实景灯>` | `<填写>` | `<连续或明确跳变>` | `<填写>` |
+
+- [ ] 所有场景、变体与特写在预热前创建常驻；禁止懒建。特写资源单列预算。
+- [ ] 共享烘焙缓存拥有者先建，依赖场景后建；完整参数签名一致，冲突拒绝共享。
+- [ ] 逐镜首/中/尾、叠化双层、逐镜 post 与运动模糊子帧实际预热；固定灯数组合，记录新增程序。
+- [ ] 拆镜同步更新字幕、音乐事件、cutSafe 硬切表；离线时间不加实时偏移。
+- [ ] 24 Hz seek / 60 Hz 实时策略闪烁与切点两侧检查，候选逐项复核。
+- [ ] 同帧重复/逆序 seek 确定性、默认/严格自动播放、慢网与失败重试。
+- [ ] 预热中点击/拖动 seek、暂停/重播、44px 触控、2.5s 隐藏、截图无控件。
+- [ ] 母版/分享版逐版 QA，assets/video/share.mp4 的 HEAD/MIME/Range/实际下载一致。

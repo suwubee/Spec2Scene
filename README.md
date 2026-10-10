@@ -87,3 +87,7 @@ The older [layered player](tracks/music-video/player/README.md) is **experimenta
 Generated projects include `npm run check:flicker`: 24 Hz seek and 60 Hz real-time-policy sampling, hard cuts at ±1/4.5/25 ms, global spike/step and local block spikes, JSON rows, flags and contact sheets. Sampling density is not a display-fps claim. Review candidates before release.
 
 Every new film defines an independent world and a forbidden-content list; SET briefs explain differences, generic parts change shape and colour, and the first art-director review checks forbidden motifs/layouts/camera positions first. See [world rules](playbook/12-distinct-worlds.md), [lessons](playbook/lessons/v05-playback-and-flicker.md), and [validation](validation/v0.5/README.md). Software checks do not establish target GPU performance, independent review, human listening or production acceptance.
+
+## v0.6: original worlds and downloadable films
+
+The [delivery workflow](playbook/13-film-delivery.md) covers world differences, staged reviews, procedural motif closeups, integration, resumable rendering and per-encode QA. The default player supports seeking during warmup, accessible idle controls, and a same-origin MP4 download enabled by HEAD. See the [celestial phase kit](tracks/music-video/kits/celestial-phase/README.md) and [v0.6 validation](validation/v0.6/README.md).

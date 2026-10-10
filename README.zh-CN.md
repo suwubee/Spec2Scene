@@ -89,3 +89,9 @@ G1 意境/分镜/样张、G1b 新引擎重渲、G2G3 全曲/表演/字幕、FINA
 ## 许可与责任
 
 本仓库原创内容采用 [Apache-2.0](LICENSE)，版权为 suwubee 与贡献者。未随仓库分发第三方创作素材；第三方依赖保留各自许可，模型下载记录许可来源，使用前仍须核验。用户对上传、导入、下载、生成内容及第三方服务的授权负责；输出需人工审核，体感活动不构成医疗或专业健身建议，摄像头默认本地处理。完整说明见 [中英免责声明](DISCLAIMER.md)、[隐私与许可](playbook/09-privacy-and-licensing.md)。
+
+## v0.6 新世界与可下载成片
+
+[全流程交付](playbook/13-film-delivery.md)补齐世界观差异表、全局禁用、四阶段导演初审、母题过程特写、集成与逐版编码 QA。默认播放器支持预热中点击/拖动 seek、2.5 秒空闲隐藏、44px 触控区；`assets/video/share.mp4` 通过 HEAD 后启用下载，缺失显示生成中，截图路径无控件和下载请求。
+
+[天体相位构件](tracks/music-video/kits/celestial-phase/README.md)使用程序烘焙表面与单次全屏绘制；地形新增 slope 材质与大气选项。`tools/render-resume-guard.mjs` 默认三分钟无新帧报警并给出减 worker 的续渲命令，优先级守卫只降低光栅进程。执行 `timeout 360s npm run test:v06 -- <临时证据目录>`；[v0.6 验证记录](validation/v0.6/README.md)说明实测与边界。

@@ -75,3 +75,9 @@ timeout 600s npm run check:flicker -- --timeout 540000 --out out/flicker-r01
 按 24 Hz 与 60 Hz 时间网格顺序采样，硬切附加 ±1/±4.5/±25 ms。64×36 RGB 相邻平均差检测 spike/step，16×9 个 4×4 像素块检测局部 spike。默认全局阈值 12、局部阈值 28（0–255），相邻/跨帧差比 3；可用 `--global-threshold`、`--local-threshold`、`--ratio` 调整并随报告保存。不是实时 60 fps 性能测量。
 
 输出 `rows.json`、`flags.txt`、全部缩略图与候选邻帧/概览联系表（每页 ≤12 图、960 px 宽，最多 60 页；超出帧数写入 omittedContactFrames，全部缩略图与 flags 仍保留）。单进程顺序绘制，默认最多 30000 样本、最长 300000 ms；`--max-samples` 上限 60000，超预算提前拒绝，禁止覆盖已有轮次。长片按区间分批；软件后端可增加明确超时。原始图像只留项目 out/ 或临时目录。工具 COMPLETE 表示扫描完成，spike/step 候选含正常硬切；审核者须逐帧解释并记录结论。超时/页面错误保留失败 rows/flags，发布前重新检测。
+
+## 渲染停摆与成片交付（v0.6）
+
+`timeout 7200s node tools/render-resume-guard.mjs --frames <帧目录> --command <命令数组.json> --minutes 3 --poll-seconds 5` 监控原子完成的 `frame-000000.png` / `f00000.png|jpg`，忽略临时文件、空文件、目录和符号链接。命令文件是原渲染命令 JSON 字符串数组。停摆返回 2 并打印安全引用的 `--resume` 与减半 worker（最少 1）；不执行命令、不发信号。收到 INT/TERM 退出 130。`--expected` 达到文件计数仅结束监控，不能代替 manifest/解码完整性检查。
+
+仅对自己的光栅 GPU 进程使用 `timeout 7200s python3 tools/cinematic/ops/prio_guard.py <渲染PID> --heavy 19`；收帧与写盘优先级保持。自检 `timeout 30s python3 tools/cinematic/ops/prio_guard.py --selftest` 不改变优先级。逐版编码/QA/下载命令见 [EXPORT](../templates/EXPORT-music-video.md)，卫生工具 `--patterns` 使用仓库外禁词正则表，检查文件名与内容；严禁把禁词表本身带入仓库。

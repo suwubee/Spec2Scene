@@ -2,10 +2,10 @@
 # Author: suwubee
 """Keep a render tree polite to the rest of the (shared) server without starving its own I/O path.
 
-usage: prio_guard.py <render_pid> [--light 5] [--heavy 19] [--every 10]
+usage: prio_guard.py <render_pid> [--heavy 19] [--every 10]
 
 - GPU process (Mesa llvmpipe rasteriser threads = the CPU hog)   -> nice --heavy (19) + idle I/O class
-- everything else in the tree (node frame receiver / PNG encoder, Chromium browser + renderer, utility) -> nice --light (5)
+- everything else in the tree (frame receiver / PNG encoder, browser + renderer, utility) -> unchanged
   These are light but latency-critical: if they are starved by the rasteriser threads, frame uploads back up and Chromium
   dies with ERR_BLOB_OUT_OF_MEMORY (this happened when the whole tree was reniced to +19 while other jobs were running).
 Priorities are per thread (Linux setpriority(PRIO_PROCESS, tid)), re-applied every few seconds so restarted workers and
@@ -17,7 +17,6 @@ def parse(argv):
     import argparse
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('pid', type=int, nargs='?')
-    p.add_argument('--light', type=int, choices=range(0,20), default=5)
     p.add_argument('--heavy', type=int, choices=range(0,20), default=19)
     p.add_argument('--every', type=int, choices=range(1,61), default=10)
     p.add_argument('--selftest', action='store_true')
@@ -67,7 +66,7 @@ def main():
         assert os.getpid() in tree(os.getpid())
         print('PASS prio_guard identity/tree selftest; no priorities changed')
         return
-    root, light, heavy, every = a.pid, a.light, a.heavy, a.every
+    root, heavy, every = a.pid, a.heavy, a.every
     root_identity = identity(root)
     if not root_identity or root_identity[0] != os.getuid():
         sys.exit('refusing absent or differently owned PID')
@@ -80,7 +79,9 @@ def main():
             pid_identity = identity(pid)
             if not pid_identity or pid_identity[0] != os.getuid() or identity(root) != root_identity: continue
             gpu = '--type=gpu-process' in cmdline(pid)
-            want = heavy if gpu else light
+            if not gpu:
+                continue
+            want = heavy
             try:
                 tids = os.listdir(f'/proc/{pid}/task')
             except Exception:
@@ -93,7 +94,7 @@ def main():
                     pass
             if gpu and (pid,pid_identity) not in idle_io and identity(pid) == pid_identity:
                 idle_io.add((pid,pid_identity))
-                subprocess.run(['ionice', '-c3', '-p', str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(['ionice', '-c3', '-p', str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
         time.sleep(every)
 
 if __name__ == '__main__':

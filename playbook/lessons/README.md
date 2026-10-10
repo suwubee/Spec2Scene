@@ -94,3 +94,5 @@
 [深做制作法](../11-deep-production.md)与[制作可靠性](deep-production.md)：四场景收敛、四阶段收口、人物剪影、资源所有权、几何守卫与协作事故。
 
 [v0.5 播放与闪烁](v05-playback-and-flicker.md)：同机用户实测、坚持已验证的技术栈、无声静默降级、闪烁七类原因和独立世界。
+
+- [v0.6：新世界、母题与成片交付](v06-world-and-delivery.md)。

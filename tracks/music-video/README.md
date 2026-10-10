@@ -33,3 +33,7 @@ G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面�
 使用 [tools/cinematic](../../tools/cinematic/README.md) 的 render_frames → encode → qa；重新打开浏览器逆序复渲比较像素。黑场、冻结、色带和音画长度只是候选，转场与闪光逐格审核；母版与分享版分别 QA。导出源码、运行指南、输入授权、联系表和质检报告，作品不回填方法仓库。
 
 开始阅读：[规格](SPEC.md)、[QA](QA.md)、[经验](lessons.md)、[通用工具](../../tools/README.md)。English: Translate emotion into recurring imagery, then direct the camera. Independent gates review mood, anatomy and the complete cinematic preview.
+
+## v0.6 交付闭环
+
+继续按[成片交付](../../playbook/13-film-delivery.md)和 [EXPORT](../../templates/EXPORT-music-video.md)执行预览审片、受限 final 渲染、三分钟停摆监控与减少 worker 续渲、母版 CRF 14 / 分享版 CRF 19 maxrate 16M、逐版 QA 与下载。母题过程使用 [MOTIF-CLOSEUP](../../templates/MOTIF-CLOSEUP.md)；[相位构件](kits/celestial-phase/README.md)提供不含来源内容的程序化样例。下载路径默认 assets/video/share.mp4，服务端必须支持 video/mp4 和 Range。

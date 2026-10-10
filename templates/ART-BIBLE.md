@@ -27,3 +27,15 @@
 英雄联系表、放大帧和连续序列分别检查构图、材质、动作和闪烁。软件截图、程序数和帧时是工程证据；独立审美、真人表演、目标 GPU 和生产环境另行记录。
 
 English: define spatial layers, two-layer materials, motivated light, silhouette character treatment, lens-driven optics, deterministic reuse, resource ownership and independent visual review.
+
+## 世界观差异与全局禁用（v0.6）
+
+参考只作画质标杆。每行写可验证的差异，设计资料只留项目。
+
+| 维度 | 参考抽象属性 | 本作新设计 | 全局禁用项 | 证据/决定编号 |
+|---|---|---|---|---|
+| 时代/空间/建筑/材质 | `<填写>` | `<填写>` | `<填写>` | `<填写>` |
+| 标志物/布局/机位 | `<填写>` | `<填写>` | `<填写>` | `<填写>` |
+| 调色/天气/开场/结尾 | `<填写>` | `<填写>` | `<填写>` | `<填写>` |
+
+可复用引擎/改型构件及轮廓、比例、材质、颜色变化：`<清单>`。可视过程母题是否需要延时/插镜/未完成结尾：`<设计或不适用理由>`；附 MOTIF-CLOSEUP。

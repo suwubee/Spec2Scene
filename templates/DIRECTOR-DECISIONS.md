@@ -22,3 +22,7 @@
 - 未决事项：`<列表>`
 
 English: record the problem, alternatives, evidence, decision, affected shots and recheck command; never erase rejected decisions.
+
+## 每阶段决定附件
+
+每条决定标记场景、四阶段之一、联系表目录、看过的大图/连续序列、禁用清单结论、推进或退回、责任人、复验轮次。引擎授权写唯一负责人、三项以内 API 清单和旧画面逐字节证据；变更全局禁用项须说明区分度重新审核结果。

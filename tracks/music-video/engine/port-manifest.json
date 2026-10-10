@@ -112,9 +112,9 @@
     "sourceBytes": 114659,
     "sourceSHA256": "ef58e0a9711624a793caa17aae8407ee1e7afc7dc83c0b2248ffcca9eb4aa97f",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4: deterministic frame channels and reusable scene interfaces.",
-    "portedBytes": 110878,
-    "portedSHA256": "3ac80f4658d82c3837548f0735a0bad7535279cf78e1aae8bc547ca6611b64b0"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4: deterministic frame channels and reusable scene interfaces. v0.6: opt-in slope material, caller skyline, water-mist mask bypass and linear moonlight color; legacy render regression.",
+    "portedBytes": 112045,
+    "portedSHA256": "b0c18d8fe884155595ff66b44cb17a63883dc3cf706a0d831146b25fd2a521ac"
   },
   {
     "module": "util.js",

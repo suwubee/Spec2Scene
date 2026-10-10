@@ -22,3 +22,9 @@
 运行服务后执行 `npm run check:flicker`；每轮指定新的输出，例如 `npm run check:flicker -- --out out/flicker-r02`。工具按 24 Hz seek 与 60 Hz 实时采样策略扫描，并对硬切 ±1/±4.5/±25 ms 加密，输出 `rows.json`、`flags.txt`、缩略图和分页联系表。60 Hz 是时间采样密度，不是声称实际实时达到 60 fps。详细参数见 [工具说明](../../../tools/README.md)。候选需人工看连续帧，正常硬切也会报告；无候选不代签视觉验收。
 
 浏览器回归：`timeout 960s npm run test:playback -- <临时证据目录>`。覆盖默认策略、严格用户激活且关闭 webdriver 特征、音频延迟 5 秒/25 秒、解码信号、媒体接管同步、失败重试、暂停重播、常驻程序和真实引擎的闪烁两条路径。
+
+## 进度与成片下载（v0.6）
+
+原生时间滑块支持鼠标点击/拖动、触控与键盘；预热中选定的时间保存在同一 transport，预热后从所选时间开始。正常有声播放时 2.5 秒无操作隐藏，鼠标/触控/键盘唤回；暂停、预热、载入/声音错误、拖动和键盘焦点时保持可见。控件触控区域 ≥44px，时间显示与 aria-valuetext 一起更新。
+
+页面 `#download` 的 `data-video` 指向同源 MP4，默认 `assets/video/share.mp4`。HEAD 检查成功且 MIME 为 video/mp4 才加 href 与 download；404/网络错误/错误 MIME 显示“成片生成中”禁用态，30 秒或窗口重新聚焦时复查。文件由项目编码 QA 后放入，starter 不伪造视频。截图/离线路径隐藏全部 transport，且不发 HEAD。

@@ -10,7 +10,7 @@
 | post.js | 半浮点 HDR、分层散景、near-CoC 扩张、Kawase bloom、halation、横向 streak、曝光/白平衡、3D LUT、grain/dither、2.39:1 黑边 |
 | camera.js | Super-35 镜头、焦距/FOV、沿视轴对焦、呼吸、手持、景深与快门 |
 | sky.js / moon.js | 大气透射/多次散射 LUT、raymarch 云、雨云区域、云隙、太阳/月球程序纹理、月晕、星、环境照明 |
-| terrain.js | 独立配置实例、河道/岸坡、域扭曲 ridged multifractal 山岭、田地、树冠、芦苇、共享高度雾与光照 GLSL |
+| terrain.js | 独立配置实例、河道/岸坡、域扭曲 ridged multifractal 山岭、田地、树冠、芦苇、共享高度雾与光照 GLSL；`makeValleyMaterial(atmos,'slope')` 提供不含河道布局的山坡地面 |
 | water.js | 实际场景平面反射、Fresnel、解析波/雨环、月光闪烁、岸边/雾；planeY 指定水面高度 |
 | particles.js | 雨、滴水、溅水、花瓣、光束、尘埃、蒸汽、萤火、分层薄雾；闭式时间位置、独立 FX 深度测试 |
 | materials.js / procTex.js | 程序纹理、ORM、微表面法线、湿润/积水、薄片透光、软 PCF、面光近似、木/石/纸/纱/瓷/金属 |
@@ -43,6 +43,8 @@ engine.dispose();
 ```
 
 页面暴露 `window.__scene`，以及供移植工具使用的同一对象 `window.__mv`。`seek(t)` 和 `resize(w,h)` 必须 await；`capture()` 返回已完成画面的 PNG data URL。字幕开启后在最终画布内合成；外部 DOM 不在画布捕获中。默认无歌词、署名、音乐或字体，音频由项目提供并遵守浏览器默认播放策略。创建场景失败会 reject，不会输出占位片伪装成功。
+
+`createAtmosphere(ctx, {sky, skylineAt, waterMist, moonColor})` 默认使用内置地平线；传入 `waterMist:false` 会关闭水面薄雾项，`moonColor:[r,g,b]` 以线性空间指定月光色。旧调用不传这些字段时保持旧值。`slope` 材质只读顶点色、噪声、湿度和法线，故不会隐式引入河道、田块、田埂或路径；与 `terrain` 共享同一大气 uniforms。
 
 场景适配工厂 `scenes[id](ctx)` 返回 `{scene,camera?,update(t,world,camera,shot,ctx),dispose?}`。原生入口 `core.js` 接收 `timeline:{shots,resolve,DURATION,FPS}` 与 `sets:{id:{create(ctx)}}`；原生 set 的 `update(tLocal,shot,ctx)` 为同步函数，`ctx.t` 才是全片时间。叠化时局部时间可能为负或超过镜长。不要把一种契约的 update 直接接到另一种契约。
 

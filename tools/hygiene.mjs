@@ -13,7 +13,7 @@ export async function hygiene({patterns=[]}={}) {
   const {stdout}=await exec('git',['ls-files','-c','-o','--exclude-standard','-z'],{cwd:root,maxBuffer:4*1024*1024});
   const files=[...new Set(stdout.split('\0').filter(Boolean))],issues=[];let vendorVerified=0;
   const privatePath=new RegExp('/(?:' + ['ro'+'ot','ho'+'me','Us'+'ers'].join('|') + ')/[A-Za-z0-9]');
-  const forbiddenExtension=/\.(png|jpe?g|webp|gif|mp[34]|wav|ogg|flac|glb|gltf|vrm|fbx|obj|task|bin|woff2?|ttf|otf|zip|tgz)$/i;
+  const forbiddenExtension=/\.(png|jpe?g|webp|gif|avif|bmp|tiff?|exr|hdr|mp[34]|m4[av]|mov|webm|mkv|avi|wav|ogg|flac|aac|opus|glb|gltf|vrm|fbx|obj|blend|ply|stl|safetensors|pt|pth|onnx|task|bin|woff2?|ttf|otf|zip|tgz)$/i;
   for(const name of files){
     if(name.startsWith('projects/')&&name!=='projects/README.md')issues.push({file:name,kind:'project-output'});
     let data;try{data=await readFile(path.join(root,name));}catch(e){if(e.code==='ENOENT')continue;throw e;}
@@ -23,7 +23,7 @@ export async function hygiene({patterns=[]}={}) {
     if(name.startsWith(vendorDir)&&vendorHashes[name.slice(vendorDir.length)]){if(createHash('sha256').update(data).digest('hex')!==vendorHashes[name.slice(vendorDir.length)])issues.push({file:name,kind:'vendor-integrity'});else vendorVerified++;}
     for(const [i,pattern] of patterns.entries()) {
       const scan=name.startsWith(vendorDir)&&vendorHashes[name.slice(vendorDir.length)]?text.replace(/\bspotlight\w*\b/gi,'TechnicalLight'):text;
-      if(new RegExp(pattern,'im').test(scan))issues.push({file:name,kind:'external-deny-pattern',pattern:i+1});
+      if(new RegExp(pattern,'im').test(name+'\n'+scan))issues.push({file:name,kind:'external-deny-pattern',pattern:i+1});
     }
   }
   if(vendorVerified!==Object.keys(vendorHashes).length&&!issues.some(i=>i.kind==='vendor-integrity'))issues.push({file:vendorDir,kind:'missing-vendor-runtime'});

@@ -45,3 +45,11 @@
 合并前逐项核对场景注册表、共享材质/贴图的所有权、随机种子、dispose 路径和截图命名。集成后重新跑仓库测试与项目测试；失败证据保留，修复后生成新轮次，不覆盖旧证据。
 
 English key points: keep at most four reusable master sets; one owner per set; work in four stages (empty light, hero frame, remaining presets, closeout); define detail through spatial layers, material layers, controlled imperfections, atmosphere and optics; budget hero images, contact sheets, draw calls, triangles and resident sets; use an art-director checklist and an integration contract.
+
+## 四阶段的实际交接
+
+一场景一智能体（未授权并行时由一个实现会话顺序承担），任务开始前填写所有权：场景入口、构件目录、调试页、文档可写段落、端口段和看图目录 `out/review/<scene>/stage-<n>/r<轮次>/`。共用文件只读；接口先写，桩只在测试。端口分配必须互斥且在本次任务允许范围内。四阶段每阶段都向导演提交联系表和英雄大图初审，记录明确推进/退回决定、依据和 DIRECTOR-DECISIONS 编号，再进入下一阶段；后续独立关卡仍另行签署。
+
+引擎修改只授权给**一个场景智能体/负责人**，全轮至多三项，先登记 API、默认值与影响面。其他场景提出需求，由授权者处理。新功能默认关闭或保持旧默认；同一浏览器、后端、尺寸和种子下，修改前后旧场景全部约定基准帧须逐字节相等（另存像素哈希），覆盖多个机位、时间与材质。不能以“看起来一样”代替对照；失败保留两轮证据并回退或修复。
+
+实现一轮修改→提交联系表→导演初审→决定日志→复验，四阶段都执行。看图目录与端口写入 PRODUCTION-PLAN，集成与导出继续按[成片交付](13-film-delivery.md)。

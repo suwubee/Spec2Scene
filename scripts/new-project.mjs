@@ -44,10 +44,11 @@ if (track === '--help' || track === '-h') {
       for (const directory of ['engine', 'character', 'sample', 'directing', 'kits', 'player', 'realtime']) await cp(path.join(repo, 'tracks/music-video', directory), path.join(staging, directory), {recursive: true});
       await put('realtime/README.md', (await readFile(path.join(repo, 'tracks/music-video/realtime/README.md'), 'utf8')).replace('(../../../tools/README.md)', '(../tools.local/README.md)'));
       await put('assets/demo.wav', demoWave());
+      await put('assets/video/README.md', '# 成片下载\n\n逐版编码与 QA 通过后将分享版放为 share.mp4。播放器仅在 HEAD 返回 video/mp4 时启用下载。媒体文件保持忽略；正式发布另需授权。\n');
       await put('index.html', await readFile(path.join(repo, 'templates/starters/music-video/index.html'), 'utf8'));
       await put('tools.local/check-anatomy.mjs', (await readFile(path.join(repo, 'tools/check-anatomy.mjs'), 'utf8')).replaceAll('../tracks/music-video/', '../'));
       await put('tests/anatomy.test.mjs', "import test from 'node:test'; import assert from 'node:assert/strict'; import {checkAnatomy} from '../tools.local/check-anatomy.mjs'; test('all character action samples pass anatomy constraints',()=>assert.deepEqual(checkAnatomy().failures,[]));\n");
-      for (const name of ['CONCEPT-music-video.md','GATE-music-video.md','SET-brief.md','ART-BIBLE.md','AD-review.md','RELEASE.md']) await put('docs/'+name,await readFile(path.join(repo,'templates',name),'utf8'));
+      for (const name of ['CONCEPT-music-video.md','GATE-music-video.md','SET-brief.md','ART-BIBLE.md','AD-review.md','RELEASE.md','DIRECTOR-DECISIONS.md','INTEGRATION.md','PRODUCTION-PLAN.md','MOTIF-CLOSEUP.md','EXPORT-music-video.md']) await put('docs/'+name,await readFile(path.join(repo,'templates',name),'utf8'));
       await put('docs/REVIEW-music-video.md', await readFile(path.join(repo, 'templates/REVIEW-music-video.md'), 'utf8'));
       await put('render.config.json', JSON.stringify({fps: 24, width: 1920, height: 1080, count: 1440, sceneContract: 'window.__scene={ready,canvas,seek(t),capture()}'}, null, 2));
     }

@@ -32,3 +32,7 @@ node scripts/validate-cinematic.mjs --root projects/cinematic-demo --benches-onl
 v0.3.1 增补的曲线鞋印、连续非均匀高度场、天空预设、长时间粒子、公寓、盆栽、折纸、玻璃倒影及构图测量的完整参数表见 [feedback.md](feedback.md)。统一复验台为 [bench/feedback.html](bench/feedback.html)。
 
 [v0.4 构件与接口](v04.md)：云海、小水面、长焦山体、外部地形谷雾、室内反弹、岩石；带独立试验台与复渲脚本。
+
+## 程序化过程特写（v0.6）
+
+[celestial-phase](celestial-phase/README.md)：虚构天体的程序烘焙表面、球面相位光照、掠射遮挡与暗面地照；每帧一个全屏三角形，附纯函数 seek 样例。不是历史移植清单中的模块，不使用图像素材或真实地貌数据。

@@ -25,3 +25,5 @@ English: Feedback becomes a measurable specification. Implementers supply reprod
 需要持续打磨空间、材质和镜头的项目，继续阅读[深做制作法](11-deep-production.md)：最多四个主场景、多变体、一场景一负责人、四阶段制作、美术总监评审与集成契约。
 
 音乐视频 v0.5 使用[逐镜预热常驻播放器](../tracks/music-video/realtime/README.md)，并按[独立世界规则](12-distinct-worlds.md)设计。原分层播放器是实验选项。
+
+音乐视频 v0.6 继续按[从新世界到可下载成片](13-film-delivery.md)完成差异表、母题过程特写、集成与逐版编码 QA；默认播放器提供预热中 seek、2.5 秒自动隐藏与 HEAD 检查后的成片下载。
