@@ -6,7 +6,7 @@ import {promisify} from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {checkBriefs, checkDocument, recipes, shots, delegationHits, DEFAULTS} from '../brief-depth.mjs';
+import {checkBriefs, checkDocument, recipes, shots, delegationHits, placeholders, DEFAULTS} from '../brief-depth.mjs';
 
 const exec = promisify(execFile);
 const CLI = fileURLToPath(new URL('../brief-depth.mjs', import.meta.url));
@@ -128,8 +128,8 @@ test('thin "精简版" brief delegated to the implementer FAILS with the specifi
     const r = await checkBriefs({dir: d});
     assert.equal(r.pass, false);
     const set = r.files.find(f => f.kind === 'set').missing.join('\n');
-    for (const want of ['delegation phrase "精简版"', 'delegation phrase "实现者决定"', 'delegation phrase "TBD"', 'heading missing: 平面与尺寸', 'heading missing: 难件配方', 'heading missing: 回填',
-      'lacks columns: L2, L3, 来源', 'empty cell "尺寸"', 'size has no number', 'material has no colour value', 'procedure names no library function', 'rows < 8', `B < ${DEFAULTS.minBytes} B minimum`]) assert.ok(set.includes(want), `expected "${want}" in\n${set}`);
+    for (const want of ['delegation phrase "精简版"', 'delegation phrase "实现者决定"', 'delegation phrase "TBD"', 'heading missing: 平面与尺寸', 'heading missing: 镜头预设', 'heading missing: 验收清单', 'heading missing: 回填',
+      'lacks columns: L2, L3', 'no 来源 column and no source tag', 'empty cell "尺寸"', 'size has no number', 'material has no colour value', 'procedure names no library function', 'rows < 8', `B < ${DEFAULTS.minBytes} B minimum`]) assert.ok(set.includes(want), `expected "${want}" in\n${set}`);
     const sb = r.files.find(f => f.kind === 'storyboard').missing.join('\n');
     for (const want of ['前景 missing', '二级运动 needs ≥ 2 sources', '人物屏高 needs a band']) assert.ok(sb.includes(want), `expected "${want}" in\n${sb}`);
   } finally { await rm(d, {recursive: true, force: true}); }
@@ -204,4 +204,77 @@ test('generated music-video project wires qa:brief / qa:reimplement / qa:camera;
     await exec(process.execPath, ['tools.local/no-reimplement.mjs', 'src'], {cwd: fixture.project});
     await exec(process.execPath, ['tools.local/cam-check.mjs', '--help'], {cwd: fixture.project});
   } finally { await fixture.close(); }
+});
+
+// ---- format variants found in real deep designs (synthetic re-creations: an invented pump house by a reservoir) ----
+const PARTS = ['① 顺序：(1) 壳体 lathe (2) 法兰实例 (3) 材质 (4) 检查台四视角各一张', '② 几何：壳 32 段，法兰 8 个 bevelBox，≤ 5k 三角', '③ 函数：`lathe`、`bevelBox`、`mergeInstanced`', '④ 数值：泵壳 #4a5058 粗糙 .6，锈 #6a3b22 带 .1 m', '⑤ 检查台：t=1 35 mm 6 m、t=5 85 mm 30 m、t=9 24 mm 2 m、t=13 135 mm 200 m', '⑥ 验收：③ ≤ 5%，σ ≥ .004，≤ 5000 三角', '⑦ 失败：白壳 → t=5 单色检测 → 材质未生效；法兰成条纹 → ① FAIL → 间距太规则', '⑧ 降级：法兰改为法线贴图，接口不变'];
+const COLOURS = '## 0. 色值\n\n| 色名 | hex |\n|---|---|\n| 泵壳 | #4a5058 |\n| 苔 | #3d4a33 |\n';
+const sbShot = (id, lines) => `### ${id} · 0–8 · pump.wide · 硬切\n${lines.join('\n')}\n\`\`\`\n. . | ^ | . .\n= # | 泵 | = =\n\`\`\`\n`;
+const BASE = ['- 前景：泵房台阶、苔石', '- 中景：B4 水泵、闸门', '- 远景：水库对岸、薄雾', '- 天空：冷蓝暮天', '- 二级运动：水面风斑；薄雾卷动'];
+
+test('recipes are found inline in one paragraph, in a numbered "NEW-HARD 八段配方" section, and by back-reference to numbers above', () => {
+  const inline = `# 圣经\n\n## B 泵房件\n\n### B4 水泵 \`pump.js\` —— **NEW-HARD**\n- \`createPump(ctx, {radius: .6, flanges: 8, tint: [.29,.31,.35]})\`\n**配方** ${PARTS.join('；')}。\n\n### B5 闸门 —— NEW-GLM\n- 做法：bevelBox 板 2×3 m\n`;
+  const r1 = recipes(inline);
+  assert.equal(r1.length, 1); assert.deepEqual(r1[0].names, ['B4']); assert.deepEqual(r1[0].missing, []);
+  const section = `# 圣经\n\n## 3. 装配\n\n### B5\n闸门 bevelBox。\n\n## 4. B4 NEW-HARD八段配方\n接口 createPump(ctx)。\n\n${PARTS.join('\n\n')}\n\n## 5. 总预算\n≤ 1.2M 三角\n`;
+  const r2 = recipes(section);
+  assert.equal(r2.length, 1); assert.deepEqual(r2[0].names, ['B4']); assert.deepEqual(r2[0].missing, []);
+  const back = inline.replace(PARTS[3], '④ 数值见上');
+  assert.deepEqual(recipes(back)[0].missing, []);
+  const short = inline.replace(/⑥[^；]*；/, '').replace(/⑦[^；]*；/, '');
+  assert.deepEqual(recipes(short)[0].missing, ['⑥ 数值验收 missing', '⑦ 失败模式与检测 missing']);
+});
+
+test('colours and functions are accepted from the component recipe/assembly section, palette names and bare engine exports', async () => {
+  const bible = `# 圣经\n\n${COLOURS}\n## 4. B4 NEW-HARD八段配方\n\n${PARTS.join('\n\n')}\n`;
+  const rows = [...ROWS.slice(1), '| B4 水泵 | Ø1.2×1.6 m | 泵壳/锈 | 按配方装配；见 B4 | 壳/法兰 | 漆面 + 锈 | 法兰螺栓缺 1 | NEW-HARD |', '| B6 天空 | 全天；云底 1800 m | 暮色/夜影 | createSky；统一世界选项 | 暮天→星 | 卷云 12% | 月只作光源 | REUSE engine/sky.js |', '| B7 贝壳 | 3–5 cm | 苔 | lathe | 壳 | 棱 | 半埋 | NEW-GLM |'];
+  const d = await dir({'SET-pump.md': setBrief({rows, recipe: '难件配方写在资产圣经 B4。\n'}), 'ASSET-BIBLE.md': bible, 'STORYBOARD.md': storyboard([SHOT('Q01')])});
+  try {
+    const r = await checkBriefs({dir: d, minBytes: 1000});
+    const set = r.files.find(f => f.kind === 'set');
+    assert.equal(set.missing.length, 1, set.missing.join('\n'));
+    assert.match(set.missing[0], /B6 天空: material has no colour value/, '“暮色/夜影” are not palette names here, so only that row fails');
+    assert.equal(set.newHard, 1, 'B4 is NEW-HARD and its recipe lives in the asset bible');
+    assert.equal(r.files.find(f => f.kind === 'bible').recipes, 1);
+  } finally { await rm(d, {recursive: true, force: true}); }
+});
+
+test('mixed rows (body NEW-GLM, sub-part NEW-HARD) need the sub-part recipe; cells may be supplied by the referenced section (WARN)', async () => {
+  const bible = (recipe) => `# 圣经\n\n## E 塔件\n\n### E2 水塔 \`tower.js\` —— 塔身 **NEW-GLM**；阀门 E2b **NEW-HARD**\n- 塔身：\`lathe\` 轮廓，白灰 #d9d5ca，锈痕 #6b3d22。\n- **E2b 阀门 \`valve.js\`（NEW-HARD）** 配方：${recipe}\n\n### E3 管廊 —— **ADAPT** \`tubeAlongCurve\`\n- 铁 #2a2a29，Ø.3 m。\n`;
+  const table = '| 件 | 尺寸 | 材质 | 程序做法 | L1 | L2 | L3 |\n|---|---|---|---|---|---|---|\n' + Array.from({length: 7}, (_, i) => `| 支架 ${i} | 2×2 m | 铁 #2a2a29 | E3 \`tubeAlongCurve\` | 杆 | 锈 | 焊点 |`).join('\n') + '\n| 水塔 | h 12 m | E2 | E2 | 塔/阀 | — | 锈痕 |\n| 炊烟 | 无（停工，村里不生火） | — | — | — | — | — |\n';
+  const brief = setBrief().replace(/## 构件与道具清单[\s\S]*?## 难件配方/, `## 构件与道具清单\n\n${table}\n## 难件配方`).replace(/## 难件配方[\s\S]*?## 灯光/, '## 难件配方\n\n见资产圣经 E2b。\n\n## 灯光');
+  const good = await dir({'SET-tower.md': brief, 'ASSET-BIBLE.md': bible(PARTS.join(' ')), 'STORYBOARD.md': storyboard([SHOT('Q01')])});
+  const bad = await dir({'SET-tower.md': brief, 'ASSET-BIBLE.md': bible(PARTS.slice(0, 4).join(' ')), 'STORYBOARD.md': storyboard([SHOT('Q01')])});
+  try {
+    const r = await checkBriefs({dir: good, minBytes: 1000});
+    const set = r.files.find(f => f.kind === 'set');
+    assert.equal(r.pass, true, JSON.stringify(r.files.map(f => f.missing)));
+    assert.ok(set.warnings.some(w => w.includes('水塔: empty cell "L2" (supplied by E2)')), set.warnings.join('\n'));
+    assert.ok(set.warnings.some(w => w.includes('炊烟: declared absent')));
+    assert.ok(set.warnings.some(w => w.includes('no 来源 column; sources taken from referenced component headings')));
+    const b = await checkBriefs({dir: bad, minBytes: 1000});
+    assert.ok(b.files.find(f => f.kind === 'bible').missing.some(m => /E2 水塔.*⑤ 检查台 missing/.test(m)));
+    const orphan = brief.replace('| 水塔 | h 12 m | E2 | E2 |', '| 水塔 | h 12 m | Z9 | Z9 |');
+    assert.ok(checkDocument(orphan, {kind: 'set', minBytes: 0, minRows: 8}).missing.some(m => m.includes('水塔: empty cell "L2"')), 'a reference to nothing does not fill cells');
+  } finally { await rm(good, {recursive: true, force: true}); await rm(bad, {recursive: true, force: true}); }
+});
+
+test('shot light labels: combined and synonym labels are accepted (synonyms WARN); figure height tolerance counts as a band', () => {
+  const combined = shots('## 镜头表\n\n' + sbShot('P1', [...BASE, '- 人物：20%H ±1%，背影', '- 主光/轮廓：夕照在画右后方；冷天勾出左上边缘']));
+  assert.deepEqual(combined[0].missing, []); assert.deepEqual(combined[0].warnings, []);
+  const synonyms = shots('## 镜头表\n\n' + sbShot('P2', [...BASE, '- 人物：13% H；分离：手灯与雾的亮背景', '- 光：月后方（平光）']));
+  assert.deepEqual(synonyms[0].missing, []);
+  assert.deepEqual(synonyms[0].warnings.sort(), ['主光 present but phrased differently ("光")', '轮廓光 present but phrased differently ("分离")', '人物屏高 is a single value; give a band (12–18% H) or a tolerance (15% H ±1%)'].sort());
+  const empty = shots('## 镜头表\n\n' + sbShot('P3', [...BASE, '- 人物：0%H，人物不入画', '- 主光：窗灯 2100 K 右侧']));
+  assert.deepEqual(empty[0].missing, []); assert.deepEqual(empty[0].warnings, ['轮廓光 not stated (no figure in shot)']);
+  const thin = shots('## 镜头表\n\n' + sbShot('P4', ['- 前景：石', '- 人物：较小', '- 光：月']));
+  assert.ok(thin[0].missing.includes('中景 missing') && thin[0].missing.includes('轮廓光 missing') && thin[0].missing.some(m => m.startsWith('人物屏高 needs a band')), thin[0].missing.join('\n'));
+});
+
+test('implementer-written design sections are not designer bytes; path variables are not placeholders', () => {
+  const brief = setBrief();
+  const padded = brief + '\n# §9 实现级设计（会话自写）\n\n## 9.1 地形\n' + '实现者写的大量细节。'.repeat(400) + '\n';
+  assert.equal(checkDocument(padded, {kind: 'set', minBytes: 0, minRows: 8}).designerBytes, checkDocument(brief, {kind: 'set', minBytes: 0, minRows: 8}).designerBytes);
+  assert.deepEqual(placeholders('node qa.mjs --dir out/<set>/final --out out/<set>/qa。按本场景替换<set>'), []);
+  assert.deepEqual(placeholders('主光：方向 `<az/el>`，颜色 `<线性 RGB/K>`'), ['<az/el>', '<线性 RGB/K>']);
 });

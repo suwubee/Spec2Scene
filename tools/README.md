@@ -16,7 +16,7 @@
 | deploy/deploy-static.sh | `--config CONFIG.json [--activate]` | 默认准备 releases/version，激活前按配置比 MIME/缓存/字节 |
 | package/make-release.sh | `--source DIR --out OUTSIDE_SOURCE.tar.gz [--verify-hook EXECUTABLE]` | tar；排除、包内外 SHA-256、解压验证，钩子失败不出包 |
 | picture-qa/ | [画面自动质检](picture-qa/README.md)：`picture-qa.mjs --dir DIR [--config shots.json] [--compare PREV --claim stripes,…]`；`--selftest` | 纯 JS 像素统计（node:zlib），不依赖模型/GPU；合成回归样本；生成项目 `npm run qa:picture` |
-| brief-depth.mjs | `[--dir docs] [FILE.md …] [--min-bytes 10000] [--min-rows 8] [--json]`：设计深度门槛（SET 标题、组件表八列与色值/库函数/来源、NEW-HARD 八项配方、逐镜物料清单、委托用语与占位、设计者字节） | 纯 Node 解析 Markdown；合成样例回归；生成项目 `npm run qa:brief` |
+| brief-depth.mjs | `[--dir docs] [FILE.md …] [--min-bytes 10000] [--min-rows 8] [--src src] [--quiet] [--json]`：设计深度门槛（SET 标题、组件表八列与色值/库函数/来源、NEW-HARD 八项配方、逐镜物料清单、委托用语与占位、设计者字节） | 纯 Node 解析 Markdown；合成样例回归；生成项目 `npm run qa:brief` |
 | no-reimplement.mjs | `[--json] PATH…`（默认 src）：自写相机晃动、handheld > 1、`fract(sin())`、自写雾/天空、硬编码署名，报 file:line；`// no-reimplement-allow <规则>: <理由>` | 纯 Node 静态扫描；生成项目 `npm run qa:reimplement` |
 | cam-check.mjs | `--url http://127.0.0.1:39920/` 或 `--samples cams.json`，`[--hf-p95 1.5 --rms 1.5 --peak 4 --win 0.5]`：引擎 `lastCamera()` 的最终相机 → 按镜头与镜内硬切分段的 rms/峰值/p95 像素抖动（1920 宽），只计整窗残差 | 分析为纯函数 `analyzeCamera`；浏览器路径用 Playwright；生成项目 `npm run qa:camera` |
 | pose/ | [独立说明](pose/README.md)：本地加载、滤波、视频评测、精确补丁和 SimPose 接口 | 模型另行下载到项目，无内置数据 |
@@ -89,5 +89,8 @@ timeout 600s npm run check:flicker -- --timeout 540000 --out out/flicker-r01
 ## 设计深度、引擎能力与相机稳定
 
 - `brief-depth.mjs`：在 `docs/` 中查找 `SET-<scene>.md`（空模板 `SET-brief.md` 不算）、`STORYBOARD*.md`、`CONCEPT*.md`、`ASSET-BIBLE*.md`。逐文件打印设计者手写字节（照抄模板的行与“回填”一节不计）、组件表行数、NEW-HARD 件数与配方数、镜头数和缺项。NEW-HARD 配方可写在同一 SET 的“难件配方”一节，或资产圣经里标题含件名与 `NEW-HARD` 的小节。没有 STORYBOARD 文件时，CONCEPT 必须有“逐镜画面物料清单”。
+  - 组件行可以引用构件小节：行里出现的编号（如 `A6`、`E2b`）或以件名为标题的小节，可补足空格、色值、库函数和来源（记 WARN，不判 FAIL）；引用不存在的编号不算。色值也可写色表里的颜色名；库函数可写反引号、带括号、驼峰或带点的名字，或引擎/组件实际导出的裸名，`--src DIR` 另对未导出的名字给 WARN。
+  - NEW-HARD 配方：标题含 `NEW-HARD` 的小节（二级标题须带编号，如 `## 4. A12 NEW-HARD 八段配方`）、带编号的“配方”标题，或“难件配方”下的三级标题；①–⑧ 按顺序在整个小节内查找，可一行一项也可写在同一段；“塔身 NEW-GLM；透镜 E2b NEW-HARD”只要求 E2b 的配方；“数值见上”在 ① 之前有数值时成立。
+  - 镜头字段接受 `主光/轮廓：` 这样的合写；同义标签（光、灯光、分离、逆光、背景…）、单值人物屏高、无人镜头未写轮廓光记 WARN；`20%H ±1%` 视为区间。标题含 回填 / 实现结果 / 会话自写 / 实现级设计 的一、二级小节算实现者内容，不计字节、不受检查。
 - `no-reimplement.mjs`：只扫描场景与道具源码（默认 `src`），不扫描引擎与组件库。规则：`camera-shake`（相机旋转/平移由 noise、sin/cos、random 或由它们赋值的变量驱动）、`handheld-amount`（> 1）、`glsl-sin-hash`、`custom-fog`、`custom-sky`、`hardcoded-credit`（项目 `credits.js` 除外）、`allow-without-reason`。
 - `cam-check.mjs`：需要 `window.__scene.seek(t)` 与 `lastCamera()`（starter 截图模式已提供；工具自动加 `mode=capture&w=192&h=108`），只接受回环 39920–39939。自己记录相机的项目把 `[{t, shot, e, fov, aspect}]`（与 `lastCamera()` 同字段）写成 JSON 后用 `--samples`；也可直接在 Node 里调用 `analyzeCamera(samples, {fps})`。叠化期间记录的是最后渲染的那一层。平滑推拉摇移不算抖动；镜内跳变超过邻域中位步长 5 倍且大于画宽 4% 或 0.3 m 时视为硬切并分段；短于一个窗口的段只报告不判定。退出码 0 PASS、3 超阈值、2 错误。
