@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_doc": "picture-qa per-shot config template. Copy to the project (docs/picture-qa.shots.json), replace the example scenes/shots with the project's shot table. Frame names: <scene>_t<seconds>.png (picture-qa --url --scene ID writes this), t<seconds>.png, or frame-<n>.png with fps. Merge: built-in < defaults < scene < shot < command line. luma = Rec.709 luma of encoded 0..1 values: lo/hi mean band, p99min brightest 1% floor, p01max darkest 1% ceiling, drmin p99-p01 floor. warmMax = warm-pixel fraction budget. sky = 'auto' | 'none' | top fraction | {rects}. Every exemption (allowStripes, skip, sky) is copied into report.json and must carry a reason. Validate with: picture-qa.mjs --check-config FILE.",
+  "_doc": "picture-qa per-shot config template. Copy to the project (docs/picture-qa.shots.json), replace the example scenes/shots with the project's shot table. Frame names: <scene>_t<seconds>.png (picture-qa --url --scene ID writes this), t<seconds>.png, or frame-<n>.png with fps. Merge: built-in < defaults < scene < shot < command line. luma = Rec.709 luma of encoded 0..1 values: lo/hi mean band, p99min brightest 1% floor, p01max darkest 1% ceiling, drmin p99-p01 floor. warmMax = warm-pixel fraction budget. sky = 'auto' | 'none' | top fraction | {rects}. Every exemption (allowStripes, skip, sky other than auto, warmMax or any luma bound looser than these defaults) must name its basis in 'exempt' (designed-texture | real-light | non-sky-region) and say in '_why' what in the picture justifies it; the thresholds below are the template defaults and anything looser is listed in report.json. Never relax a threshold or shrink the sky to make a frame pass: change the picture. Validate with: picture-qa.mjs --check-config FILE [--baseline previous.json] (alerts on any shrink or relaxation vs the previous config).",
   "fps": 24,
   "defaults": {
     "luma": {"lo": 0.03, "hi": 0.45, "p99min": 0.20, "p01max": 0.10, "drmin": 0.15},
@@ -15,16 +15,17 @@
         {"name": "A1 wide", "t": [0, 8], "luma": {"lo": 0.10, "hi": 0.20}},
         {"name": "A2 long lens ground", "t": [8, 20], "luma": {"lo": 0.06, "hi": 0.17}, "roi": [0.05, 0.55, 0.95, 1.0], "claim": ["stripes"],
          "_roi": "ground area of the current fix; with --compare it must change"},
-        {"name": "A3 wall close", "t": [20, 26], "sky": "none",
+        {"name": "A3 wall close", "t": [20, 26], "sky": "none", "exempt": ["designed-texture", "non-sky-region"],
+         "_why": "close wall shot: the courses are the designed regular texture and the frame contains no sky",
          "allowStripes": [{"rect": [0.0, 0.05, 0.28, 0.75], "why": "designed layered wall courses (regular horizontal texture)"}],
          "_sky": "no horizon in frame: wall/ground edge must not be taken as horizon"}
       ]
     },
     "dawn": {
-      "warmMax": 1.0,
-      "_why": "warm dawn light is the design",
+      "warmMax": 1.0, "exempt": ["real-light"],
+      "_why": "warm dawn light is the design: the low sun is a real light source in frame",
       "shots": [
-        {"name": "B1 upward sky", "t": [26, 34], "sky": {"rects": [[0, 0, 1, 0.85]]}, "_sky": "upward framing: no horizon line, declare the sky"}
+        {"name": "B1 upward sky", "t": [26, 34], "sky": {"rects": [[0, 0, 1, 0.85]]}, "exempt": ["non-sky-region"], "_why": "upward framing: no horizon line, the lower 15% is the ridge, declare the sky"}
       ]
     }
   },

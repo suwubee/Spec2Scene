@@ -15,10 +15,11 @@ node tools/picture-qa/picture-qa.mjs --selftest                        # 合成�
 npm run qa:picture -- --dir out/review/<scene>/r03                      # 逐帧质检，逐镜配置 docs/picture-qa.shots.json
 npm run qa:picture -- --url http://127.0.0.1:39920/?mode=capture --scene exterior --t 4,12.5,19
 npm run qa:picture -- --dir out/review/<scene>/r04 --compare out/review/<scene>/r03 --claim stripes,halo
-npm run qa:picture -- --check-config docs/picture-qa.shots.json        # 只校验配置
+npm run qa:picture -- --check-config docs/picture-qa.shots.json        # 只校验配置，列出全部豁免
+npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上一版配置>   # 变宽即 ALERT，退出码 4
 ```
 
-输出（`--out`，默认 `out/picture-qa/<时间>/`）：`report.json`（机器可读）、`report.md`（表格 + 每个 FAIL 的区域与数值）、`<帧>_qa.png`（标注图）、`<帧>_diff.png`（与上一版的 |ΔY|×8 热图）、`sheet.png`（全部标注图联系表）。退出码：0 全部 PASS，1 有 FAIL，2 用法/读图/抓帧/配置错误，3 selftest 不符合预期。
+输出（`--out`，默认 `out/picture-qa/<时间>/`）：每帧的豁免与配置告警（`exemptions`、`configWarnings`、`skyAudit`）一并写入；`report.json`（机器可读）、`report.md`（表格 + 每个 FAIL 的区域与数值）、`<帧>_qa.png`（标注图）、`<帧>_diff.png`（与上一版的 |ΔY|×8 热图）、`sheet.png`（全部标注图联系表）。退出码：0 全部 PASS，1 有 FAIL，2 用法/读图/抓帧/配置错误，3 selftest 不符合预期，4 配置相对 `--baseline` 变宽。
 
 `report.json` 结构：`results[i] = {file, shot, pass, failed:[检查名], checks:{<检查>:{pass, 数值…, regions|worst|blobs|problems:[{box, px}]}}}`。模型的修复循环应该是：读 `failed` → 读该检查的区域 `px` → 改代码 → 重新出同名帧 → `--compare 上一版 --claim <这些检查>` → 全部 PASS 才汇报。
 
@@ -40,7 +41,23 @@ npm run qa:picture -- --check-config docs/picture-qa.shots.json        # 只校�
 
 ## 逐镜配置
 
-模板：[shots.template.json](shots.template.json)。生成项目把它放在 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目。帧 → 镜头按文件名匹配：`<scene>_t<秒>.png`（`--url --scene ID` 抓帧的命名）、`t<秒>.png` 或 `frame-<n>.png` + `fps`；`t ∈ [t0, t1)`。合并顺序：内置 TH < defaults < scene < shot < 命令行。字段：`luma{lo,hi,p99min,p01max,drmin}`、`warmMax`、`sky`、`allowStripes[{rect,why}]`、`roi`、`claim`、`requireChange`、`skip`+`skipWhy`、`notes`；`_` 开头的键是注释。未知键、越界矩形、缺理由的豁免都会让 `--check-config` 失败。
+模板：[shots.template.json](shots.template.json)。生成项目把它放在 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目。帧 → 镜头按文件名匹配：`<scene>_t<秒>.png`（`--url --scene ID` 抓帧的命名）、`t<秒>.png` 或 `frame-<n>.png` + `fps`；`t ∈ [t0, t1)`。合并顺序：内置 TH < defaults < scene < shot < 命令行。字段：`luma{lo,hi,p99min,p01max,drmin}`、`warmMax`、`sky`、`allowStripes[{rect,why}]`、`roi`、`claim`、`requireChange`、`skip`+`skipWhy`、`exempt`、`notes`；`_` 开头的键是注释，但 `_why` 在有豁免的层是必填的。未知键、越界矩形、缺 `exempt`/`_why` 的豁免都会让 `--check-config` 失败（见下节）。
+
+## 豁免的唯一依据与配置报警（v0.8）
+
+豁免只能建立在画面里的三类事实上，每条都必须在**同一层**写 `"exempt": [...]` 与 `"_why"`（≥ 12 字，说清画面里是什么）：
+
+| `exempt` | 可以豁免什么 | 例子 |
+|---|---|---|
+| `designed-texture` | `allowStripes`（只能用它）、`skip`、`warmMax` 提高、亮度阈值 | 夯土层理、搭接船板、窗棂、瓦垄；暖色木作 |
+| `real-light` | `warmMax` 提高、`skip`（如 halo）、亮度阈值（p99min/drmin 等） | 灯芯 bloom、只剩一点灯的物理亮度地板、拂晓低日 |
+| `non-sky-region` | `sky`（`none` / 比例 / `rects`，只能用它）、`skip` | 远山雪线、街巷墙顶、俯视无天空、仰拍纯天空 |
+
+- “比模板默认更宽松”的任何值都算豁免：`warmMax` > 0.05、`luma.lo` < 0.03、`hi` > 0.45、`p99min` < 0.20、`p01max` > 0.10、`drmin` < 0.15、任何 `sky` 声明、任何 `skip`、任何 `allowStripes`。更严格的值（窄亮度带、更低 warmMax）不是豁免。
+- 不能豁免的：`requireChange` 低于 0.02（放宽“修复核实”）、`skip: ["diff"]`。这两项写进配置直接校验失败。
+- `--check-config` 逐条列出全部豁免（`EXEMPT …`，含模板默认值与 `_why`），report.json 的 `results[i].exemptions` 与 report.md 末尾“Exemptions and config warnings”原样列出，审核人逐条看。
+- **配置变更报警**：`--check-config new.json --baseline old.json` 对每个镜头比较合并后的有效配置；天空掩码面积缩小（或由自动天空改为声明天空）、任何阈值变宽、新增 skip、`allowStripes` 面积变大、`requireChange` 变小，逐条打印 `ALERT` 并以退出码 4 结束。原则：画面没变而配置变宽，就是“为通过而改配置”；要么改画面，要么由导演逐条签字。
+- **天空掩码审计**：声明了 `sky` 的帧同时计算自动天空；声明的天空比自动天空少掉 > 2% 画面时写 `configWarnings`（“sky mask shrunk”），若 ⑤ 只在声明掩码下 PASS、用自动天空会 FAIL，`clouds.maskedByConfig = true` 并告警。缩小天空掩码去躲积云检测是实际出现过的做法；告警不判 FAIL（远山雪线等真非天空区域也会触发），但必须在 GATE 里逐条解释。
 
 ## 回归样本（合成，不含任何作品帧）
 

@@ -3,6 +3,7 @@
 // capture, inspect}. Run picture-qa on the five captures after any change to this kit (README "Acceptance").
 import * as THREE from '../../engine/vendor/three.module.js';
 import {snowMaterial, iceMaterial, rammedEarthMaterial, snowDriftGeometry, setMaterialLight} from './index.js';
+import {makeRng, gnoise2} from '../../engine/noise.js';
 
 const canvas = document.querySelector('canvas');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: false, preserveDrawingBuffer: true});
@@ -37,6 +38,19 @@ const views = [
   {group: new THREE.Group(), cam: [-4.5, 1.6, 5], look: [0, 0.5, -10], fov: 34, moon: [0.8, 0.28, -0.45]},
 ];
 views[0].group.add(plane(snow)); views[1].group.add(plane(snow));
+// A scatter of dark boulders in the top-down view: every frame needs a real darkest area (picture-qa luma p01 / dynamic range);
+// a bare white field would otherwise need a relaxed threshold, and thresholds are never relaxed for convenience.
+{
+  const rockMat = new THREE.MeshStandardMaterial({color: new THREE.Color().setRGB(0.035, 0.033, 0.032), roughness: 0.92});
+  const rng = makeRng('materials-bench-rocks');
+  for (let k = 0; k < 9; k++) {
+    const r = 1.0 + 0.7 * rng(), g = new THREE.IcosahedronGeometry(r, 2), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), f = 1 + 0.22 * (gnoise2(x * 1.3 + k * 7.1, z * 1.3 + y) ); p.setXYZ(i, x * f, Math.max(-0.2 * r, y * f * 0.62), z * f); }
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, rockMat); m.position.set(-16 + 32 * rng(), 0.1, -34 + 30 * rng()); m.rotation.y = rng() * 6.28; m.castShadow = m.receiveShadow = true;
+    views[1].group.add(m);
+  }
+}
 views[2].group.add(plane(ice));
 const wallMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 1.2), wall); wallMesh.position.set(0, 2.5, -8); wallMesh.rotation.y = 0.32; wallMesh.castShadow = wallMesh.receiveShadow = true;
 views[3].group.add(plane(snow), wallMesh);

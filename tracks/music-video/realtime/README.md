@@ -4,6 +4,11 @@
 
 `src/resident-runtime.js` 导出 `createRuntime({canvas})`，返回带 `timeline.shots / fps / duration / renderer / renderFrame / setIds / dispose` 的引擎。项目替换场景和镜头表即可；播放器不包含作品内容。默认完整电影画质，`?w=1280&h=720` 指定固定尺寸。尺寸和预热耗时须在目标设备测量；软件浏览器不能证明目标 GPU 流畅。HUD 的“绘制 fps”统计完成的绘制调用，不代表显示器呈现或 GPU 完成帧率。
 
+## 常驻场景的两条确定性约定（v0.8）
+
+- 每个场景实例的第一个样本由引擎双渲、丢弃首遍（首帧 prime），预热因此每场景多一个样本；`__player.warm.primed` 应列出全部场景。`?prime=0` 只用于诊断。
+- 共享天空等共享对象必须按场景写入全键向量并恢复（`scopeSharedSky` / `createSharedScope`），否则全片模式会跑在别的场景或默认参数上（[引擎说明](../engine/README.md)）。
+
 ## 声音与时间
 
 - 点击先解锁，预热完成再出声。首声预算分为点击到预热完成、网络等待、二者就绪到解码信号三段；不能隐藏预热时间。

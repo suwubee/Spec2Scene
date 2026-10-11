@@ -100,8 +100,8 @@ English: dimensions, props by L1/L2/L3, motivated lights, atmosphere, lens prese
 
 ## 画面质检配置（picture-qa）
 
-本场景在 `docs/picture-qa.shots.json` 的条目：`scenes.<scene-id>.shots[]`，每镜写 `t:[t0,t1]`、亮度带 `luma`、暖色上限 `warmMax`、天空 `sky`；设计出的规则纹理（层理、栏杆、瓦垄）写 `allowStripes:[{rect, why}]`（总面积 ≤ 35%）；跳过检查必须写 `skipWhy`。每轮看图目录先过 `npm run qa:picture`，修复轮附 `--compare --claim`。
+本场景在 `docs/picture-qa.shots.json` 的条目：`scenes.<scene-id>.shots[]`，每镜写 `t:[t0,t1]`、亮度带 `luma`、暖色上限 `warmMax`、天空 `sky`；设计出的规则纹理（层理、栏杆、瓦垄）写 `allowStripes:[{rect, why}]`（总面积 ≤ 35%）；跳过检查必须写 `skipWhy`。任何豁免只能依据“设计内纹理 / 真实光源 / 真实非天空区域”，在同一层写 `exempt` 与 `_why`；不得放宽阈值或缩小天空区域来通过，改配置前后跑 `--check-config 新 --baseline 旧`，ALERT 逐条由导演签字。每轮看图目录先过 `npm run qa:picture`，修复轮附 `--compare --claim`。
 
-| 镜头 | t 区间 | 亮度带 lo–hi | 暖色上限 | 天空 | 豁免与理由 |
+| 镜头 | t 区间 | 亮度带 lo–hi | 暖色上限 | 天空 | 豁免（exempt）与 _why |
 |---|---|---|---|---|---|
-| `<shot-id>` | `<t0–t1>` | `<0.06–0.17>` | `<0.02>` | `<auto/none/rects>` | `<无 / 理由>` |
+| `<shot-id>` | `<t0–t1>` | `<0.06–0.17>` | `<0.02>` | `<auto/none/rects>` | `<无 / designed-texture｜real-light｜non-sky-region：画面里是什么>` |

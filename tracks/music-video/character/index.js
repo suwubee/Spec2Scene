@@ -11,6 +11,7 @@ import {loftField,union,isoSurface,skinGeometry,tube,garmentShell} from './surfa
 import {smooth,clamp} from './math.js';
 export {poseAt,blendPoses} from './motion.js';
 export {inspectRig} from './rig.js';
+export {walkPath} from './walk-path.js';
 const cache=new Map();
 export function createCharacter({body='masculine',height=body==='feminine'?1.66:1.78,headRatio=body==='feminine'?7.4:7.6,shoulderWidth=1,posture=0,coat=true,scarf=true,backpack=false,hat=false,coatColor=0x635346,coatStyle='long',hairStyle=body==='feminine'?'shoulder':'short',prop='none'}={}){
   if(!['masculine','feminine'].includes(body)||![height,headRatio,shoulderWidth,posture].every(Number.isFinite)||shoulderWidth<.8||shoulderWidth>1.2||height<1.2||height>2.2||headRatio<6.5||headRatio>9)throw new Error('unsupported body proportions');

@@ -34,6 +34,8 @@ G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面�
 
 **画面关卡（v0.7）**：每轮看图目录先过 [picture-qa](../../tools/picture-qa/README.md)，修复声明附 `--compare --claim`；人物按[角色规范](character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入，雪/冰/夯土只用 [kits/materials](kits/materials/README.md)。分工与原因见[画面关卡与模型分工](../../playbook/14-picture-gate.md)。
 
+**远景、体块与常驻约定（v0.8）**：远山/地平线与房屋、城墙、残台、船体只用 [kits/far](kits/far/README.md)；人物走位用 [walkPath](character/README.md#行走路径与脚印对齐)；共享天空等共享对象按场景隔离、每个场景首样本双渲（[引擎说明](engine/README.md#常驻多场景共享对象隔离与首帧-primev08)）；picture-qa 豁免只依据三类画面事实且配置变宽报警；片名与署名只来自项目 `src/credits.js`。
+
 开始阅读：[规格](SPEC.md)、[QA](QA.md)、[经验](lessons.md)、[通用工具](../../tools/README.md)。English: Translate emotion into recurring imagery, then direct the camera. Independent gates review mood, anatomy and the complete cinematic preview.
 
 ## v0.6 交付闭环

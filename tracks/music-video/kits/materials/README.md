@@ -65,7 +65,7 @@ npm run test:picture-browser                                       # WebGL2 编�
 node tools/test/materials-browser.mjs --out out/materials-r01     # 同上，保留截图/标注图/报告到被忽略目录
 ```
 
-实验台 [example.html](example.html)：`?t=1` 雪低机位长焦掠射、`?t=5` 雪 30 m 俯视、`?t=9` 冰与雪舌、`?t=13` 夯土墙、`?t=17` 高度场雪丘；`window.__scene` 提供 seek/resize/capture/inspect。五张图的 picture-qa 必须全部 PASS（逐镜配置写在 `tools/test/materials-browser.mjs`：俯视两张无地平线 → `sky:"none"`；夯土墙层理 → `allowStripes`；裸雪原检查视角放宽亮度带；冰面视角里没有人物/暗物体轮廓，暗冰上的亮雪粉丝是已记录的 ② 误报 → `skip` + `skipWhy`）。项目接入后，在真实镜头上同样逐镜跑 `npm run qa:picture`。
+实验台 [example.html](example.html)：`?t=1` 雪低机位长焦掠射、`?t=5` 雪 30 m 俯视、`?t=9` 冰与雪舌、`?t=13` 夯土墙、`?t=17` 高度场雪丘；`window.__scene` 提供 seek/resize/capture/inspect。五张图的 picture-qa 必须全部 PASS（逐镜配置写在 `tools/test/materials-browser.mjs`：俯视两张无地平线 → `sky:"none"`；夯土墙层理 → `allowStripes`；俯视雪原放了几块暗色石头给出画面最暗处，亮度阈值不放宽；冰面视角里没有人物/暗物体轮廓，暗冰上的亮雪粉丝是已记录的 ② 误报 → `skip` + `skipWhy`；每条豁免带 `exempt` + `_why`）。项目接入后，在真实镜头上同样逐镜跑 `npm run qa:picture`。
 
 ## 已知局限
 

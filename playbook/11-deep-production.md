@@ -54,4 +54,12 @@ English key points: keep at most four reusable master sets; one owner per set; w
 
 实现一轮修改→**picture-qa 全 PASS**→提交联系表→导演初审→决定日志→复验，四阶段都执行。每一轮看图目录都附 `npm run qa:picture -- --dir <本轮>` 的 report.json/report.md/sheet.png；FAIL 不送导演。声称修复上一轮意见时必须附 `--compare <上一轮> --claim <检查项> [--roi …]`，⑥ 证明问题区域确实变化，否则视为未修复（[画面关卡](14-picture-gate.md)）。
 
-组件边界：人物只用人物组件并按[角色规范](../tracks/music-video/character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入；雪、冰、夯土只用[材质库](../tracks/music-video/kits/materials/README.md)。场景会话不改组件、不另写同类 shader；组件缺陷提给组件负责人，由其修复并补回归。看图目录与端口写入 PRODUCTION-PLAN，集成与导出继续按[成片交付](13-film-delivery.md)。
+组件边界：人物只用人物组件并按[角色规范](../tracks/music-video/character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入；雪、冰、夯土只用[材质库](../tracks/music-video/kits/materials/README.md)。远山/地平线与房屋、城墙、残台、船等体块只用[远景与体块组件](../tracks/music-video/kits/far/README.md)；人物走位用 `walkPath`（距离含 speed，脚印同源）。场景会话不改组件、不另写同类 shader；组件缺陷提给组件负责人，由其修复并补回归。看图目录与端口写入 PRODUCTION-PLAN，集成与导出继续按[成片交付](13-film-delivery.md)。
+
+## 深做收尾的三条硬约束（v0.8）
+
+- **组件化止损**：同一画面问题连续两轮“已修复”而 picture-qa ⑥ 证明未变，停止场景内自修，转为组件任务（根因按几何 → 投影 → 机位/走位 → 参数排查），组件带规范、检查台、测试交付后场景再装配。
+- **全片模式验收**：常驻场景共享的天空等对象按场景写全键向量并恢复；引擎对每个场景首样本双渲；确定性与关键帧在全片模式复渲，单场景调试帧不代签。
+- **配置纪律与署名**：质检分数只靠改画面上升；豁免依据三类画面事实并写 `exempt` + `_why`，配置变宽 ALERT 由导演签字；片名与署名只来自项目显式字段，不复制旧作品。
+
+English: stop self-repair after two unchanged "fixed" rounds and turn the problem into a component; validate in full-film mode with scoped shared objects and primed first samples; raise picture-gate scores only by changing pictures; credits only from explicit project fields.

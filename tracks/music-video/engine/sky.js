@@ -11,7 +11,8 @@
 //   scene.add(sky.object);                 // background (drawn after opaques at the far plane, early-z friendly)
 //   scene.add(sky.overlay);                // cloud overlay: only active when the camera is in/above the deck
 //   scene.environment = sky.getEnvironment();
-//   (several Sets: const sky = getSharedSky(ctx); scene.add(sky.makeBackgroundMesh(), sky.makeOverlayMesh()) per scene)
+//   (several Sets: const sky = getSharedSky(ctx); scene.add(sky.makeBackgroundMesh(), sky.makeOverlayMesh()) per scene;
+//    per-scene options: const mine = scopeSharedSky(sky, {...}, id); mine.update(t, world, camera) — never a bare subset setOptions)
 //   // every frame, AFTER placing the camera:
 //   sky.update(t, world.at(t), camera);
 //   // other shaders: `${sky.skyGLSL}` + uniforms: { ...sky.uniforms } -> skyRadiance(dir), skyHazeColor(dir), ...
@@ -21,6 +22,7 @@ import { createMoonTexture } from './moon.js';
 import {skyPreset,lunarTransmittance} from './sky-presets.js';
 import {clampMoonPhase, moonDiscParameters} from './moon-display.js';
 import { makeRng, GLSL_HASH } from './noise.js';
+import { createSharedScope } from './shared-state.js';
 
 const D2R = Math.PI / 180;
 const RG_KM = 6360, RT_KM = 6460, RP = 6360000; // planet / atmosphere radius
@@ -2063,7 +2065,25 @@ const SHARED_SKY = new WeakMap();
 export function getSharedSky(ctx, opts = {}) {
   let s = SHARED_SKY.get(ctx.renderer);
   if (!s) { s = createSky(ctx, opts); SHARED_SKY.set(ctx.renderer, s); }
+  else if (opts && Object.keys(opts).length) {
+    // The instance already exists (another scene created it): these options are NOT applied. Silently dropping them is how a
+    // resident scene ends up rendering on another scene's (or the engine's default) sky. Make it loud and point at the fix.
+    (s.ignoredOptions ||= []).push(Object.keys(opts));
+    if (!s.__ignoredWarned) { s.__ignoredWarned = true; console.warn(`[sky] getSharedSky: shared sky already exists, options ignored (${Object.keys(opts).join(', ')}). Use scopeSharedSky(sky, options).update(t, world, camera) in every scene that shares it.`); }
+  }
   return s;
+}
+
+/**
+ * Per-scene sky options on a shared sky. Every update writes the FULL option vector (SKY_DEFAULTS + this scene's overrides)
+ * before sky.update and restores the previous vector after, so no scene inherits another scene's subset (engine/shared-state.js).
+ *   const skyOpts = scopeSharedSky(sky, {mie: 7, cloudDensity: 0, cirrus: 0.12}, 'night-field');   // create(): unknown keys throw here
+ *   update(t, w, camera) { skyOpts.update(t, w, camera); }
+ */
+export function scopeSharedSky(sky, overrides = {}, owner = 'scene') {
+  const scope = sky.__scope || (sky.__scope = createSharedScope(sky, SKY_DEFAULTS, {name: 'sharedSky', read: (s, k) => s.options[k], write: (s, v) => s.setOptions(v)}));
+  const bound = scope.bind(owner, overrides);
+  return {owner, vector: bound.vector, run: bound.run, update: (t, w, camera) => bound.run(() => sky.update(t, w, camera))};
 }
 
 export { SKY_GLSL, driftAt };

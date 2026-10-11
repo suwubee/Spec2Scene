@@ -44,6 +44,19 @@ const report = inspectRig(actor.rig, pose);
 
 `expression` 为 neutral / concern / resolve / tired；`viseme` 是 0..1 的粗略嘴部形变，没有数据时保持闭口，不等同口型同步。`deformClothing:false` 仅用于骨架采样，会跳过衣摆、围巾和发束顶点更新；作品渲染与浏览器验收必须使用默认的完整形变。
 
+## 行走路径与脚印对齐
+
+`walkPath(points, {speed, t0, stride, pauses})`（`character/walk-path.js`，也从 `character/index.js` 导出）把折线走位写成 t 的闭式函数：`at(t)` 返回 `{pos, yaw, heading, speed, dist, phase, walkW, paused}`，`prints()` 返回每一步的脚印 `{pos, yaw, heading, foot, dist, birth}`。`yaw` 直接给本角色（+Z 朝前）的 `object.rotation.y`；`heading`（0 = +x）给 +X 朝前的外部人物。`dist` 直接喂给 `actor.update('walk', t, {distance: p.dist, speed: p.speed})`。
+
+| 规则 | 为什么（实测失败） | 测试 |
+|---|---|---|
+| 已走距离 = (t − t0 − 已暂停时长) × **speed** | 曾有实现漏乘 speed，人物恒以 1 m/s 走：给 1.68 m/s 的段落里她落后机位数米，机位对着空景（整帧一片地面色），脚印跑到她脚前 | `resident-isolation.test.mjs` |
+| 位置与脚印用**同一个**距离函数；`birth` = 她踩在这只脚印上的时刻（`at(birth).dist === k × stride`，误差 0） | 脚印各算各的，人与脚印对不上，回头镜头里脚印凭空出现或落后 | 同上 |
+| `stride` = 一步长（默认 0.45 m，本角色步态一周期 0.9 m = 两步）；外部人物按其步态标定 | 步长与步态不一致 → 滑步或脚印间距不对 | 同上 |
+| 暂停 `pauses: [[开始, 时长]]`：暂停中位置不变、`speed` 0、`walkW` 0.4 s 收 / 0.45 s 放；暂停后续走 | 用帧累加实现暂停会依赖 seek 顺序 | 同上 |
+| 全部是 t 的纯函数，不累积、不读时间、不随机 | 乱序 seek 必须同帧同姿态 | 同上 |
+| 修好速度后**复核**所有按“她在 x = … 时”写死的机位与事件时刻 | 速度修正会让人物提前/推后到位，原先凑出来的构图随之改变 | 场景复渲 + picture-qa |
+
 ## 用户模型接入
 
 仓库不附带或下载角色资产。用户负责模型、贴图、动画与衍生作品的使用许可，把它们放在自己的被忽略项目中。适配时必须传入 `license` 说明，项目应另外保存正式授权记录。

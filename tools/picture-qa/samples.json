@@ -27,7 +27,7 @@
     {"id": "striped-wall", "scene": "@stripedWall", "expect": {"stripes": "FAIL"}, "note": "vertical stripe wall (xz projection on a vertical face / UV stretch)"},
     {"id": "radial-streaks", "scene": "@radialStreaks", "expect": {"stripes": "FAIL"}, "note": "long anisotropic ground pattern converging into radial streaks"},
     {"id": "strata-bands", "scene": "@strataBands", "sky": "none", "expect": {"stripes": "FAIL"}, "note": "strong horizontal bands (strata / wavy planks) without a declaration"},
-    {"id": "strata-declared", "scene": "@strataBands", "config": {"defaults": {"allowStripes": [{"rect": [0.0, 0.35, 0.32, 1.0], "why": "designed layered wall courses"}]}}, "expect": {"stripes": "PASS"}, "note": "designed regular texture declared in allowStripes (with why) passes"},
+    {"id": "strata-declared", "scene": "@strataBands", "config": {"defaults": {"allowStripes": [{"rect": [0.0, 0.35, 0.32, 1.0], "why": "designed layered wall courses"}], "exempt": ["designed-texture"], "_why": "designed layered wall courses on the left"}}, "expect": {"stripes": "PASS"}, "note": "designed regular texture declared in allowStripes (with why) passes"},
     {"id": "weak-streaks-undetected", "scene": "@weakStreaks", "expect": {"stripes": "PASS"}, "note": "known limit: low-contrast streaks below amp 0.0035 are not seen by ①, so ⑥ + roi is the backstop"},
 
     {"id": "white-outline", "scene": "@whiteOutline", "expect": {"halo": "FAIL"}, "note": "3 px bright ring around a dark figure (matte/rim misregistered or too wide)"},
@@ -36,7 +36,7 @@
 
     {"id": "flat-slab", "scene": "@flatSlab", "expect": {"flat": "FAIL"}, "note": "untextured dark polygon covering 15% of the frame"},
     {"id": "sky-only-auto", "scene": "@skyOnly", "only": ["flat"], "expect": {"flat": "FAIL"}, "note": "known false positive: upward pure-sky frame has no horizon, auto sky finds nothing"},
-    {"id": "sky-only-declared", "scene": "@skyOnly", "config": {"defaults": {"sky": {"rects": [[0, 0, 1, 1]]}}}, "only": ["flat", "clouds"], "expect": {"flat": "PASS", "clouds": "PASS"}, "note": "same frame with sky.rects in the shot config"},
+    {"id": "sky-only-declared", "scene": "@skyOnly", "config": {"defaults": {"sky": {"rects": [[0, 0, 1, 1]]}, "exempt": ["non-sky-region"], "_why": "upward framing: the whole frame is sky"}}, "only": ["flat", "clouds"], "expect": {"flat": "PASS", "clouds": "PASS"}, "note": "same frame with sky.rects in the shot config"},
 
     {"id": "grey-fog", "scene": "@greyFog", "expect": {"luma": "FAIL"}, "note": "whole-frame grey veil: p01 high, dynamic range 0.07"},
     {"id": "luma-band-too-dark", "scene": "@clean", "luma": {"lo": 0.3, "hi": 0.4}, "expect": {"luma": "FAIL"}, "note": "same clean frame against a brighter per-shot band"},

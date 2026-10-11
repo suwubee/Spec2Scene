@@ -8,16 +8,19 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {chromium} from 'playwright';
 import {localServer} from './helpers.mjs';
-import {analyzeFile, writeReport} from '../picture-qa/picture-qa.mjs';
+import {analyzeFile, writeReport, validateConfig} from '../picture-qa/picture-qa.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const BENCH_VIEWS = [{t: 1, name: 'snow-grazing'}, {t: 5, name: 'snow-above'}, {t: 9, name: 'ice'}, {t: 13, name: 'rammed-wall'}, {t: 17, name: 'snow-drift'}];
 // The wall courses are a designed regular texture: declared exactly as a project shot config would.
-export const BENCH_CONFIG = {defaults: {sky: 'auto'}, scenes: {bench: {shots: [
-  {name: 'snow from above', t: [4, 8], sky: 'none', luma: {p01max: 0.16, drmin: 0.1}, notes: 'material inspection view of a bare snowfield from 30 m: no horizon and no designed darkest area (a film shot must compose one)'},
-  {name: 'ice from above', t: [8, 12], sky: 'none', skip: ['halo'], skipWhy: 'no figure or dark object outline in frame; bright snow-powder wisps on black ice are a documented halo false positive', notes: 'looking down: no horizon in frame'},
-  {name: 'rammed wall', t: [12, 16], allowStripes: [{rect: [0.15, 0.1, 0.68, 0.72], why: 'designed rammed-earth courses (regular horizontal texture)'}]},
-]}}};
+export const BENCH_CONFIG = validateConfig({defaults: {sky: 'auto'}, scenes: {bench: {shots: [
+  {name: 'snow from above', t: [4, 8], sky: 'none', exempt: ['non-sky-region'], _why: 'looking down from 30 m: the frame holds no horizon and no sky',
+    notes: 'material inspection view of a snowfield from 30 m; dark boulders give the frame its darkest area (thresholds are not relaxed)'},
+  {name: 'ice from above', t: [8, 12], sky: 'none', skip: ['halo'], skipWhy: 'no figure or dark object outline in frame; bright snow-powder wisps on black ice are a documented halo false positive',
+    exempt: ['designed-texture', 'non-sky-region'], _why: 'looking down at ice: no sky; the bright snow-on-ice wisps are the designed texture, not an outline'},
+  {name: 'rammed wall', t: [12, 16], exempt: ['designed-texture'], _why: 'rammed-earth courses are the designed regular texture of the wall',
+    allowStripes: [{rect: [0.15, 0.1, 0.68, 0.72], why: 'designed rammed-earth courses (regular horizontal texture)'}]},
+]}}}, 'BENCH_CONFIG');
 
 export async function validateMaterials(out) {
   await mkdir(out, {recursive: true});

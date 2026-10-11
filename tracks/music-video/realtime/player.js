@@ -24,6 +24,7 @@ export async function createResidentPlayer({runtime, canvas, transport, state, p
     state.warm.ms = state.warm.completedAt - preparationStarted;
     state.warm.programs = engine.renderer.info.programs.length;
     state.warm.scenes = engine.setIds().length;
+    state.warm.primed = engine.primedSets ? engine.primedSets() : [];   // first sample of each scene rendered twice (engine/first-sample-prime.js)
     state.programBaseline = new Set(engine.renderer.info.programs);
     progress(state.warm);
   } catch (error) { engine.dispose(); throw error; }

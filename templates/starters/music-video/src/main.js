@@ -2,6 +2,7 @@ import {createCutSafe,hardCuts} from '../realtime/timing.js';
 import {createEngine} from '../engine/core/index.js';
 import {createScenes} from '../sample/scenes.js';
 import {world} from './shots.js';
+import {credits} from './credits.js';
 import {createCharacter} from '../character/index.js';
 import * as THREE from '../engine/vendor/three.module.js';
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),slider=document.querySelector('#timeline');
@@ -14,7 +15,7 @@ try {
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshStandardMaterial({color:0x666666,roughness:.8}));floor.rotation.x=-Math.PI/2;floor.position.y=-.01;scene.add(floor);
     for(const [p,c,i] of [[[3,5,5],0xffe3c4,2],[[-3,3,3],0xc1d9f0,.5],[[2,4,-3],0xd4e6ff,1.5]]){const l=new THREE.DirectionalLight(c,i);l.position.fromArray(p);scene.add(l);}
     return {scene,update(){const {action,time,angle}=studioState;model.object.rotation.y=angle;model.update(action,time,{distance:action==='walk'||action==='windWalk'?time*.38:undefined});const p=model.rig.root.position;model.object.position.set(-p.z*Math.sin(angle),0,-p.z*Math.cos(angle));}};};
-  const engine=await createEngine({canvas,shots,scenes,world,width,height,quality:'final'}),originalSeek=engine.seek;
+  const engine=await createEngine({canvas,shots,scenes,world,width,height,quality:'final',credits,primeFirstSample:params.get('prime')!=='0'}),originalSeek=engine.seek;
   engine.seek=async(t,o)=>{const s=await originalSeek(t,o);slider.value=s.t;status.textContent=`${s.t.toFixed(2)} / 60 秒 · ${s.t<30?'雪夜旷野':'雨夜站台'} · 确定性截图`;return s;};
   const cutSafe=createCutSafe(hardCuts(shots),{fps:engine.fps,duration:engine.duration});
   engine.renderRealtime=(t,options={sync:true})=>engine.renderFrame(cutSafe(t),options);

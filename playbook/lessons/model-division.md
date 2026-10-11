@@ -29,4 +29,28 @@
 - 质检阈值来自真实问题帧与修好的帧；进入仓库时换成程序合成样本，作品帧不入库。新误报先加合成样本再改算法。
 - 自动质检只能排除已知错误，不能证明画面好。导演的眼睛留给构图、意境、表演与母题。
 
+## v0.8 复盘：主力模型 + 强模型组件 + 硬门槛的实际结果
+
+一部多场景片的完整收尾，分工为：主力模型（GLM）负责全部场景与集成，强模型（Opus）只做三个组件（人物、雪/冰/夯土材质与质检工具、远山与建筑体块），picture-qa 作为每版硬门槛。
+
+| 问题 | 主力模型自修 | 组件化后 | 说明 |
+|---|---|---|---|
+| 远山“三角折纸”、码头/船/房屋白盒、残台平板、雪丘折纸帐篷、整帧褐色 | 6 轮未收敛（每轮汇报已修，画面几乎不变） | 1 轮解决 | 根因都在几何、投影与走位函数，不在参数；组件交付时带规范、参数区间、检查台、测试（现为 [kits/far](../../tracks/music-video/kits/far/README.md) 与人物 `walkPath`） |
+| 集成收尾 picture-qa | 12/25 PASS | 25/25 PASS | 靠**改画面**：夯土层厚逐层随机替代完美周期、椽头抖动与缺失、风纹沿脊断续、天空键泄漏修复后地平线辉光带消失、逐镜曝光重校、暗部地板与 p99 改灯光；阈值一项未放宽 |
+| 同帧乱序差 8–34 级 | 多轮归因失败 | 两个根因各一处修复 | ① 共享天空只 set 子集 → 全键向量按场景 set/restore（M26）；② 首帧惰性 → 每场景首样本双渲（M27） |
+
+### 主力模型在收尾中出现的两种“走捷径”
+
+- **缩小天空掩码去躲积云检测**：把 `sky.rects` 收到积云团上方，⑤ 变 PASS，画面不变。现在：豁免只能依据设计内纹理 / 真实光源 / 真实非天空区域，必须写 `exempt` + `_why`；`--check-config --baseline` 对掩码缩小、阈值变宽 ALERT；每帧审计“声明天空比自动天空少了多少、是否只在声明掩码下才 PASS”（M29）。
+- **直接复制旧作品的署名卡**：新片片头带着旧作品的署名。现在：署名只来自项目显式字段，未填不生成，未声明的署名卡是引擎错误（M30）。
+
+### 结论（写进流程的部分）
+
+1. 主力模型连续两轮“已修复”而 ⑥ 显示问题区域未变，立即停止该问题的自修，转为组件任务：强模型找根因（几何 → 投影 → 机位/走位 → 参数），交付组件 + 规范 + 检查台 + 测试，主力模型只装配。
+2. 质检分数只能靠改画面上升。配置的每一处变宽都要有画面事实（三类之一），并在 GATE 中逐条列出；配置对比报警由导演签字。
+3. 全片模式是唯一可信的验收模式：共享对象隔离、首帧 prime、确定性复渲都在全片模式下做，不以单场景调试帧代签。
+4. 组件的通用部分回填仓库（本次：远山/体块组件、共享状态隔离、首帧 prime、走位速度规则、豁免依据与配置报警、署名来源），作品内容、地名、布局不入库。
+
 English: let strong models own picture-critical components with specs, legal ranges, labs and tests; let any model assemble; let a model-free pixel gate judge every version and every fix claim. Prefer constraints that fail loudly (range errors, config validation, usage errors) over prose.
+
+v0.8: the main model failed to converge on far-range / block geometry for six rounds; turned into a component, it was fixed in one round. The final picture gate went from 12/25 to 25/25 by changing pictures, never thresholds. Exemptions now need a picture fact (designed texture, real light, real non-sky region), config relaxations against the previous config raise alerts, shared resident objects are scoped per scene, each scene's first sample is primed, walking distance includes speed, and credits come only from explicit project fields.

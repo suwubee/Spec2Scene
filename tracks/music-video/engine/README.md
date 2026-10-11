@@ -56,6 +56,23 @@ engine.dispose();
 
 透明加色雨/尘埃/雾放 FX layer 7，深度来自主场景；粒子库已处理此契约。加色光输出预乘颜色且 alpha=0，遮挡才使用 alpha。不要让透明物的背景深度参与普通实体景深。反射/LUT 等预渲染必须保存并恢复 renderTarget、viewport、scissor；dispose 成对释放纹理、几何和后期 RT。
 
+## 常驻多场景：共享对象隔离与首帧 prime（v0.8）
+
+**共享对象按场景保存/恢复。** 常驻播放器里所有场景同时存在，一个 renderer 只有一个共享天空（`getSharedSky`）；共享大气、共享材质同理。场景只 `setOptions` 一个子集、或在实例已存在时把选项传给 `getSharedSky`（被忽略），画面就跑在“上一个渲染的场景”或引擎默认值上：单场景调试帧对、全片帧错，换 seek 顺序像素就变。规则：每个场景在使用前写入**全键向量**（默认值补齐它没设的键），用完恢复。
+
+```js
+import {getSharedSky, scopeSharedSky} from './engine/sky.js';
+const sky = getSharedSky(ctx);                                            // 实例已存在时传入的选项会被忽略并告警
+const mySky = scopeSharedSky(sky, {mie: 7, cloudDensity: 0, cirrus: 0.12}, 'night-field');   // create()：未知键立即抛错
+update(t, w, camera) { mySky.update(t, w, camera); }                      // 全键写入 → sky.update → 恢复
+```
+
+任何其它共享对象用 `engine/shared-state.js` 的 `createSharedScope(target, defaults, {read, write})`：`bind(owner, overrides).run(fn)` 写入全键向量、执行、恢复；禁止嵌套、拒绝默认值里没有的键（不在向量里的键无法隔离）。
+
+**首帧 prime。** 渲染管线对每个场景实例的第一次渲染存在“首用惰性”（渲染目标、阴影图、程序第一次使用），同一帧第一次与之后的渲染可差几到二十个码值，与 JS 状态无关；常驻多场景时“哪个场景先渲染”取决于 seek 顺序，于是同帧乱序不一致。`createEngine` 默认把**每个场景实例的第一个样本完整渲染两遍并丢弃第一遍**（`engine/first-sample-prime.js`），`engine.primedSets()` 列出已 prime 的场景，实时播放器写入 `__player.warm.primed`。诊断时用 `primeFirstSample:false`（starter 页 `?prime=0`）：只在实例第一帧出现、开 prime 即消失的差异才是管线惰性；每次换顺序都出现的差异是 JS 状态问题（首次用到时懒算的缓存、`Math.random`、`Date`、跨帧累积、上一帧残留的渲染目标），必须修代码，prime 不掩盖它们。确定性回归仍比较第一次、第二次与倒序像素。
+
+**署名。** 片名与片头片尾署名只来自项目的显式字段（starter `src/credits.js`，`engine/credits.js`）：未填写不生成；时间轴里出现项目没有声明的署名卡记为引擎错误；占位词（TODO、作者、`{{…}}`）直接拒绝。
+
 ## 质量档与测量经验
 
 | 请求 | 内部路径 | 比例 / MSAA / 阴影 |

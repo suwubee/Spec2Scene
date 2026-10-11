@@ -22,9 +22,9 @@
     "sourceBytes": 28938,
     "sourceSHA256": "3aa4af615e2aedbf70f4271326b383e4fbc09ba133fa1ae74829101f0c7de52c",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes.",
-    "portedBytes": 27941,
-    "portedSHA256": "e6c294932e0752ac9e1709f5470f86873853892ee7ed67ed18b3171b73b00f54"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes. v0.8: first sample of every resident scene instance rendered twice and the first discarded (first-sample-prime.js, option primeFirstSample, primedSets()); credit cards must be declared in explicit project credits (credits.js).",
+    "portedBytes": 29283,
+    "portedSHA256": "7cb3f7014516c6875e2cf62f5f9673f90426419467c858ab04eb7bbe485f78c9"
   },
   {
     "module": "geo.js",
@@ -103,9 +103,9 @@
     "sourceBytes": 117665,
     "sourceSHA256": "8c7a9682893f5a54d43b073a195e679a2a7e54eda332da0f7ddad4abd29fb890",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces.",
-    "portedBytes": 117410,
-    "portedSHA256": "fbd86e4796a04c6f6aeffd24a2b254c111ab6fa49fdbc446bdc9302f4221ee4e"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.8: scopeSharedSky (full option vector per scene, restored after; shared-state.js) and a warning when getSharedSky ignores options of an existing shared sky.",
+    "portedBytes": 119096,
+    "portedSHA256": "f3115d1797ea9138785cfef5f5dbdb2c9dc5623f570821961298725de8757a64"
   },
   {
     "module": "terrain.js",

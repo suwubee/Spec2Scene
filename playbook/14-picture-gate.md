@@ -29,7 +29,11 @@
 | ⑥ diff | “声称已修复但画面没变”“改了别处”“无法核实的声明” | 与上一版逐像素差异，按上一版失败区域与 roi 统计变化比例 |
 | ⑦ warm | 夜景暖色泛滥 | 暖像素占比与逐镜上限 |
 
-阈值、误报与对策、已知局限见 [picture-qa README](../tools/picture-qa/README.md)。误报的正确处理是**在该镜头配置里写豁免和理由**（`sky`、`allowStripes`、`skip`+`skipWhy`），审核人在报告里能看到；不得改阈值迁就某个作品帧。改阈值或算法必须先加能复现问题的合成样本，`npm test` 全绿。
+阈值、误报与对策、已知局限见 [picture-qa README](../tools/picture-qa/README.md)。误报的正确处理是**在该镜头配置里写豁免和理由**（`sky`、`allowStripes`、`skip`+`skipWhy`，并写 `exempt` + `_why`），审核人在报告里能看到；不得改阈值迁就某个作品帧。改阈值或算法必须先加能复现问题的合成样本，`npm test` 全绿。
+
+## 豁免的依据与配置纪律（v0.8）
+
+豁免只能依据画面里的三类事实：**设计内纹理**（`designed-texture`）、**真实光源**（`real-light`）、**真实非天空区域**（`non-sky-region`）；每条在同一层写 `exempt` 与 `_why`，比模板默认更宽的任何值都算豁免，`requireChange` 与 `diff` 不可豁免。配置每次变更跑 `--check-config 新 --baseline 旧`：天空掩码缩小、阈值变宽、新增 skip、规则纹理面积变大都会 ALERT（退出码 4），由导演逐条签字或撤回；report 里的 `configWarnings`（声明天空比自动天空少、⑤ 只在声明掩码下 PASS）在 GATE 中逐条解释。分数只能靠改画面上升（[复盘](lessons/model-division.md#v08-复盘主力模型--强模型组件--硬门槛的实际结果)）。
 
 ## 没有眼睛的模型怎么修
 

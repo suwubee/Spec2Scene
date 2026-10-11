@@ -14,6 +14,8 @@ import { evalCam, applyCamState, evalFocus, handheld, breathe, focalFromFov, fov
 import { lerpParams, hexToLinear, kelvinToLinear, deepMerge } from './util.js';
 import {createTimeline} from './timeline.js';
 import {resolveQuality} from './core/quality.js';
+import {createFirstSamplePrime} from './first-sample-prime.js';
+import {undeclaredCredits} from './credits.js';
 const TIMELINE = createTimeline([]);
 
 // ---------------------------------------------------------------------------------------------
@@ -66,6 +68,8 @@ function ctxRng(setId) {
  *   timeline (module-like {shots, resolve, globalFade, lyricsConfig, DURATION}) — default ../timeline.js
  *   songUrl, world (object with at(t)) — defaults loaded automatically
  *   lyrics: true/false, msaa: samples (default 4 final, 0 preview), setsBase (URL for set modules)
+ *   primeFirstSample: true (default) renders each scene instance's first sample twice and discards the first; false = diagnose
+ *   credits: explicit project credit fields (engine/credits.js); undeclared credit cards in timeline.lyricsConfig are errors
  */
 export async function createEngine(opts = {}) {
   let width = opts.width || 1920;
@@ -103,6 +107,8 @@ export async function createEngine(opts = {}) {
 
   let lyrics = null;
   let fontInfo = [], lyricCoverage = null;
+  // Credits come only from explicit project fields (engine/credits.js): a credit card the project does not declare is an error.
+  for (const u of undeclaredCredits(timeline.lyricsConfig?.titles || [], timeline.credits || opts.credits || {})) errors.push(`credit card not declared in the project credits (${u.kind}): "${u.text}"`);
   if (opts.lyrics === true) {
     const F = await loadFonts(opts.fonts || {});
     fontInfo = F.faces; lyricCoverage = F.coverage;
@@ -234,8 +240,12 @@ export async function createEngine(opts = {}) {
     return out;
   }
   /** Render one scene sample of a layer at film time tt / shot-local tl into post.sceneTarget (+ FX pass if `withFx`). */
+  // First sample of every resident scene instance is rendered twice, the first discarded (engine/first-sample-prime.js):
+  // absorbs first-use pipeline laziness so a frame does not depend on which scene happened to render first.
+  const prime = createFirstSamplePrime({enabled: opts.primeFirstSample !== false});
   function renderSample(L, Pl, tt, tl, withFx) {
     const shot = L.shot, inst = L.inst, cam = inst.camera, dur = shot.t1 - shot.t0;
+    prime.before(inst, shot.set, () => renderSample(L, Pl, tt, tl, withFx));
     setFrameTime(tt, baseCtx.frame);
     baseCtx.shot = shot; baseCtx.tLocal = tl;
     baseCtx.uniforms.uTLocal.value = tl;
@@ -455,6 +465,8 @@ export async function createEngine(opts = {}) {
     renderer, canvas, post, audio, song, world, lyrics, timeline, fontInfo, caps, errors,
     width, height, pictureHeight, fps, duration, frames, quality, qualityInfo, ctx: baseCtx,
     seek, renderFrame, bench, getSet, preload,
+    /** scene ids whose first sample was primed (rendered twice, first discarded), in order; prime.enabled false = diagnostics */
+    primedSets: () => prime.ids(), prime: {get enabled() { return prime.enabled; }, get count() { return prime.count; }},
     /** Serialised resize; scene factories and shader materials remain resident. */
     resize(w,h,{renderScale=opts.renderScale ?? qualityInfo.renderScale,pictureHeight:ph=Math.min(h,Math.round(w/2.38806))}={}) {
       const job=chain.then(()=>{

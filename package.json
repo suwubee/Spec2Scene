@@ -1,6 +1,6 @@
 {
   "name": "spec2scene",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "From spec to scene: methods, templates and tools",
   "type": "module",
@@ -16,7 +16,7 @@
     "test:v04": "node scripts/validate-v04.mjs",
     "test:playback": "node scripts/validate-playback.mjs",
     "test:v06": "node scripts/validate-v06.mjs",
-    "test:picture-browser": "SCENE_PICTURE_BROWSER=1 node --test --test-concurrency=1 tools/test/materials-kit.test.mjs tools/test/character-outer-edge.test.mjs",
+    "test:picture-browser": "SCENE_PICTURE_BROWSER=1 node --test --test-concurrency=1 tools/test/materials-kit.test.mjs tools/test/character-outer-edge.test.mjs tools/test/far-kit.test.mjs",
     "qa:picture": "node tools/picture-qa/picture-qa.mjs"
   },
   "devDependencies": {

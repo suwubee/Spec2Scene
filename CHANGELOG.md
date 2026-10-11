@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.0
+
+- 新增 `kits/far/`：通用远山/地平线层（极坐标 ridged 高度场分层、雪线与成片裸岩、按距离与按层空气透视、起伏山脚雾、烽燧/远村剪影插槽、岩斑与明暗起伏按像素足迹淡出、远层月照空气辉光；引擎大气与独立两种口径）和建筑体块“结构”写手（真洞门窗、外挑屋面与抖动椽头、高度场雪盖与下风雪檐、收分城墙与砖券拱门、风化残台、搭接船板船体与舱内积雪），墙与雪只用材质库；参数越界报错，六视角实验台、node 几何测试与 WebGL + picture-qa 验收（只用设计内纹理豁免）。
+- 常驻多场景：`engine/shared-state.js` 的 `createSharedScope`（全键向量写入、用后恢复、拒绝未知键与嵌套）与 `scopeSharedSky`；`getSharedSky` 对被忽略的选项告警。引擎对每个场景实例首样本双渲丢弃首遍（`primeFirstSample`，`primedSets()`，播放器 `warm.primed`，starter `?prime=0` 诊断）。
+- 人物 `character/walk-path.js`：已走距离含 speed、暂停、脚印与位置同源对齐（误差 0）、纯函数；角色 README 写入走位与脚印规则。
+- picture-qa：豁免只能依据设计内纹理 / 真实光源 / 真实非天空区域，同层必须写 `exempt` 与 `_why`；比模板默认宽的值都算豁免，`requireChange` 与 `diff` 不可豁免；`--check-config --baseline` 对天空掩码缩小与阈值变宽报警（退出码 4）；每帧审计声明天空与自动天空（`configWarnings`、`clouds.maskedByConfig`）。材质实验台改画面（加暗石）而不再放宽亮度阈值。
+- 署名：`engine/credits.js` 只从项目显式字段生成片名/署名卡，未填写不生成，占位词拒绝，未声明的署名卡记为引擎错误；starter 新增空的 `src/credits.js`，模板与样片不带任何署名。
+- 经验 M24–M30、模型分工 v0.8 复盘（多轮不收敛的问题组件化后一轮解决；质检靠改画面从 12/25 到 25/25）、深做制作法与画面关卡章节、GATE/EXPORT/SET 模板同步。
+
 ## 0.7.0
 
 - 新增 `tools/picture-qa/`：纯像素、不依赖任何模型的画面关卡（① 条纹/各向异性 ② 外缘光晕 ③ 平涂 ④ 亮度分布 ⑤ 积云团 ⑦ 暖色占比 ⑥ 与上一版差异及 `--claim` 核实）；逐镜 JSON 配置模板与校验（豁免必须有理由，规则纹理豁免 ≤ 35%）；回归样本全部程序合成，`npm test` 跑 selftest。

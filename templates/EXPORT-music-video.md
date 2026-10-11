@@ -27,7 +27,8 @@ timeout 1800s node tools.local/cinematic/qa.mjs out/share.mp4 --out out/qa-share
 
 渲染和监控是两个终端中的独立命令；监控不在渲染结束后才启动。`render-argv.json` 保存完整渲染命令的 JSON 字符串数组（包含 node、脚本及参数）。记录自己后台启动的 `$!`；停摆用 `kill -INT "$RENDER_PID"`，随后 `wait "$RENDER_PID"`，只操作本次 PID。优先级守卫也记录 PID，按 PID 停止并等待。续渲命令保持全部输出身份字段不变。
 
-- [ ] 正式渲染前全片每镜代表帧 picture-qa PASS，报告与豁免理由附 FINAL 记录。
+- [ ] 正式渲染前全片每镜代表帧 picture-qa PASS，报告与豁免理由附 FINAL 记录；配置相对上一次送审版本 `--check-config --baseline` 无未签 ALERT。
+- [ ] 片名与署名卡逐字来自项目 credits 显式字段；未填写的字段没有生成任何卡。
 - [ ] 完整解码；黑帧/冻结候选逐项说明；音画长度与起点差 ≤ 50 ms。
 - [ ] BT.709 矩阵/primaries/transfer、tv range、yuv420p、AAC 48 kHz、faststart。
 - [ ] QA 无 FAIL；警告有审核意见；未以补帧隐藏失败。

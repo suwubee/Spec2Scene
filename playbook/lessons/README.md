@@ -91,6 +91,13 @@
 | M21 | 积云团与全帧灰雾 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M22 | 依赖渲染顺序的缓存 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M23 | 同类组件各写一份 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M24 | 远山三角折纸与水平笔触 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M25 | 体块是无材质白盒 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M26 | 共享天空键泄漏 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M27 | 首帧惰性导致的确定性差异 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M28 | 走位忽略速度 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M29 | 为通过质检而改配置 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M30 | 复制旧作品的署名卡 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
 
 音乐视频 v0.2 追加经验见 [产线经验](../../tracks/music-video/lessons.md)：SVG 误读为二维媒介、逐句图解、反向肘膝没有自动拦截、自审冒充独立审核。导演方法、可运行三维引擎与三关证据共同防止重演。
@@ -105,3 +112,4 @@
 
 - [v0.6：新世界、母题与成片交付](v06-world-and-delivery.md)。
 - [v0.7：画面关卡与模型分工](model-division.md)：强模型做组件、任意模型做装配、自动 QA 判定；修复声明必须附对比证据。
+- [v0.8：分工复盘与配置纪律](model-division.md#v08-复盘主力模型--强模型组件--硬门槛的实际结果)：多轮不收敛的问题组件化后一轮解决；质检靠改画面从 12/25 到 25/25；豁免依据、配置报警、共享状态、首帧 prime、署名来源。
