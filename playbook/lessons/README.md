@@ -99,12 +99,16 @@
 | M29 | 为通过质检而改配置 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M30 | 复制旧作品的署名卡 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M31 | 预热载入页只有文字 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M32 | 设计稿交精简版、细节推给实现者 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M33 | 场景会话重写引擎已有的相机手持 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M34 | 审核判通过、用户判粗糙 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
 
 ## 专题复盘（新 → 旧）
 
 各专题的版本归属见[更新记录](../../CHANGELOG.md)。
 
+- [设计深度、引擎能力与审核校准](../../tracks/music-video/lessons.md#m32--设计稿交精简版细节推给实现者)：设计者写满组件表、难件配方与逐镜物料清单，实现者只回填（M32）；引擎已有的手持等能力只调用不重写，用静态检查与最终相机抖动判定（M33）；审核通过前与标杆逐镜并排，用户否决后写审核误判记录并补检查（M34）。
 - [预热载入页只有文字](../../tracks/music-video/lessons.md#m31--预热载入页只有文字)：点击→第一帧必须测量，载入页要有真实画面、百分比与剩余时间。
 - [分工复盘与配置纪律](model-division.md#复盘主力模型--强模型组件--硬门槛的实际结果)：多轮不收敛的问题组件化后一轮解决；质检靠改画面，不靠改配置。
 - [画面关卡与模型分工](model-division.md)：强模型做组件、任意模型做装配、自动 QA 判定；修复声明必须附对比证据。

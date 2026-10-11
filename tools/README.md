@@ -16,6 +16,9 @@
 | deploy/deploy-static.sh | `--config CONFIG.json [--activate]` | 默认准备 releases/version，激活前按配置比 MIME/缓存/字节 |
 | package/make-release.sh | `--source DIR --out OUTSIDE_SOURCE.tar.gz [--verify-hook EXECUTABLE]` | tar；排除、包内外 SHA-256、解压验证，钩子失败不出包 |
 | picture-qa/ | [画面自动质检](picture-qa/README.md)：`picture-qa.mjs --dir DIR [--config shots.json] [--compare PREV --claim stripes,…]`；`--selftest` | 纯 JS 像素统计（node:zlib），不依赖模型/GPU；合成回归样本；生成项目 `npm run qa:picture` |
+| brief-depth.mjs | `[--dir docs] [FILE.md …] [--min-bytes 10000] [--min-rows 8] [--json]`：设计深度门槛（SET 标题、组件表八列与色值/库函数/来源、NEW-HARD 八项配方、逐镜物料清单、委托用语与占位、设计者字节） | 纯 Node 解析 Markdown；合成样例回归；生成项目 `npm run qa:brief` |
+| no-reimplement.mjs | `[--json] PATH…`（默认 src）：自写相机晃动、handheld > 1、`fract(sin())`、自写雾/天空、硬编码署名，报 file:line；`// no-reimplement-allow <规则>: <理由>` | 纯 Node 静态扫描；生成项目 `npm run qa:reimplement` |
+| cam-check.mjs | `--url http://127.0.0.1:39920/` 或 `--samples cams.json`，`[--hf-p95 1.5 --rms 1.5 --peak 4 --win 0.5]`：引擎 `lastCamera()` 的最终相机 → 按镜头与镜内硬切分段的 rms/峰值/p95 像素抖动（1920 宽），只计整窗残差 | 分析为纯函数 `analyzeCamera`；浏览器路径用 Playwright；生成项目 `npm run qa:camera` |
 | pose/ | [独立说明](pose/README.md)：本地加载、滤波、视频评测、精确补丁和 SimPose 接口 | 模型另行下载到项目，无内置数据 |
 
 每个可执行入口均有 `--help`；浏览器库和纯函数通过各工具入口及 npm test 验证。--identity 必须由项目提供源码与输入摘要，工具不能自动发现页面全部外部输入；固定机器/GPU 后端，跨 GPU 的像素一致性不作保证。帧 QA 的色带是低色阶启发式，冻结以完全相同像素计算，编码视频另使用 FFmpeg freezedetect；有意静帧/黑场与真实色带需人工复核，--strict 将候选警告视为失败。音画长度检查不等于语义上的节拍同步。
@@ -82,3 +85,9 @@ timeout 600s npm run check:flicker -- --timeout 540000 --out out/flicker-r01
 `timeout 7200s node tools/render-resume-guard.mjs --frames <帧目录> --command <命令数组.json> --minutes 3 --poll-seconds 5` 监控原子完成的 `frame-000000.png` / `f00000.png|jpg`，忽略临时文件、空文件、目录和符号链接。命令文件是原渲染命令 JSON 字符串数组。停摆返回 2 并打印安全引用的 `--resume` 与减半 worker（最少 1）；不执行命令、不发信号。收到 INT/TERM 退出 130。`--expected` 达到文件计数仅结束监控，不能代替 manifest/解码完整性检查。
 
 仅对自己的光栅 GPU 进程使用 `timeout 7200s python3 tools/cinematic/ops/prio_guard.py <渲染PID> --heavy 19`；收帧与写盘优先级保持。自检 `timeout 30s python3 tools/cinematic/ops/prio_guard.py --selftest` 不改变优先级。逐版编码/QA/下载命令见 [EXPORT](../templates/EXPORT-music-video.md)，卫生工具 `--patterns` 使用仓库外禁词正则表，检查文件名与内容；严禁把禁词表本身带入仓库。
+
+## 设计深度、引擎能力与相机稳定
+
+- `brief-depth.mjs`：在 `docs/` 中查找 `SET-<scene>.md`（空模板 `SET-brief.md` 不算）、`STORYBOARD*.md`、`CONCEPT*.md`、`ASSET-BIBLE*.md`。逐文件打印设计者手写字节（照抄模板的行与“回填”一节不计）、组件表行数、NEW-HARD 件数与配方数、镜头数和缺项。NEW-HARD 配方可写在同一 SET 的“难件配方”一节，或资产圣经里标题含件名与 `NEW-HARD` 的小节。没有 STORYBOARD 文件时，CONCEPT 必须有“逐镜画面物料清单”。
+- `no-reimplement.mjs`：只扫描场景与道具源码（默认 `src`），不扫描引擎与组件库。规则：`camera-shake`（相机旋转/平移由 noise、sin/cos、random 或由它们赋值的变量驱动）、`handheld-amount`（> 1）、`glsl-sin-hash`、`custom-fog`、`custom-sky`、`hardcoded-credit`（项目 `credits.js` 除外）、`allow-without-reason`。
+- `cam-check.mjs`：需要 `window.__scene.seek(t)` 与 `lastCamera()`（starter 截图模式已提供；工具自动加 `mode=capture&w=192&h=108`），只接受回环 39920–39939。自己记录相机的项目把 `[{t, shot, e, fov, aspect}]`（与 `lastCamera()` 同字段）写成 JSON 后用 `--samples`；也可直接在 Node 里调用 `analyzeCamera(samples, {fps})`。叠化期间记录的是最后渲染的那一层。平滑推拉摇移不算抖动；镜内跳变超过邻域中位步长 5 倍且大于画宽 4% 或 0.3 m 时视为硬切并分段；短于一个窗口的段只报告不判定。退出码 0 PASS、3 超阈值、2 错误。

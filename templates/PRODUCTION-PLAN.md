@@ -10,6 +10,19 @@
 
 每个负责人只写分配的场景目录。共享接口在开始前冻结；共享材质、贴图和骨骼资源由创建者登记所有权。
 
+## 设计深度门槛（派发实现之前）
+
+设计者（导演或强模型）亲手写满每份 `SET-<scene>.md`、故事板逐镜物料清单和多场景共用的 `ASSET-BIBLE.md`：组件表 `件 | 尺寸 | 材质(色值) | 程序做法(具体库函数) | L1 | L2 | L3 | 来源`、每个 NEW-HARD 件的八项配方、每镜前/中/远具名构件、天空、≥ 2 个二级运动源、人物屏高区间、主光/轮廓光与构图草图。实现者（任何模型）只在各文档的“回填”一节写结果；设计不以删减稿交出、留给下游补全。
+
+| 门槛 | 本项目取值 | 命令 | 通过条件 |
+|---|---|---|---|
+| 设计者手写字节 / 每份 SET | `<≥ 10000，可提高>` | `npm run qa:brief -- --min-bytes <值>` | PASS，逐文件打印字节、行数与缺项 |
+| 组件表行数 / 每份 SET | `<≥ 8>` | `npm run qa:brief -- --min-rows <值>` | PASS |
+| 引擎能力不重写 | 引擎 README 已有功能清单 | `npm run qa:reimplement` | 0 条；allow 注释逐条有理由 |
+| 相机稳定 | p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px（1920 宽） | `npm run serve` 后 `npm run qa:camera` | 每镜 PASS |
+
+qa:brief FAIL 时退回设计者补写，不派发；实现中发现设计缺口，实现者在回填段提请求，由设计者改文档后重跑 qa:brief。
+
 ## 阶段门槛
 
 1. **空场与光**：尺度、曝光、白平衡、主光方向和雾可复验。
@@ -21,10 +34,11 @@
 
 | 阶段 | 命令（带超时） | 输出目录 | 通过条件 |
 |---|---|---|---|
+| 设计 | `timeout 60s npm run qa:brief` | `docs/` | 全部 PASS 才派发 |
 | 空场 | `<timeout ...>` | `out/evidence/<scene>/empty` | `<条件>` |
 | 英雄 | `<timeout ...>` | `out/evidence/<scene>/hero` | `<条件>` |
 | 预设 | `<timeout ...>` | `out/evidence/<scene>/presets` | `<条件>` |
-| 收口 | `<timeout ...>` | `out/evidence/<scene>/closeout` | `<条件>` |
+| 收口 | `<timeout ...>` | `out/evidence/<scene>/closeout` | `<条件>`；`npm run qa:reimplement` 0 条、`npm run qa:camera` 每镜 PASS |
 
 ## 风险与回滚
 

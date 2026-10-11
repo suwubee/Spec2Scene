@@ -13,6 +13,8 @@
 | 每一轮看图目录产出后（四阶段每一轮） | `npm run qa:picture -- --dir out/review/<scene>/stage-<n>/r<轮次>` | 全部 PASS；FAIL 不得送导演初审 |
 | 声称修复任何问题时 | `npm run qa:picture -- --dir <本轮> --compare <上一轮> --claim <检查项> [--roi x0,y0,x1,y1]` | 被声称的检查 PASS **且** ⑥ 显示问题区域确实变化；没有该报告的“已修复”视为未修复 |
 | 集成、FINAL 送审、正式渲染前 | 全片每镜代表帧 `npm run qa:picture -- --dir out/keys` | 全部 PASS，豁免逐条有理由 |
+| 派发实现之前 | `npm run qa:brief` | 设计深度 PASS（组件表、NEW-HARD 配方、逐镜物料清单、设计者字节下限） |
+| 每轮代码提交、有相机运动的镜头 | `npm run qa:reimplement`；服务运行时 `npm run qa:camera` | 0 条命中；每镜 p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px |
 | 改了组件（人物、材质库、picture-qa 本身） | 仓库 `npm test` + `npm run test:picture-browser` | 合成回归样本全符合；检查台 PASS |
 
 报告（`report.json`、`report.md`、`sheet.png`）放进本轮看图目录，GATE 与 REVIEW 记录引用它。逐镜配置在项目 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目；`npm test` 会校验它（豁免必须有理由、规则纹理豁免总面积 ≤ 35%）。

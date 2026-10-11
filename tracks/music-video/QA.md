@@ -28,3 +28,7 @@
 ## 画面自动质检 picture-qa（强制）
 
 每一版每镜代表帧先过 [picture-qa](../../tools/picture-qa/README.md)：`npm run qa:picture -- --dir <看图目录>`，全部 PASS 才送导演初审或独立审核；修复轮必须 `--compare <上一轮> --claim <检查项>`，⑥ 证明问题区域确实变化。它是纯像素统计，不依赖任何模型，所有模型都能运行；检查 ① 条纹/各向异性 ② 外缘光晕 ③ 平涂 ④ 亮度分布 ⑤ 积云团 ⑦ 暖色占比 ⑥ 与上一版差异。逐镜配置 `docs/picture-qa.shots.json` 由 `npm test` 校验，豁免必须有理由。报告进入 GATE/REVIEW 证据；PASS 不代签审美。规则与分工见[画面关卡](../../playbook/14-picture-gate.md)。
+
+## 设计深度、引擎能力与相机（强制）
+
+派发实现前 `npm run qa:brief` PASS（每份 SET 组件表八列写满、NEW-HARD 八项配方、逐镜物料清单、设计者手写字节下限）；每轮代码 `npm run qa:reimplement` 0 条；有相机运动时在服务运行中 `npm run qa:camera` 每镜 PASS（p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px，1920 宽）。英雄镜头的 AD/G3 审核附标杆帧并排对照表；用户否决已通过的内容时写审核误判记录。规则见[深做制作法](../../playbook/11-deep-production.md)与[审核章节](../../playbook/03-review.md)。

@@ -22,9 +22,9 @@
     "sourceBytes": 28938,
     "sourceSHA256": "3aa4af615e2aedbf70f4271326b383e4fbc09ba133fa1ae74829101f0c7de52c",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes. v0.8: first sample of every resident scene instance rendered twice and the first discarded (first-sample-prime.js, option primeFirstSample, primedSets()); credit cards must be declared in explicit project credits (credits.js).",
-    "portedBytes": 29283,
-    "portedSHA256": "7cb3f7014516c6875e2cf62f5f9673f90426419467c858ab04eb7bbe485f78c9"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.3.1: parameterized lyric locking/fonts, quality preservation, extended particle domain and lunar cloud controls as applicable. v0.4: deterministic frame channels and reusable scene interfaces. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes. v0.8: first sample of every resident scene instance rendered twice and the first discarded (first-sample-prime.js, option primeFirstSample, primedSets()); credit cards must be declared in explicit project credits (credits.js). v0.10: read-only lastCamera() records the final camera of the last rendered sample (matrixWorld, fov, aspect, shot, t) for camera-stability QA; rendering unchanged.",
+    "portedBytes": 29787,
+    "portedSHA256": "f812e4cbeb5ec7983d7bc8040455caec120c6a37e36a0a55f38176caf8f7c6a6"
   },
   {
     "module": "geo.js",

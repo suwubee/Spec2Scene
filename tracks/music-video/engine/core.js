@@ -196,6 +196,8 @@ export async function createEngine(opts = {}) {
   async function preload(ids) { for (const id of ids) await getSet(id); }
 
   const _q = new THREE.Quaternion(), _p = new THREE.Vector3();
+  // QA: final camera of the last rendered sample (after Set update, lens breathing and handheld) — tools/cam-check.mjs
+  let lastCamera = null;
   const emptyScene = new THREE.Scene(), emptyCam = new THREE.PerspectiveCamera(30, aspect, 0.1, 10);
   const px1 = new Uint8Array(4);
   const fadeOf = (t) => (timeline.globalFade ? timeline.globalFade(t) : 1);
@@ -306,6 +308,7 @@ export async function createEngine(opts = {}) {
       cam.translateX(h.dx); cam.translateY(h.dy); cam.translateZ(h.dz);
     }
     cam.updateMatrixWorld();
+    lastCamera = { e: cam.matrixWorld.elements.slice(), fov: cam.fov, aspect: cam.aspect, shot: shot.id, t: tt };
     // 5) scene → HDR target (FX layer excluded when the FX pass is on)
     const mask0 = cam.layers.mask;
     if (fxPassOn) cam.layers.disable(FX_LAYER); else cam.layers.enable(FX_LAYER);
@@ -466,6 +469,8 @@ export async function createEngine(opts = {}) {
     width, height, pictureHeight, fps, duration, frames, quality, qualityInfo, ctx: baseCtx,
     seek, renderFrame, bench, getSet, preload,
     /** scene ids whose first sample was primed (rendered twice, first discarded), in order; prime.enabled false = diagnostics */
+    /** final camera of the last rendered sample {e: matrixWorld (column-major 16), fov (deg, vertical), aspect, shot, t}; null before the first render */
+    lastCamera: () => (lastCamera ? { ...lastCamera, e: lastCamera.e.slice() } : null),
     primedSets: () => prime.ids(), prime: {get enabled() { return prime.enabled; }, get count() { return prime.count; }},
     /** Serialised resize; scene factories and shader materials remain resident. */
     resize(w,h,{renderScale=opts.renderScale ?? qualityInfo.renderScale,pictureHeight:ph=Math.min(h,Math.round(w/2.38806))}={}) {

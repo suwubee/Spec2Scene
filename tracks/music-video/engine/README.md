@@ -22,6 +22,29 @@
 
 旧轻量天空、地形与后期渲染器已移除。`post/index.js` 只保留光学/LUT 辅助并转出完整后期工厂。`materials/index.js` 仍是现有角色调用的兼容材料入口；`audio/index.js` 的播放时钟、`lyrics/index.js` 的 DOM 排版、旧 traces 小构件保留为辅助，不负责样片的天空、水面或后期。
 
+## 已有功能清单 / do-not-reimplement
+
+下表按引擎实际导出整理。场景与道具代码**只能通过预设或参数使用这些能力，不得另写同类实现**（自写相机晃动、自写雾/天空、`fract(sin())` 哈希、硬编码署名等由 `tools/no-reimplement.mjs` 静态检查，生成项目 `npm run qa:reimplement`）。参数从标定值起步；超出标定区间约 3 倍前先在 DIRECTOR-DECISIONS 写理由。真正缺的能力提给唯一的引擎授权负责人，按[深做制作法](../../../playbook/11-deep-production.md)的引擎修改规则加入引擎，而不是在场景里复制一份。
+
+| 能力 | 用什么（模块 · 函数/参数） | 标定与用法 | 禁止 |
+|---|---|---|---|
+| 相机路径 | camera.js · `evalCam(spec,t,dur,aspect)`、`dolly`、`crane`、`orbit`、`applyCamState`；镜头 JSON `shot.cam.keys` | 关键帧 + `ease`/`easeIn`/`easeOut`；Set 可用 `cameraAt(tLocal,shot,ctx)` 返回 `{pos,target,fov,handheld}` | 在 `update()` 里用 noise/sin/random 转动或平移相机 |
+| 手持微抖 | camera.js · `handheld(t,amount,seed)`，由引擎在 Set `update()` 之后统一叠加（`shot.cam.handheld` 或预设返回的 `handheld`） | 1/f 频谱；amount 1.0 = ±0.15° 峰值（俯仰 ×0.85、横滚 ×0.5、位移 4/3/2 mm），每 amount 线性；工作区间 0–0.35，引擎钳到 1.5 | 自写抖动（曾出现过约为标定值 30 倍的自写抖动）；amount > 1 |
+| 对焦与呼吸 | camera.js · `breathe(fov,dist,amount)`（默认 0.02/屈光度）、`rackFocus`、`focusKeys`、`evalFocus`、`viewDepth`；`shot.focus`、Set `focus()` | 引擎每个样本按焦距与对焦距离算 CoC，`ctx.refreshLens()` 在 Set 改相机后重算 | 自己缩放 fov 模拟呼吸、自己算景深 |
+| 天空、月、星、云 | sky.js · `createSky`、`getSharedSky`、`scopeSharedSky`、`SKY_DEFAULTS`（`cloudDensity`、`cirrus`、`mie`…）、`twilightGains`；sky-presets.js · `skyPreset`、`SKY_PRESETS`；moon.js · `createMoonTexture`；moon-display.js · `clampMoonPhase`、`createMoonHalo`；kits · `createCelestialPhase`、`createCloudSea` | 大气透射/多次散射 LUT、raymarch 低云、卷云、月晕；常驻多场景用 `scopeSharedSky` 写全键 | 自写天空球/渐变天空着色器、贴图月亮 |
+| 雾与空气透视 | terrain.js · `createAtmosphere(ctx,{sky,skylineAt,waterMist,moonColor})`（共享高度雾与光照 GLSL）；fog-terrain.js · `fogTerrain`；kits/far · `withAtmosFog`、`airParams`；particles.js · `createMistCards` | 近/中/远层由同一大气 uniforms 决定 | `new THREE.Fog*` 或自写 `exp(-d)` 雾（检查台可用 allow 注释写理由） |
+| 地形与远景 | terrain.js · `createTerrainLibrary`、`createTerrain`、`makeValleyMaterial(atmos,'slope')`；kits · `createFarRanges`（远山/地平线）、`continuousHeightfield`、`createMountainLOD`、`createSnowfield`、`createRiver` | 远山三层 + 雪线 + 空气透视；体块用 kits/far 写手 | 色块远山、三角折纸山 |
+| 水 | water.js · `createWater`（planeY、Fresnel、解析波/雨环、月光闪烁）、`ringsFromNotes`；kits · `createSmallWater` | 平面反射与岸边雾已接好 | 自写镜面水 |
+| 粒子与天气 | particles.js · `createRain`、`createSplashes`、`createDripLine`、`createRingEvents`、`createPetals`、`createDust`、`createSteam`、`createMistCards`、`createFireflies`、`createLightShaft`；`particleTimeDomain` | 闭式时间位置（可任意 seek），FX layer 7 独立深度测试；风积分范围约 −8–248 秒 | 逐帧累加的粒子、自写体积光 |
+| 材质与程序纹理 | materials.js · `createMaterials`、`configureShadows`、`makeMoonLight`/`makeSunLight`/`makeLanternLight`/`makeLampLight`/`makeSkyFill`；procTex.js · `bake`、`bakeDetail`、`listMaterials`、`hexLin`；kits/materials · `snowMaterial`、`iceMaterial`、`rammedEarthMaterial`、`injectMaterialLibrary`；kits/far · `plankWoodMaterial`、`openingMaterial`、`blockMaterials` | 线性 HDR、两层材质 + 瑕疵；灯走统一曝光约定 | 同类材质 shader 再写一份、私自乘亮度 |
+| 几何构件 | geo.js · `bevelBox`、`lathe`、`tubeAlongCurve`、`roofMesh`、`latticeFrame`、`clothPlane`/`CLOTH_GLSL`、`paperSheet`、`merge`、`mergeInstanced`；kits/far · `wallWithOpenings`、`blockBatches`、`flatRoofHouse`、`fortWall`、`plankHull` | 真洞门窗、倒角、合批 | 白盒体块、贴片假窗 |
+| 噪声与随机 | noise.js · `makeRng`、`hashString`、`pcg`/`pcg2d`/`pcg3d`、`hash11`…`hash33`、`fbm`、`snoise2/3`、`curl2/3`、`pink1`；GLSL `GLSL_HASH`、`GLSL_NOISE` | 整数哈希，跨 GPU 稳定；RNG 在创建期分叉 | `Math.random`、`fract(sin())` 哈希、`Date`/墙钟驱动 |
+| 后期 | post.js · `createPost`、`DEFAULT_POST`、`mergePost`：`dof`（分层散景）、`bloom`、`halation`、`streak`、`lens`（畸变/色差/暗角）、`tone`、`grade`（LGG、分离色调、饱和度）、3D LUT、`grain`/`dither`/`weave`、`fade`；镜头级 `shot.post`/`grade`，全局 `postOverride` | 只映射一次；镜头参数覆盖全局 | 自写 bloom/景深/调色 pass |
+| 歌词、片名与署名 | lyrics.js · `createLyrics`、`loadFonts`、`reflowLyrics`；credits.js · `normalizeCredits`、`creditTitles`、`undeclaredCredits`；composition.js · `placeSubtitle`、`measureComposition` | 字幕在最终画布内合成；片名/署名只来自项目 credits 显式字段 | 场景里硬编码作者、署名或片名卡 |
+| 人物与走位 | character · `createCharacter`、`walkPath`、`character/real/`（外缘轮廓光 `rim.js`） | 剪影/背影优先；距离含 speed，脚印同源 | 场景里另写人体或轮廓光 |
+| 常驻、确定性与释放 | shared-state.js · `createSharedScope`；first-sample-prime.js（`primeFirstSample`）；release.js · `createResourceScope`、`disposeObjectSafely`；geometry-safety.js · `guardGeometry` | 全键写入并恢复；首样本双渲；成对释放 | 依赖渲染顺序的懒缓存 |
+| QA 钩子 | core.js · `engine.lastCamera()`：最后渲染样本的最终相机 `{e: matrixWorld, fov, aspect, shot, t}`（Set update、呼吸、手持之后） | `tools/cam-check.mjs` 用它判定相机稳定（p95 ≤ 1.5 px、每镜 rms ≤ 1.5 px、峰值 ≤ 4 px，1920 宽） | 用截图目测抖动 |
+
 ## 使用
 
 ```bash

@@ -3,6 +3,15 @@
 版本按时间倒序，最新在最前。这里只记录“这一版改了什么”；怎么用请看各目录的 README 与 playbook，手册只描述当前做法，不再按版本分段。
 Newest first. This file records what changed in each release; READMEs and playbooks describe current usage only.
 
+## 0.10.0 — 2026-10-11
+
+- 设计深度下限，设计者负责到底：SET-brief 组件表改为 `件 | 尺寸 | 材质(色值) | 程序做法(具体库函数) | L1 | L2 | L3 | 来源 REUSE/ADAPT/NEW-GLM/NEW-HARD`，新增 NEW-HARD 八项配方（步骤、几何与拓扑、函数、材质数值、检查台、数值验收、失败模式与检测、降级方案）与只给实现者写的“回填”一节；CONCEPT 增加逐镜画面物料清单（前/中/远具名构件、天空、≥ 2 个二级运动源、人物屏高区间、主光/轮廓光、构图草图）；PRODUCTION-PLAN 增加派发前的设计深度门槛。
+- 新增 `tools/brief-depth.mjs`（无依赖，生成项目 `npm run qa:brief`）：解析 SET、故事板、CONCEPT 与资产圣经，缺标题、组件表缺列/空格/无色值/无库函数/来源标签错误、NEW-HARD 缺配方项、镜头缺物料字段、设计段落出现委托用语或占位、设计者手写字节低于下限（默认每份 SET 10000 字节、组件表 8 行）即 FAIL，逐文件打印字节、行数与缺项。
+- 引擎 README 增加“已有功能清单 / do-not-reimplement”（相机路径、手持 ±0.15°/amount、呼吸与对焦、天空/月/云、雾、地形与远景、水、粒子、材质、几何、噪声、后期、字幕与署名、人物、常驻与释放）。新增 `tools/no-reimplement.mjs`（`npm run qa:reimplement`）：noise/sin/random 驱动的相机转动与平移、handheld > 1、`fract(sin())`、自写雾/天空、硬编码署名报 file:line，例外需带理由的 allow 注释。
+- 引擎 `core.js` 记录最后渲染样本的最终相机 `engine.lastCamera()`（Set 更新、呼吸、手持之后；渲染不变，port-manifest 已更新）。新增 `tools/cam-check.mjs`（`npm run qa:camera`）：浏览器逐帧 seek 或读入记录的相机样本，按镜头与镜内硬切分段、只计整窗残差，默认 p95 ≤ 1.5 px、每镜 rms ≤ 1.5 px、峰值 ≤ 4 px（1920 宽）；分析为纯函数 `analyzeCamera`。
+- 审核校准：AD-review 与 GATE 必填英雄镜头“标杆帧并排对照”（参考帧/本作帧、细节密度、层次、光、材质、人物、判定）；DIRECTOR-DECISIONS 与审核章节要求用户否决已通过的内容时写“审核误判记录”并落到新检查。GATE、深做制作法、画面关卡、派发骨架与产线 QA 同步三项新门槛。
+- 经验 M32（设计稿交精简版、细节推给实现者）、M33（场景会话重写引擎手持，约 30 倍）、M34（审核判通过、用户判粗糙）。新增测试 `brief-depth`、`no-reimplement`、`cam-check`（含生成项目接线；浏览器路径由 `SCENE_CAMCHECK_BROWSER=1` 开启）。
+
 ## 0.9.0 — 2026-10-11
 
 - 默认播放器先渲染并显示所选起点的第一帧（`warm.firstPictureMs`），预热期间画面在、状态栏显示百分比与剩余时间（`warm.pct` / `warm.etaMs`），不再出现整屏只有文字的载入页；预热总时长对照 `budgetMs`（默认 60 秒）记录 `warm.overBudget`。

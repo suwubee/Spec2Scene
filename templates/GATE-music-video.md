@@ -18,6 +18,11 @@
 | 项目 | PASS / FAIL / SKIP（原因） | 证据与版本 |
 |---|---|---|
 | 世界观差异表、全局禁用、四阶段导演初审/决定日志 | `<填写>` | `<填写>` |
+| 设计深度 `npm run qa:brief` PASS（每份 SET 的设计者字节、组件表行数、NEW-HARD 配方、逐镜物料清单） | `<填写>` | `<输出路径>` |
+| 引擎能力未重写 `npm run qa:reimplement` 0 条；allow 注释逐条有理由 | `<填写>` | `<输出路径>` |
+| 相机稳定 `npm run qa:camera` 每镜 PASS（p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px @1920） | `<填写>` | `<cam-check.json>` |
+| 英雄镜头标杆帧并排对照表已填满（AD-review），判定 ≥ 标杆或差距已列为修复项 | `<填写>` | `<并排图路径>` |
+| 此前用户否决过已通过的项目时，审核误判记录已写并新增了对应检查 | `<填写 / 不适用>` | `<DIRECTOR-DECISIONS 编号>` |
 | picture-qa 全镜代表帧 PASS；修复声明附 --compare --claim；豁免逐条有理由 | `<填写>` | `<report.json 路径>` |
 | 豁免只依据设计内纹理/真实光源/真实非天空区域（exempt + _why）；`--check-config --baseline` 无未签 ALERT；report 中 configWarnings（天空掩码缩小等）逐条解释 | `<填写>` | `<check-config 输出>` |
 | 共享天空/共享对象按场景全键写入并恢复；首帧 prime 覆盖全部场景（`__player.warm.primed`）；`?prime=0` 诊断结论 | `<填写>` | `<填写>` |

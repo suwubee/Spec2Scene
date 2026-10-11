@@ -15,4 +15,6 @@ description: 从获授权音频制作程序化音乐视频；适用于音乐解�
 
 画面关卡：每轮看图目录先跑 `npm run qa:picture`（tools/picture-qa，纯像素、不依赖模型）全部 PASS 再送审；任何“已修复”必须附 `--compare <上一轮> --claim <检查项>`；人物用 character 组件（走位用 walkPath，距离含 speed）、雪/冰/夯土用 kits/materials、远山/地平线与房屋城墙残台船等体块用 kits/far，不另写同类实现。豁免只依据设计内纹理/真实光源/真实非天空区域并写 exempt + _why，配置变宽用 --check-config --baseline 报警；共享天空用 scopeSharedSky 按场景隔离；片名署名只来自项目 credits 显式字段。见 playbook/14-picture-gate.md。
 
+设计深度与引擎能力：SET 组件表（件 | 尺寸 | 材质(色值) | 程序做法 | L1 | L2 | L3 | 来源）、NEW-HARD 八项配方与逐镜物料清单由设计者写满，派发前 `npm run qa:brief` PASS，实现者只写回填段；引擎已有能力（相机手持/呼吸、天空、雾、水、粒子、后期、署名）只调用不重写，见 engine/README.md“已有功能清单”，每轮 `npm run qa:reimplement`，有相机运动时 `npm run qa:camera`。英雄镜头审核附标杆帧并排对照；用户否决已通过的内容时先写审核误判记录（playbook/03-review.md）。
+
 强制 G1 意境分镜、G2 人体与表演、G3 成片预览。每关产出证据后停下，等待独立审核 PASS；实现者自审不算。使用 templates/REVIEW-music-video.md。编排者仅按已获授权安排独立会话或人类审核，不推定并行权限。
