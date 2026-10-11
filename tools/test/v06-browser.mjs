@@ -72,7 +72,8 @@ export async function validateV06(out) {
     const video = path.join(out, 'share.mp4');
     await encode({frames: videoFrames, out: video, fps: 4, audio: path.join(fixture.project, 'assets/demo.wav'), crf: 19});
     report.video = await qaVideo(video); assert.equal(report.video.decode, 'PASS'); assert.equal(report.video.issues.some(i => i.severity === 'fail'), false);
-    await page.goto(server.url + '/?w=160&h=90'); await page.waitForFunction(() => window.__player?.controls);
+    // warm=shot keeps a long warm-up so the seek below really lands while warming.
+    await page.goto(server.url + '/?w=160&h=90&warm=shot'); await page.waitForFunction(() => window.__player?.controls);
     assert.equal(await page.locator('#download').getAttribute('aria-disabled'), 'true');
     assert.equal(await page.locator('#download').getAttribute('href'), null);
     await page.screenshot({path: path.join(out, 'download-pending.png')});
@@ -92,6 +93,7 @@ export async function validateV06(out) {
     await page.locator('#timeline').fill('7'); await page.locator('#timeline').dispatchEvent('input');
     assert.equal(await page.evaluate(() => __player.transport.time()), 7);
     await page.locator('#play').click(); await page.waitForFunction(() => __player.warm?.steps > 0);
+    assert.equal(await page.evaluate(() => __player.warm.done), false, 'seek must be exercised during warm-up');
     await page.locator('#timeline').fill('12'); await page.locator('#timeline').dispatchEvent('input');
     assert.equal(await page.evaluate(() => __player.transport.time()), 12);
     await page.screenshot({path: path.join(out, 'seek-warmup.png')});

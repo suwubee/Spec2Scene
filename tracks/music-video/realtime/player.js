@@ -1,27 +1,40 @@
-import {createCutSafe, hardCuts, warmupTimes, shotStart, shotEnd} from './timing.js';
+import {createCutSafe, hardCuts, warmupTimes, warmProgress, shotStart, shotEnd} from './timing.js';
 
-/** One engine, one frame in flight, all shot resources warmed before playback. */
-export async function createResidentPlayer({runtime, canvas, transport, state, progress, present}) {
+/** One engine, one frame in flight, all shot resources warmed before playback.
+ * The selected start frame is rendered and shown first (firstPictureMs): the loading screen sits over a
+ * real picture with percentage and ETA, never over an empty page. budgetMs flags a slow warm-up.
+ */
+export async function createResidentPlayer({runtime, canvas, transport, state, progress, present, warmPlan = 'shot', warmKey, budgetMs = 60000}) {
   const preparationStarted = performance.now();
   const engine = await runtime({canvas});
   transport.setDuration(engine.duration);
   const shots = engine.timeline.shots;
   const cutSafe = createCutSafe(hardCuts(shots), {fps: engine.fps, duration: engine.duration});
-  const times = warmupTimes(shots, engine.fps);
+  const times = warmupTimes(shots, engine.fps, {per: warmPlan, ...(warmKey ? {key: warmKey} : {})});
   state.engine = engine; state.shots = shots;
-  state.warm = {steps: 0, total: times.length, done: false, startedAt: preparationStarted};
+  state.warm = {steps: 0, total: times.length + 1, done: false, plan: warmPlan, budgetMs, startedAt: preparationStarted, engineMs: performance.now() - preparationStarted, pct: 0, etaMs: null};
   let stopped = false, busy = false, raf = 0, dirty = true;
+  const step = () => {
+    state.warm.steps++;
+    Object.assign(state.warm, warmProgress({steps: state.warm.steps, total: state.warm.total, startedAt: preparationStarted + state.warm.engineMs, now: performance.now()}));
+    progress(state.warm);
+  };
   try {
+    progress(state.warm);
+    await engine.renderFrame(cutSafe(transport.time()), {sync: true});   // first picture: what the viewer will see first
+    state.warm.firstPictureMs = performance.now() - preparationStarted;
+    state.warm.preview = true;
+    step();
     for (const t of times) {
-      progress(state.warm);
       await engine.renderFrame(t, {sync: true});
-      state.warm.steps++;
+      step();
       await new Promise(resolve => setTimeout(resolve, 0));
     }
-    await engine.renderFrame(transport.time(), {sync: true});
+    await engine.renderFrame(cutSafe(transport.time()), {sync: true});
     state.warm.done = true;
     state.warm.completedAt = performance.now();
     state.warm.ms = state.warm.completedAt - preparationStarted;
+    state.warm.overBudget = state.warm.ms > budgetMs;
     state.warm.programs = engine.renderer.info.programs.length;
     state.warm.scenes = engine.setIds().length;
     state.warm.primed = engine.primedSets ? engine.primedSets() : [];   // first sample of each scene rendered twice (engine/first-sample-prime.js)

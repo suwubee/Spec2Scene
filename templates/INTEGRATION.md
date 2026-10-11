@@ -34,7 +34,7 @@
 
 English: scene factories share a clock, coordinate system, lifecycle and explicit preview path; integration checks continuity, determinism, resource ownership and quality-switch diagnostics.
 
-## 镜头与世界曲线（v0.6）
+## 镜头与世界曲线
 
 | 原镜/新镜 ID | 拆分/插镜半开时间区间 | 音乐事件 | 曝光/白平衡 | 快门角/子帧数 | 世界时间映射 |
 |---|---|---|---|---|---|

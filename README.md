@@ -46,48 +46,24 @@ The motion starter includes a labelled synthetic skeleton and a real camera inpu
 
 Run `npm test`, `npm run test:browser`, and the Python `--selftest` commands in the tools guide. The browser suite generates all three demonstration projects, serves only loopback ports 39920–39939, verifies them, closes its own servers, and removes the demonstrations. Optional real datasets are explicitly reported as SKIP when absent; synthetic checks do not establish real recognition accuracy.
 
-## Quality threshold (v0.2)
+## Music video essentials
 
-Start with a mood book and an imagery translation table. Let moonlit footprints suggest a journey; use a small figure, negative space and motivated light to convey solitude. Words are emotional evidence, not a shot-by-shot illustration script.
+This section describes current usage only; see the [changelog](CHANGELOG.md) (newest first, current 0.9.0) for what changed in each release.
 
-Every shot needs foreground, middle ground and background, half-float HDR and tone mapping, motivated lighting, atmospheric depth, lens-driven depth of field and a camera track. Character hinge limits and anatomy checks run in `npm test`. See the [directing quality bar](tracks/music-video/directing/05-quality-bar.md).
+**Mood before lyrics.** Start with a mood book and an imagery translation table: let moonlit footprints suggest a journey; use a small figure, negative space and motivated light to convey solitude. Words are emotional evidence, not a shot-by-shot illustration script. Every shot needs foreground, middle ground and background, half-float HDR and tone mapping, motivated lighting, atmospheric depth, lens-driven depth of field and a camera track. See the [directing quality bar](tracks/music-video/directing/05-quality-bar.md).
 
-Independent reviewers must pass G1 (concept/frames), G1b (engine rerender), G2G3 (complete film/performance/subtitles) and FINAL. Self-review cannot approve a gate. `npm run test:cinematic` generates keyframes, eight-view turntables, action sequences, pixel repeatability and software-rendering measurements. Evidence is ignored under `validation/v0.2/artifacts/`; the [validation report](validation/v0.2/README.md) states review and hardware limits.
+**Independent gates.** G1 (concept, shots, reference frames) → G1b (rerender with the current engine) → G2G3 (complete song, performance, subtitles) → FINAL, each passed by an independent reviewer. Self-review cannot approve a gate. See the [concept template](templates/CONCEPT-music-video.md) and [gate template](templates/GATE-music-video.md).
+
+**Original worlds and deep production.** Every film defines its own world and forbidden-content list ([world rules](playbook/12-distinct-worlds.md)); one owner per set works in stages ([deep production](playbook/11-deep-production.md)); integration, resumable rendering, per-encode QA and the MP4 download follow the [delivery workflow](playbook/13-film-delivery.md).
+
+**Picture gate.** Every review round first passes the model-free [picture-qa](tools/picture-qa/README.md); fix claims need `--compare --claim` evidence, exemptions need a stated basis, and loosened configs raise an alarm. See [picture gate and model division](playbook/14-picture-gate.md).
+
+**Engine and kits.** The [cinematic engine](tracks/music-video/engine/README.md), [parametric kits](tracks/music-video/kits/README.md), [characters](tracks/music-video/character/README.md), [lyric alignment](tools/music/lyrics/README.md) and [preview / validation tools](tools/cinematic/README.md). `npm run test:cinematic` writes evidence only into an ignored generated project.
+
+**Real-time playback.** The [default resident player](tracks/music-video/realtime/README.md) unlocks audio inside the click, shows the selected first frame immediately, overlays warm-up percentage and ETA on that picture, then plays audio-driven with resident scenes and zero new shader programs. A text-only loading screen is a defect; click-to-first-picture and total warm-up are measured against a budget. Deterministic capture uses `?mode=capture` / `?quality=final`. The [layered player](tracks/music-video/player/README.md) is experimental. Run `npm run check:flicker` and `timeout 960s npm run test:playback -- <temporary-output>`.
+
+**Evidence limits.** Software rendering proves function, not target-GPU performance, independent review, human listening or production acceptance. Per-round evidence lives in [validation](validation/README.md).
 
 ## License and responsibility
 
 Original repository content: [Apache-2.0](LICENSE), copyright suwubee and contributors. No third-party creative assets are bundled. Dependencies keep their licenses; the model fetcher records upstream license information for users to verify. You are responsible for permissions covering all imported, downloaded and generated content and third-party services. Outputs need human review. Motion activities are not medical or professional fitness advice. Camera data stays local by default. See the bilingual [disclaimer](DISCLAIMER.md), [privacy/licensing workflow](playbook/09-privacy-and-licensing.md) and [security policy](SECURITY.md).
-
-## Cinematic engine v0.3
-
-The complete authorized cinematic engine is ported with content removed, retaining HDR post, sky, terrain, water, materials, particles and deterministic offline tools. See [engine](tracks/music-video/engine/README.md), [kits](tracks/music-video/kits/README.md), and [preview / validation tools](tools/cinematic/README.md). `npm run test:cinematic` writes full-resolution evidence only into an ignored generated project. The character workstream is independent.
-
-
-## Version 0.4.0: capabilities and evidence limits
-
-The independent production gates are **G1** (concept, shots, reference frames) → **G1b** (rerender with the current engine) → **G2G3** (complete song, performance, subtitles) → **FINAL**. Automated library checks cannot sign a creative gate. See the [complete concept template with a fictional example](templates/CONCEPT-music-video.md), [gate submission template](templates/GATE-music-video.md), [changelog](CHANGELOG.md), and [validation record](validation/v0.4/README.md).
-
-| Area | Implemented and exercised | Unverified or limited |
-|---|---|---|
-| Sky and atmosphere | Per-frame lunar phase, neutral low moon disc, ray-marched cloud sea with self shadow and silver edges, project terrain fog | Complex embedded geometry in clouds; target GPU performance |
-| Reusable scene parts | Basin/jar/puddle planar reflections, telephoto mountain subdivisions, indoor moonlight bounce and diffuse fill, detailed procedural rocks | Full GI, fluid simulation, extreme close-ups, semantic city LOD |
-| Camera and post | Shot exposure/WB override global defaults; absolute-time shot curves; current-draw shaft uniforms | Real-device full-song synchronization and frame budget |
-| Character | Crossfades, additive head motion, seated hands on knees, knees held close, restrained bun highlights; anatomy and front/side sequences | Medium-shot faces, hands and cloth; arbitrary slope IK and complete contact/collision |
-| Lyrics | Preserved vocals, silence-delimited phrases, ordered paragraphs, proportional line windows, reviewer approval and ±0.3 s onset validation, subject-aware subtitle placement | Real-song recognition accuracy and human listening; proportional boundaries remain estimates |
-| Execution | Command timeouts, bounded context reads, restart checkpoints, a 60-minute source-stall watchdog | No automatic independent review or deployment approval |
-
-Run `npm run test:browser -- --isolated --offline` to generate fixtures with the normal project generator inside a temporary repository without touching this checkout's projects or downloading models. `npm run test:v04 -- <temporary-evidence-directory>` checks screenshots and identical same-time/reverse renders under the default autoplay policy. Software rendering is evidence of functionality, not a real-time GPU claim. No real-person, listening, model-inference or production acceptance is implied. API details: [v0.4 kits](tracks/music-video/kits/v04.md).
-
-## Real-time playback v0.5
-
-The [default resident player](tracks/music-video/realtime/README.md) synchronously unlocks audio in the click gesture, renders representative frames for every shot, then starts audio-driven playback with one resident cinematic engine. Slow audio keeps loading without a failure timeout: a visible wall-clock preview is aligned when audio takes over. Only media errors advance source candidates; blocked audio and exhausted sources show recovery controls.
-
-The older [layered player](tracks/music-video/player/README.md) is **experimental, not the default**. Select experimental.html or ?player=experimental explicitly. Deterministic ?mode=capture / ?quality=final remains available without audio. `timeout 960s npm run test:playback -- <temporary-output>` exercises default and strict activation policies, non-webdriver behaviour, 5/25-second audio delays, decoded signal, clock alignment and retry.
-
-Generated projects include `npm run check:flicker`: 24 Hz seek and 60 Hz real-time-policy sampling, hard cuts at ±1/4.5/25 ms, global spike/step and local block spikes, JSON rows, flags and contact sheets. Sampling density is not a display-fps claim. Review candidates before release.
-
-Every new film defines an independent world and a forbidden-content list; SET briefs explain differences, generic parts change shape and colour, and the first art-director review checks forbidden motifs/layouts/camera positions first. See [world rules](playbook/12-distinct-worlds.md), [lessons](playbook/lessons/v05-playback-and-flicker.md), and [validation](validation/v0.5/README.md). Software checks do not establish target GPU performance, independent review, human listening or production acceptance.
-
-## v0.6: original worlds and downloadable films
-
-The [delivery workflow](playbook/13-film-delivery.md) covers world differences, staged reviews, procedural motif closeups, integration, resumable rendering and per-encode QA. The default player supports seeking during warmup, accessible idle controls, and a same-origin MP4 download enabled by HEAD. See the [celestial phase kit](tracks/music-video/kits/celestial-phase/README.md) and [v0.6 validation](validation/v0.6/README.md).

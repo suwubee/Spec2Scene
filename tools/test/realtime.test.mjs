@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {mkdtemp, mkdir} from 'node:fs/promises';
 import {createAudioTransport} from '../../tracks/music-video/realtime/audio.js';
-import {createCutSafe, hardCuts, remapShotClock, warmupTimes} from '../../tracks/music-video/realtime/timing.js';
+import {createCutSafe, hardCuts, remapShotClock, warmupTimes, warmProgress} from '../../tracks/music-video/realtime/timing.js';
 import {frameDifference, scoreSequence, sampleTimes, cutOffsets} from '../flicker-check.mjs';
 import {validateGeneratedRealtime} from './realtime-browser.mjs';
 
@@ -71,4 +71,17 @@ test('resident starter: strict activation, 5s/25s audio delay, retry, sync, cont
   const base = process.env.SCENE_EVIDENCE_DIR || os.tmpdir(); await mkdir(base, {recursive: true});
   const out = await mkdtemp(path.join(base, 'scene-resident-')); console.log(`Resident evidence retained: ${out}`);
   await validateGeneratedRealtime(out);
+});
+
+test('scene warm-up plan keeps one sample per scene/post combination plus dissolves; progress reports % and ETA', () => {
+  const shots = [
+    {start: 0, end: 4, set: 'a'}, {start: 4, end: 8, set: 'a'}, {start: 8, end: 12, set: 'b', dissolve: 1},
+    {start: 12, end: 16, set: 'a', post: 'night'}, {start: 16, end: 20, set: 'b'}];
+  assert.deepEqual(warmupTimes(shots, 24, {per: 'scene'}), [2, 8.5, 10, 14]);
+  assert.ok(warmupTimes(shots).length > warmupTimes(shots, 24, {per: 'scene'}).length * 2);
+  assert.deepEqual(warmupTimes(shots, 24, {per: 'scene', key: s => s.set}), [2, 8.5, 10]);
+  assert.throws(() => warmupTimes(shots, 24, {per: 'frame'}));
+  assert.deepEqual(warmProgress({steps: 0, total: 4, startedAt: 0, now: 50}), {pct: 0, etaMs: null});
+  assert.deepEqual(warmProgress({steps: 1, total: 4, startedAt: 0, now: 2000}), {pct: 25, etaMs: 6000});
+  assert.deepEqual(warmProgress({steps: 4, total: 4, startedAt: 0, now: 9000}), {pct: 100, etaMs: 0});
 });

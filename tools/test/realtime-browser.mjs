@@ -55,6 +55,12 @@ export async function validateRealtime({url, out, kinds = ['default', 'strict-5s
         await page.waitForFunction(() => __player.warm?.steps > 0 || __player.errors.length);
         assert.deepEqual(await page.evaluate(() => __player.errors), []);
         assert.equal(await page.evaluate(() => __player.media.paused), true, 'audio must wait for representative-frame warmup');
+        row.warmScreen = await page.evaluate(() => ({done: __player.warm.done, preview: __player.warm.preview, warming: document.querySelector('.screen').classList.contains('warming'), canvas: getComputedStyle(document.querySelector('canvas')).visibility, status: document.querySelector('#render-status').textContent}));
+        assert.equal(row.warmScreen.preview, true, 'the first picture is the first warm-up step');
+        if (!row.warmScreen.done) {
+          assert.equal(row.warmScreen.warming, false); assert.equal(row.warmScreen.canvas, 'visible', 'loading screen must show the picture, not text alone');
+          assert.match(row.warmScreen.status, /\d+% · 剩余/);
+        }
         await page.screenshot({path: path.join(directory, 'warmup.png')});
         await page.waitForFunction(() => __player.warm?.done || __player.errors.length);
         assert.deepEqual(await page.evaluate(() => __player.errors), []);
@@ -85,6 +91,15 @@ export async function validateRealtime({url, out, kinds = ['default', 'strict-5s
         row.presentationLagSeconds = row.result.mediaTime - row.result.frameTime;
         row.presentationBudget = Math.abs(row.presentationLagSeconds) < .6 ? 'within 0.6s software observation window' : 'FAIL software presentation budget; target GPU acceptance remains pending';
         assert.equal(row.result.warm.steps, row.result.warm.total); assert.equal(row.result.warm.scenes, 2);
+        // Loading screen: a real first picture before the rest of the warm-up, percentage + ETA, inside the budget.
+        assert.ok(row.result.warm.firstPictureMs > 0 && row.result.warm.firstPictureMs < row.result.warm.ms, 'first picture must precede the full warm-up');
+        assert.equal(row.result.warm.pct, 100); assert.equal(row.result.warm.etaMs, 0);
+        assert.equal(row.result.newPrograms, 0, 'the warm-up plan must leave no program to compile during playback');
+        assert.equal(typeof row.result.warm.overBudget, 'boolean');
+        row.warmTiming = {plan: row.result.warm.plan, steps: row.result.warm.total, firstPictureMs: Math.round(row.result.warm.firstPictureMs), warmMs: Math.round(row.result.warm.ms), budgetMs: row.result.warm.budgetMs};
+        console.log(`warm-up ${kind}: ${JSON.stringify(row.warmTiming)}`);
+        // Timing depends on the machine and its load: gate it on the delivery machine (GATE template), or here via SCENE_WARM_BUDGET_MS.
+        if (process.env.SCENE_WARM_BUDGET_MS) assert.ok(row.result.warm.ms <= Number(process.env.SCENE_WARM_BUDGET_MS), `warm-up ${row.warmTiming.warmMs} ms over SCENE_WARM_BUDGET_MS`);
         assert.equal(row.result.newPrograms, 0);
         if (delay) assert.equal(row.result.transitions.some(t => t.sound === 'failed' || t.sound === 'blocked'), false);
         await page.screenshot({path: path.join(directory, 'playing.png')});

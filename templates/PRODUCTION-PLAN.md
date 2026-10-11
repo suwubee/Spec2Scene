@@ -35,7 +35,7 @@
 
 English: assign one owner per set, gate four stages, retain commands and evidence, and stop release on red tests.
 
-## 所有权与阶段交接（v0.6）
+## 所有权与阶段交接
 
 | 场景/唯一负责人 | 可写文件/文档段落 | 只读接口/依赖 | 127.0.0.1 端口段 | 看图目录 |
 |---|---|---|---|---|

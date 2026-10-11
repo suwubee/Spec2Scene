@@ -98,18 +98,19 @@
 | M28 | 走位忽略速度 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M29 | 为通过质检而改配置 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M30 | 复制旧作品的署名卡 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M31 | 预热载入页只有文字 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
 
-音乐视频 v0.2 追加经验见 [产线经验](../../tracks/music-video/lessons.md)：SVG 误读为二维媒介、逐句图解、反向肘膝没有自动拦截、自审冒充独立审核。导演方法、可运行三维引擎与三关证据共同防止重演。
+## 专题复盘（新 → 旧）
 
-[v0.4 反馈回填](v04-feedback.md)：主画面与 SVG、引擎与作品分离、景别与表演、行级字幕、停滞重启、软件渲染边界。
+各专题的版本归属见[更新记录](../../CHANGELOG.md)。
 
-[v0.4.1 实时播放](realtime-playback.md)：同步音频解锁、媒体主时钟、Worker 隔离、顺序空闲编译、自适应预算、真实帧率与实时可看关卡。
-
-[深做制作法](../11-deep-production.md)与[制作可靠性](deep-production.md)：四场景收敛、四阶段收口、人物剪影、资源所有权、几何守卫与协作事故。
-
-[v0.5 播放与闪烁](v05-playback-and-flicker.md)：同机用户实测、坚持已验证的技术栈、无声静默降级、闪烁七类原因和独立世界。
-
-- [v0.6：新世界、母题与成片交付](v06-world-and-delivery.md)。
-- [v0.7：画面关卡与模型分工](model-division.md)：强模型做组件、任意模型做装配、自动 QA 判定；修复声明必须附对比证据。
-- [v0.8：分工复盘与配置纪律](model-division.md#v08-复盘主力模型--强模型组件--硬门槛的实际结果)：多轮不收敛的问题组件化后一轮解决；质检靠改画面从 12/25 到 25/25；豁免依据、配置报警、共享状态、首帧 prime、署名来源。
+- [预热载入页只有文字](../../tracks/music-video/lessons.md#m31--预热载入页只有文字)：点击→第一帧必须测量，载入页要有真实画面、百分比与剩余时间。
+- [分工复盘与配置纪律](model-division.md#复盘主力模型--强模型组件--硬门槛的实际结果)：多轮不收敛的问题组件化后一轮解决；质检靠改画面，不靠改配置。
+- [画面关卡与模型分工](model-division.md)：强模型做组件、任意模型做装配、自动 QA 判定；修复声明必须附对比证据。
+- [新世界、母题与成片交付](v06-world-and-delivery.md)。
+- [播放与闪烁](v05-playback-and-flicker.md)：同机用户实测、坚持已验证的技术栈、无声静默降级、闪烁七类原因和独立世界。
+- [深做制作法](../11-deep-production.md)与[制作可靠性](deep-production.md)：四场景收敛、四阶段收口、人物剪影、资源所有权。
+- [实时播放](realtime-playback.md)：同步音频解锁、媒体主时钟、Worker 隔离、顺序空闲编译、自适应预算、真实帧率与实时可看。
+- [反馈回填](v04-feedback.md)：主画面与 SVG、引擎与作品分离、景别与表演、行级字幕、停滞重启、软件渲染边界。
+- [产线经验](../../tracks/music-video/lessons.md)：SVG 误读为二维媒介、逐句图解、反向肘膝没有自动拦截、自审不算审核。

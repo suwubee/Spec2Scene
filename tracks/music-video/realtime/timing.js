@@ -29,13 +29,33 @@ export function createCutSafe(cuts, {jump = .008, fps = 24, shutterAngle = 180, 
 }
 
 /** True renders include shot boundaries, midpoints, end frames and both dissolve layers. */
-export function warmupTimes(shots, fps = 24) {
+/** Scene + post combination that owns a shader/program set; override per project when presets differ. */
+export const warmKey = shot => JSON.stringify([shot.set ?? shot.scene ?? shot.id ?? null, shot.post ?? shot.grade ?? null, shot.preset ?? null]);
+
+/** Warm-up sample times.
+ * per:'shot'  — first/middle/last frame of every shot (safe default, slow on long films).
+ * per:'scene' — one middle sample per unique warmKey plus every dissolve interior; only valid when
+ * the playback regression still reports newPrograms === 0 (fixed light layouts, resident scenes).
+ */
+export function warmupTimes(shots, fps = 24, {per = 'shot', key = warmKey} = {}) {
   if (!Number.isFinite(fps) || fps <= 0) throw new RangeError('Positive fps required');
+  if (per !== 'shot' && per !== 'scene') throw new RangeError(`Unknown warm-up plan: ${per}`);
+  const seen = new Set();
   return [...new Set(shots.flatMap(shot => {
     const a = shotStart(shot), b = shotEnd(shot), dissolve = transitionDuration(shot);
     if (!Number.isFinite(a) || !Number.isFinite(b) || a < 0 || b <= a) throw new RangeError('Invalid shot interval');
-    return [a, (a + b) / 2, Math.max(a, b - 1 / fps), ...(dissolve ? [a + Math.min(dissolve, b - a) / 2] : [])];
+    const blend = dissolve ? [a + Math.min(dissolve, b - a) / 2] : [];
+    if (per === 'shot') return [a, (a + b) / 2, Math.max(a, b - 1 / fps), ...blend];
+    const k = key(shot), fresh = !seen.has(k); seen.add(k);
+    return [...(fresh ? [(a + b) / 2] : []), ...blend];
   }))].sort((a, b) => a - b);
+}
+
+/** Progress for the loading screen: percentage and ETA from the measured average step. */
+export function warmProgress({steps, total, startedAt, now}) {
+  const pct = total > 0 ? Math.min(100, Math.round(steps / total * 100)) : 100;
+  const elapsed = Math.max(0, now - startedAt);
+  return {pct, etaMs: steps > 0 && steps < total ? Math.round(elapsed / steps * (total - steps)) : steps >= total ? 0 : null};
 }
 
 /** Map choreography time while world sampling stays on the real film timeline.

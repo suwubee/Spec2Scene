@@ -39,7 +39,7 @@ python3 -m venv .venv
 
 验证：`npm test` 覆盖通用 JS 的正常与失败路径；`npm run test:browser` 验证三项目页面、模型、渲染→编码→QA→联系表→截图、解压和部署本地冒烟。无真实授权数据的额外回归明确 SKIP，不将合成输入宣称为真人结果。
 
-## v0.2 三维电影与音乐证据
+## 三维电影与音乐证据
 
 - `music/understand.py --input FILE --out JSON [--line-count N]`：本地人声活动候选、频段进出、重复段、主导音高、可手调行时间及 PNG；可接本地人声轨/本地分离器，不自动下载模型。详见 music/README.md。
 - `check-anatomy.mjs [--out JSON]`：所有程序角色动作的固定铰链方向、关节范围、骨长、接触、滑步与手端检查。必须与转台/动作序列一起审核。
@@ -51,15 +51,15 @@ python3 -m venv .venv
 
 `render-final.mjs --review REVIEW_JSON --identity REVISION --url URL --out DIR` 是音乐视频正式渲染入口：要求同版本独立 G1–G3 PASS 并逐个确认审核证据存在，再进入单 worker 渲染。生成项目提供 `npm run render:final -- ...`；预览仍使用 render-frames.mjs，不应把预览冒充已获独立批准的 final。
 
-## v0.3 完整电影工具
+## 完整电影工具
 
 音乐视频使用 [cinematic/README.md](cinematic/README.md) 的移植离线工具，含半分辨率预览片段、严格身份续渲、BT.709 编码、像素确定性、叠化校验、字体子集化与 PID 优先级让路。原通用工具仍用于其他产线。
 
-## v0.4 执行与回归
+## 执行与回归
 
 `tools/watchdog.mjs --help`：源码 60 分钟无变化后，按自有 PID 结束、等待退出、通过检查点重启，重启次数有上限。`scripts/validate-v04.mjs <临时输出>` 直接验证通用构件、字幕和正侧动作，保留失败图。`scripts/validate-projects.mjs --isolated --offline` 用临时仓库生成三产线夹具并显式 SKIP 模型推理，避免下载及修改当前 projects。
 
-## v0.4.1 播放验收
+## 播放验收
 
 `timeout 360s npm run test:playback -- /tmp/scene-player-evidence` 在临时仓库通过生成器创建样片，使用默认自动播放策略、未静音 Chromium，测按钮与解码波形起点、20 秒音频推进、真实帧率、自动画质、慢网和弱机；同时验证显式截图模式与逆序像素一致。该回归已接入 npm test 和三产线浏览器验收。当前 projects 不写入，原始 JSON 与截图保留在指定临时目录；Windows/D3D11、真人听审和独立审美另行验收。详见[播放层](../tracks/music-video/player/README.md)。
 
@@ -77,7 +77,7 @@ timeout 600s npm run check:flicker -- --timeout 540000 --out out/flicker-r01
 
 输出 `rows.json`、`flags.txt`、全部缩略图与候选邻帧/概览联系表（每页 ≤12 图、960 px 宽，最多 60 页；超出帧数写入 omittedContactFrames，全部缩略图与 flags 仍保留）。单进程顺序绘制，默认最多 30000 样本、最长 300000 ms；`--max-samples` 上限 60000，超预算提前拒绝，禁止覆盖已有轮次。长片按区间分批；软件后端可增加明确超时。原始图像只留项目 out/ 或临时目录。工具 COMPLETE 表示扫描完成，spike/step 候选含正常硬切；审核者须逐帧解释并记录结论。超时/页面错误保留失败 rows/flags，发布前重新检测。
 
-## 渲染停摆与成片交付（v0.6）
+## 渲染停摆与成片交付
 
 `timeout 7200s node tools/render-resume-guard.mjs --frames <帧目录> --command <命令数组.json> --minutes 3 --poll-seconds 5` 监控原子完成的 `frame-000000.png` / `f00000.png|jpg`，忽略临时文件、空文件、目录和符号链接。命令文件是原渲染命令 JSON 字符串数组。停摆返回 2 并打印安全引用的 `--resume` 与减半 worker（最少 1）；不执行命令、不发信号。收到 INT/TERM 退出 130。`--expected` 达到文件计数仅结束监控，不能代替 manifest/解码完整性检查。
 

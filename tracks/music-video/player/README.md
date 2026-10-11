@@ -12,7 +12,7 @@
 
 预热完成前仍允许音频播放；Worker 按单条在途命令推进预热，避免把所有 GPU 命令一次压入队列。真实 `KHR_parallel_shader_compile` 能力写入诊断；扩展缺失时编译仍在 Worker，并在报告中标注软件回退。预热完成后 `idle()` 只负责补齐未完成的代表时刻，不按镜头销毁或懒建场景。
 
-实时层 v0.4.3 在页面载入后只创建一个 renderer 和一份常驻场景集合。`previewScenes`（若项目提供）在这个单引擎中作为实时场景预算使用，高、中、低档都通过 `ctx.playback`、阴影贴图尺寸、粒子 `drawRange`、后期 uniform/跳过 pass 和运行时 `post.resize()` 改参数；不会销毁引擎、场景或材质，也不会改变 shader defines。MSAA 在整个页面生命周期内固定。`resize()` 会原地调整 renderer、相机、后期 RT、景深尺寸 uniform 和字幕纹理，保留程序缓存。
+实时层在页面载入后只创建一个 renderer 和一份常驻场景集合。`previewScenes`（若项目提供）在这个单引擎中作为实时场景预算使用，高、中、低档都通过 `ctx.playback`、阴影贴图尺寸、粒子 `drawRange`、后期 uniform/跳过 pass 和运行时 `post.resize()` 改参数；不会销毁引擎、场景或材质，也不会改变 shader defines。MSAA 在整个页面生命周期内固定。`resize()` 会原地调整 renderer、相机、后期 RT、景深尺寸 uniform 和字幕纹理，保留程序缓存。
 
 预热从 Worker 初始化后立即开始，不阻塞 `media.play()`：场景先各创建一次并调用 `compileAsync`，随后按镜头首/中/尾和叠化代表时刻渲染，暂时关闭视锥剔除以覆盖阴影、反射和后期组合，再渲染当前时刻恢复画面。HUD/`window.__player.warm` 显示 `场景 x/N · 程序 n/≈N · 步 k/K`；暖机结束时 `programTotalEstimated` 变为 `false`，场景创建数和程序身份快照被冻结。暖机后的 `diagnostics.programs` 记录程序身份集合，`newPrograms` 应为 0；`diagnostics.switches` 要求 `rebuilt:false` 且 `definesChanged:false`。
 

@@ -20,7 +20,7 @@
 
 复杂作品按[深做制作法](../../playbook/11-deep-production.md)收敛到最多四个主场景，再填写 [ART-BIBLE](../../templates/ART-BIBLE.md)、[SET-brief](../../templates/SET-brief.md)、[PRODUCTION-PLAN](../../templates/PRODUCTION-PLAN.md)、[AD-review](../../templates/AD-review.md)、[DIRECTOR-DECISIONS](../../templates/DIRECTOR-DECISIONS.md) 与 [INTEGRATION](../../templates/INTEGRATION.md)。每场景一个负责人，空场与光→英雄画面→其余预设→收口，每阶段保留证据。
 
-[引擎 v0.3](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
+[引擎](engine/README.md)整体保留 core / post / camera / sky / terrain / water / particles / materials / procTex / geo / noise / lyrics / audio / util / moon，合并镜头表、world、traces 适配层；[kits](kits/README.md)提供参数化构件与试验台；[角色](character/README.md)带固定铰链方向、关节限位、距离步态与自动检查。所有场景读同一个 `world.at(t)`，共享坐标、光照、曝光与母题参数。
 
 默认页面使用[逐镜预热常驻播放器](realtime/README.md)：点击栈同步 play()+pause() 解锁，逐镜实际 renderFrame 预热后正式播放；一个完整电影引擎与场景常驻，音频驱动画面。慢网暂用墙钟且持续提示载入中，音频就绪后对齐接管；只在 error 换源，失败可重试。原[分层播放器](player/README.md)保留为实验性，通过 experimental.html 选择，默认不用。
 
@@ -32,12 +32,12 @@ G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面�
 
 使用 [tools/cinematic](../../tools/cinematic/README.md) 的 render_frames → encode → qa；重新打开浏览器逆序复渲比较像素。黑场、冻结、色带和音画长度只是候选，转场与闪光逐格审核；母版与分享版分别 QA。导出源码、运行指南、输入授权、联系表和质检报告，作品不回填方法仓库。
 
-**画面关卡（v0.7）**：每轮看图目录先过 [picture-qa](../../tools/picture-qa/README.md)，修复声明附 `--compare --claim`；人物按[角色规范](character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入，雪/冰/夯土只用 [kits/materials](kits/materials/README.md)。分工与原因见[画面关卡与模型分工](../../playbook/14-picture-gate.md)。
+**画面关卡**：每轮看图目录先过 [picture-qa](../../tools/picture-qa/README.md)，修复声明附 `--compare --claim`；人物按[角色规范](character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入，雪/冰/夯土只用 [kits/materials](kits/materials/README.md)。分工与原因见[画面关卡与模型分工](../../playbook/14-picture-gate.md)。
 
-**远景、体块与常驻约定（v0.8）**：远山/地平线与房屋、城墙、残台、船体只用 [kits/far](kits/far/README.md)；人物走位用 [walkPath](character/README.md#行走路径与脚印对齐)；共享天空等共享对象按场景隔离、每个场景首样本双渲（[引擎说明](engine/README.md#常驻多场景共享对象隔离与首帧-primev08)）；picture-qa 豁免只依据三类画面事实且配置变宽报警；片名与署名只来自项目 `src/credits.js`。
+**远景、体块与常驻约定**：远山/地平线与房屋、城墙、残台、船体只用 [kits/far](kits/far/README.md)；人物走位用 [walkPath](character/README.md#行走路径与脚印对齐)；共享天空等共享对象按场景隔离、每个场景首样本双渲（[引擎说明](engine/README.md#常驻多场景共享对象隔离与首帧-prime)）；picture-qa 豁免只依据三类画面事实且配置变宽报警；片名与署名只来自项目 `src/credits.js`。
 
 开始阅读：[规格](SPEC.md)、[QA](QA.md)、[经验](lessons.md)、[通用工具](../../tools/README.md)。English: Translate emotion into recurring imagery, then direct the camera. Independent gates review mood, anatomy and the complete cinematic preview.
 
-## v0.6 交付闭环
+## 交付闭环
 
 继续按[成片交付](../../playbook/13-film-delivery.md)和 [EXPORT](../../templates/EXPORT-music-video.md)执行预览审片、受限 final 渲染、三分钟停摆监控与减少 worker 续渲、母版 CRF 14 / 分享版 CRF 19 maxrate 16M、逐版 QA 与下载。母题过程使用 [MOTIF-CLOSEUP](../../templates/MOTIF-CLOSEUP.md)；[相位构件](kits/celestial-phase/README.md)提供不含来源内容的程序化样例。下载路径默认 assets/video/share.mp4，服务端必须支持 video/mp4 和 Range。

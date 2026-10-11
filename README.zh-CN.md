@@ -2,7 +2,7 @@
 
 **From spec to scene — an AI-agent playbook for music videos, 3D simulations and motion games.**
 
-[English](README.md) · [方法总览](playbook/00-overview.md) · [工具说明](tools/README.md)
+[English](README.md) · [方法总览](playbook/00-overview.md) · [工具说明](tools/README.md) · [更新记录](CHANGELOG.md)（当前 0.9.0，倒序）
 
 这是一套让 AI 编码智能体按规格产出作品的仓库基准：方法、模板、工具、三条产线和智能体适配。导演明确目标，编码智能体实现，审核者亲自复跑测试、查看真实数据和截图。仓库本身只包含通用流程与起步代码，不含具体作品、素材、模型或数据集。
 
@@ -53,45 +53,24 @@ scripts/new-project.sh motion-games my-motion
 
 执行 `npm test`、`npm run test:browser -- --isolated --offline`（不写当前 projects、不下载模型）或常规 `npm run test:browser` 及工具文档列出的 Python `--selftest`。浏览器验收自动生成三条产线的演示项目，使用 39920–39939 的本地端口，验证后按自己的 PID 关闭并清理。受限数据缺失明确 SKIP，不能将合成测试结果写成真实识别准确率。
 
-## 效果门槛（v0.4）
+## 音乐视频要点
 
-先写[意境书](tracks/music-video/directing/01-mood-first.md)与[意象转译表](tracks/music-video/directing/01b-imagery-translation.md)：例如让脚印承接月光，用大景小人和留白烘托孤独。歌词是情绪证据，不能直接变成逐句图解的镜头清单。
+本节只描述当前做法；每一版改了什么见 [更新记录](CHANGELOG.md)。
 
-每镜至少前/中/后三层空间，半浮点 HDR 与色调映射、有动机的灯光、雾或体积光、焦距/光圈/对焦距离驱动的景深，以及镜头表驱动的运动与转场。默认角色使用写实比例，肘膝限位和人体结构检查进入 npm test。详细标准见 [05-quality-bar](tracks/music-video/directing/05-quality-bar.md)。
+**意境先于歌词。** 先写[意境书](tracks/music-video/directing/01-mood-first.md)与[意象转译表](tracks/music-video/directing/01b-imagery-translation.md)：例如让脚印承接月光，用大景小人和留白烘托孤独。歌词是情绪证据，不能直接变成逐句图解的镜头清单。每镜至少前/中/后三层空间，半浮点 HDR 与色调映射、有动机的灯光、雾或体积光、焦距/光圈/对焦距离驱动的景深，以及镜头表驱动的运动与转场。详见 [05-quality-bar](tracks/music-video/directing/05-quality-bar.md)。
 
-G1 意境/分镜/样张、G1b 新引擎重渲、G2G3 全曲/表演/字幕、FINAL 最终复验均由独立审核人完成，前关未通过不得推进，自审不算审核。v0.3 整体移植成熟引擎并提供 [参数化工具包](tracks/music-video/kits/README.md)、[离线预览与复验工具](tools/cinematic/README.md)。执行 `npm run test:cinematic` 生成 1920×1080 关键帧、大图联系表、升起/叠化/雨连续序列、工具包截图和性能证据，保存到生成项目的 out/。角色独立验收不由本引擎脚本代签；历史基线见 [v0.2 报告](validation/v0.2/README.md)。软件后端截图不等于真机性能或独立审美通过。
+**独立关卡。** G1 意境/分镜/样张 → G1b 新引擎重渲 → G2G3 全曲/表演/字幕 → FINAL 最终复验，均由独立审核人完成，前关未通过不得推进，自审不算审核。模板见[导演稿](templates/CONCEPT-music-video.md)与[送审](templates/GATE-music-video.md)。
 
-## v0.3.1 通用增补
+**新世界与深做。** 每部新 MV 按[区分度规则](playbook/12-distinct-worlds.md)建立自己的世界观和禁用清单，只复用底层引擎与改型改色的通用构件；按[深做制作法](playbook/11-deep-production.md)每个场景一个负责人分阶段推进，按[成片交付](playbook/13-film-delivery.md)完成集成、续渲、编码 QA 与下载。
 
-[歌词对齐管线](tools/music/lyrics/README.md)提供本地 Demucs/pYIN、逐字 DP、人工校正、锁定字幕与合成歌误差自测；[场景反馈工具](tracks/music-video/kits/feedback.md)提供曲线鞋印、连续地形、公寓近物、玻璃倒影及可见性统计。完整复验可设置 `SCENE_PYTHON` 指向已安装音乐依赖的 Python；缺少依赖会显式 SKIP 音频自测。
+**画面关卡。** 每轮代表帧先过不依赖任何模型的 [picture-qa](tools/picture-qa/README.md)（条纹、外缘光晕、平涂、亮度分布、积云团、暖色占比、修复对比）；修复声明必须附 `--compare --claim`，豁免必须有依据，配置变宽会报警。分工见[画面关卡与模型分工](playbook/14-picture-gate.md)。
 
-## v0.4.0 能力与验证边界
+**引擎与构件。** [三维电影引擎](tracks/music-video/engine/README.md)、[参数化构件](tracks/music-video/kits/README.md)（远山与建筑体块、雪/冰/夯土材质、天体相位、云海与水面等）、[人物](tracks/music-video/character/README.md)、[歌词对齐](tools/music/lyrics/README.md)与[离线预览与复验工具](tools/cinematic/README.md)。`npm run test:cinematic` 在生成项目的 out/ 写入关键帧、联系表、连续序列和性能证据。
 
-| 能力 | 已实现与实测范围 | 仍未验证或不足 |
-|---|---|---|
-| 天空与气氛 | 逐帧月相、低月珍珠白中和、光线步进云海自阴影/银边、外部地形谷雾；软件浏览器同帧/逆序检查 | 云内复杂物体交界、目标 GPU 性能 |
-| 场景构件 | 盆/缸/水洼场景反射、长焦远山细分、室内月光反弹/漫射、细分岩石与程序材质 | GI、波面动力学、超近景石材、城市语义 LOD |
-| 镜头与后期 | 分镜曝光/白平衡覆盖全局，逐镜曲线、FX 光柱状态刷新 | 真机实时全曲音画同步预算 |
-| 角色 | 动作交叉混合、加性抬头/转头/低头、坐姿膝上手位、抱膝、发髻高光；人体采样与多视角连续序列 | 中景脸/手/衣料真实感、任意坡面 IK、完整布料/接触碰撞 |
-| 歌词与排版 | 人声留存、静音乐句/段落保序/比例行窗、±0.3 秒起点与审核批准、人物包围盒避让 | 真实歌曲识别精度、真人听审；比例边界始终是估计 |
-| 流程 | 导演稿及虚构示例、四道独立关卡、命令超时、上下文检查点、60 分钟停滞看门狗 | 自动检查不代签审美、真人表演或生产验收 |
+**实时播放。** [默认播放器](tracks/music-video/realtime/README.md)：点击同步解锁音频 → 先显示起点第一帧 → 在画面上显示预热百分比与剩余时间 → 音频驱动画面，场景与引擎常驻、播放中零新着色器程序。载入页不能只有文字，点击到第一帧和预热总时长都要测量并对照预算。截图用 `?mode=capture` 或 `?quality=final`（固定高画质、确定性 seek、无音频）。原[分层播放器](tracks/music-video/player/README.md)为实验性，默认不用。`npm run check:flicker` 检查硬切与闪烁，`timeout 960s npm run test:playback -- <临时证据目录>` 跑严格自动播放与慢网回归。
 
-接口见 [v0.4 构件](tracks/music-video/kits/v04.md)、[导演稿](templates/CONCEPT-music-video.md)、[版本记录](CHANGELOG.md)及[本轮验收](validation/v0.4/README.md)。`npm run test:v04 -- <临时证据目录>` 直接测试仓库通用构件；图像和原始日志只留临时输出。目标 GPU、真人听审、真实模型推理与生产环境无本轮通过声明。保留 `wip/v021-partial` 参考分支，不自动推送。
-
-## v0.5 默认实时播放
-
-[默认播放器](tracks/music-video/realtime/README.md)采用点击 → 逐镜代表帧真实渲染预热 → 音频驱动画面，场景与引擎常驻。点击手势中同步 play()+pause() 解锁；只在媒体 error 换源，无超时判失败；慢网先用墙钟并提示载入中，音频就绪后对齐接管；阻止声音和失败均可点击恢复。原 [tracks/music-video/player](tracks/music-video/player/README.md) 保留为**实验性，默认不用**，通过 experimental.html 或 ?player=experimental 选择。截图仍显式 ?mode=capture 或 ?quality=final，固定高画质、确定性 seek，无音频。
-
-`timeout 960s npm run test:playback -- <临时证据目录>` 测默认策略与严格用户激活、去 webdriver 特征、音频延迟 5 秒/25 秒、最终解码信号和同步。生成项目新增 `npm run check:flicker`：24 Hz seek 与 60 Hz 实时策略双路、硬切 ±1/4.5/25 ms、64×36 全局 spike/step 和 16×9 局部 spike，输出 rows.json、flags.txt、联系表。60 Hz 是时间采样密度，不是实际显示帧率声明；候选需逐帧审核。
-
-每部新 MV 按[区分度规则](playbook/12-distinct-worlds.md)建立自己的世界观和禁用清单；SET-brief 写差异说明与自查，AD 评审 1 首项查禁用清单。只复用底层引擎与改型改色的通用构件。经验见[同机对比、稳定技术栈与七类闪烁](playbook/lessons/v05-playback-and-flicker.md)，实测与边界见[v0.5 验证](validation/v0.5/README.md)。库回归不代签独立审美、真人听审、目标 GPU 或生产验收。
+**验证边界。** 软件后端截图与回归不等于目标 GPU 性能、独立审美、真人听审或生产验收；各轮实测记录在 [validation](validation/README.md)。
 
 ## 许可与责任
 
 本仓库原创内容采用 [Apache-2.0](LICENSE)，版权为 suwubee 与贡献者。未随仓库分发第三方创作素材；第三方依赖保留各自许可，模型下载记录许可来源，使用前仍须核验。用户对上传、导入、下载、生成内容及第三方服务的授权负责；输出需人工审核，体感活动不构成医疗或专业健身建议，摄像头默认本地处理。完整说明见 [中英免责声明](DISCLAIMER.md)、[隐私与许可](playbook/09-privacy-and-licensing.md)。
-
-## v0.6 新世界与可下载成片
-
-[全流程交付](playbook/13-film-delivery.md)补齐世界观差异表、全局禁用、四阶段导演初审、母题过程特写、集成与逐版编码 QA。默认播放器支持预热中点击/拖动 seek、2.5 秒空闲隐藏、44px 触控区；`assets/video/share.mp4` 通过 HEAD 后启用下载，缺失显示生成中，截图路径无控件和下载请求。
-
-[天体相位构件](tracks/music-video/kits/celestial-phase/README.md)使用程序烘焙表面与单次全屏绘制；地形新增 slope 材质与大气选项。`tools/render-resume-guard.mjs` 默认三分钟无新帧报警并给出减 worker 的续渲命令，优先级守卫只降低光栅进程。执行 `timeout 360s npm run test:v06 -- <临时证据目录>`；[v0.6 验证记录](validation/v0.6/README.md)说明实测与边界。

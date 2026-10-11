@@ -83,7 +83,7 @@ AD 评审 1 的首项为禁用清单；未通过先改设计，再做灯光细�
 
 English: dimensions, props by L1/L2/L3, motivated lights, atmosphere, lens presets, reuse, deterministic seeds, budgets and acceptance evidence are mandatory.
 
-## 所有权与阶段交接（v0.6）
+## 所有权与阶段交接
 
 | 场景/唯一负责人 | 可写文件/文档段落 | 只读接口/依赖 | 127.0.0.1 端口段 | 看图目录 |
 |---|---|---|---|---|

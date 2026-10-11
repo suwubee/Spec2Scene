@@ -1,4 +1,4 @@
-# 三维电影引擎 v0.3
+# 三维电影引擎
 
 本版整体移植用户授权的成熟电影引擎。两个授权快照逐模块比对，15 个模块的 SHA-256 全部相同；选择共同版本保留算法，而不是根据目录时间猜测版本。来源字节数与摘要见 [port-manifest.json](port-manifest.json)。后续快照新增的植物、假山与铺装通用算法放在 [kits](../kits/README.md)，没有导入原作品场景、坐标布局、歌曲、字体或素材。代码作者 suwubee；three.js r186 保留原 MIT 许可。
 
@@ -56,7 +56,7 @@ engine.dispose();
 
 透明加色雨/尘埃/雾放 FX layer 7，深度来自主场景；粒子库已处理此契约。加色光输出预乘颜色且 alpha=0，遮挡才使用 alpha。不要让透明物的背景深度参与普通实体景深。反射/LUT 等预渲染必须保存并恢复 renderTarget、viewport、scissor；dispose 成对释放纹理、几何和后期 RT。
 
-## 常驻多场景：共享对象隔离与首帧 prime（v0.8）
+## 常驻多场景：共享对象隔离与首帧 prime
 
 **共享对象按场景保存/恢复。** 常驻播放器里所有场景同时存在，一个 renderer 只有一个共享天空（`getSharedSky`）；共享大气、共享材质同理。场景只 `setOptions` 一个子集、或在实例已存在时把选项传给 `getSharedSky`（被忽略），画面就跑在“上一个渲染的场景”或引擎默认值上：单场景调试帧对、全片帧错，换 seek 顺序像素就变。规则：每个场景在使用前写入**全键向量**（默认值补齐它没设的键），用完恢复。
 
@@ -89,6 +89,6 @@ update(t, w, camera) { mySky.update(t, w, camera); }                      // 全
 
 离线命令、预算、续渲、字体子集化和优先级让路见 [tools/cinematic](../../../tools/cinematic/README.md)。试验台和样片证据由 `node scripts/validate-cinematic.mjs` 生成到项目 out/；独立 G1/G2/G3 仍需要审核人。云底、自阴影、贴片植物近景、屏幕空间雾、解析雨光和薄膜反射都有近似，不能把程序化画面当实拍或真实数据验证。
 
-## v0.4 帧通道与场景接口
+## 帧通道与场景接口
 
-月相使用 world.moonPhaseAngle，月盘中和使用 lunarDiscNeutrality。全局 postOverride 是镜头默认值，shot.post/grade 优先；seek 的显式 post 最高。逐帧曲线和谷雾地形契约见 [v0.4](../kits/v04.md)。字符包围盒用于原生字幕避让；返回无法避让的情况须调整构图。
+月相使用 world.moonPhaseAngle，月盘中和使用 lunarDiscNeutrality。全局 postOverride 是镜头默认值，shot.post/grade 优先；seek 的显式 post 最高。逐帧曲线和谷雾地形契约见[构件说明](../kits/v04.md)。字符包围盒用于原生字幕避让；返回无法避让的情况须调整构图。

@@ -29,8 +29,12 @@ if (params.get('player') === 'experimental' && !capture) {
   state.transport = transport;
   controls = createControls({root: document.querySelector('.transport'), slider, download: document.querySelector('#download'), time: document.querySelector('#time'), transport, refresh: () => player?.refresh(), isWarming: () => starting});
   state.controls = controls;
+  const eta = ms => ms == null ? '估算中' : ms < 60000 ? `约 ${Math.ceil(ms / 1000)} 秒` : `约 ${Math.ceil(ms / 60000)} 分钟`;
   function progress(warm) {
-    renderStatus.textContent = warm.error ? `画面失败：${warm.error} · 点击播放重试` : warm.done ? `镜头预热完成 ${warm.steps}/${warm.total}` : `正在预热镜头 ${warm.steps}/${warm.total}`;
+    // After the first picture the canvas is shown under the status line; text alone never fills the screen.
+    document.querySelector('.screen').classList.toggle('warming', !warm.error && !warm.done && !warm.preview);
+    renderStatus.textContent = warm.error ? `画面失败：${warm.error} · 点击播放重试` : warm.done ? `镜头预热完成 ${warm.steps}/${warm.total}`
+      : warm.preview ? `正在预热镜头 ${warm.pct}% · 剩余${eta(warm.etaMs)}` : '正在准备第一帧画面…';
   }
   async function toggle() {
     if (starting) return;
@@ -43,7 +47,7 @@ if (params.get('player') === 'experimental' && !capture) {
       document.querySelector('.screen').classList.add('warming');
       try {
         const [{createResidentPlayer}, {createRuntime}] = await Promise.all([import('./player.js'), import(new URL('../src/resident-runtime.js', import.meta.url))]);
-        player = await createResidentPlayer({runtime: createRuntime, canvas: document.querySelector('canvas'), transport, state, progress, present({t, shot, frames}) {
+        player = await createResidentPlayer({runtime: createRuntime, canvas: document.querySelector('canvas'), transport, state, progress, warmPlan: params.get('warm') === 'shot' ? 'shot' : 'scene', present({t, shot, frames}) {
           controls.present(t);
           document.querySelector('#subtitle').textContent = shot.caption || '';
           const elapsed = (frames.at(-1).at - frames[0].at) / 1000;

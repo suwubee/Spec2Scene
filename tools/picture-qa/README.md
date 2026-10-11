@@ -43,7 +43,7 @@ npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上�
 
 模板：[shots.template.json](shots.template.json)。生成项目把它放在 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目。帧 → 镜头按文件名匹配：`<scene>_t<秒>.png`（`--url --scene ID` 抓帧的命名）、`t<秒>.png` 或 `frame-<n>.png` + `fps`；`t ∈ [t0, t1)`。合并顺序：内置 TH < defaults < scene < shot < 命令行。字段：`luma{lo,hi,p99min,p01max,drmin}`、`warmMax`、`sky`、`allowStripes[{rect,why}]`、`roi`、`claim`、`requireChange`、`skip`+`skipWhy`、`exempt`、`notes`；`_` 开头的键是注释，但 `_why` 在有豁免的层是必填的。未知键、越界矩形、缺 `exempt`/`_why` 的豁免都会让 `--check-config` 失败（见下节）。
 
-## 豁免的唯一依据与配置报警（v0.8）
+## 豁免的唯一依据与配置报警
 
 豁免只能建立在画面里的三类事实上，每条都必须在**同一层**写 `"exempt": [...]` 与 `"_why"`（≥ 12 字，说清画面里是什么）：
 

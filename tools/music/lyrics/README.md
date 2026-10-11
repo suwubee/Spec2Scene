@@ -50,7 +50,7 @@ scripts/fetch-models.sh --kind demucs --project projects/demo
 合成自测程序生成 12 个谐波“人声”单元与伴奏，已知起点包含非 10 ms 刻度、重复同音高和不同长度。断言平均起点误差 ≤65 ms、最大 ≤120 ms，另外覆盖模型缺失、静音、手工确认/解锁、无效校正和重跑保存。此测试不证明真实歌声或 Demucs 分离质量；真实音频/真人听审缺失应明确 SKIP。`SCENE_PYTHON` 可让 npm test 使用安装了依赖的解释器。
 
 
-## v0.4 乐句模式与行级批准
+## 乐句模式与行级批准
 
 `timeout 600s python3 tools/music/lyrics/align.py --mode phrase --input <混音> --vocal-stem <等长人声> --lyrics <文本或JSON> --out <输出> --threshold-db -38 --silence .25 --minimum-phrase .15`。人声保留为输出目录 `vocals.wav`，不会在临时目录退出时删除。没有人声或可用本地 Demucs 时乐句模式明确失败，不用混音活动冒充人声；不隐式联网。
 

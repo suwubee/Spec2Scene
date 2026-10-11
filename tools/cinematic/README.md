@@ -45,4 +45,4 @@ node tools/cinematic/build_fonts.mjs --selftest
 
 项目生成器会复制整个工具链到 tools.local/cinematic/，保持相对依赖可独立运行。`snap.mjs` 可单页拍摄，`scripts/validate-cinematic.mjs` 是仓库 A 线的样片/工具包浏览器验收。真人、真实音频、目标 GPU 和生产环境缺失时如实 SKIP。
 
-v0.3.1 的 `render_state.json` worker 和 `render_log.jsonl` 每帧记录 quality.requested / actual / offline，区分请求档、实际档、离线目标档。明确 high/medium 不再因软件后端静默降为 low；只有 auto 会按后端选择。自定义页面未提供 qualityInfo 时写 null。
+`render_state.json` worker 和 `render_log.jsonl` 每帧记录 quality.requested / actual / offline，区分请求档、实际档、离线目标档。明确 high/medium 不再因软件后端静默降为 low；只有 auto 会按后端选择。自定义页面未提供 qualityInfo 时写 null。

@@ -28,7 +28,7 @@
 
 English: define spatial layers, two-layer materials, motivated light, silhouette character treatment, lens-driven optics, deterministic reuse, resource ownership and independent visual review.
 
-## 世界观差异与全局禁用（v0.6）
+## 世界观差异与全局禁用
 
 参考只作画质标杆。每行写可验证的差异，设计资料只留项目。
 

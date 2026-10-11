@@ -22,10 +22,10 @@
 
 同机同后端比较实时性能时，使用“参考作品基准对比法”（以一部已验证流畅的成熟作品作基准）：固定 1280×720、浏览器后端、CPU/栅格线程和音频窗口，在两页都完成预热后测预热程序数、预热耗时、相邻 GPU 完成帧时间平均值/p90，并单列播放期长任务（>200 ms）。截图、解码波形和软件后端只能作为证据，不能替代目标 GPU、真人听审或独立审美审核。
 
-v0.4.3 已把单引擎常驻、后台预热、运行时 RT resize、固定灯光签名和暖机后零新程序检查接入通用播放器；浏览器回归仍只证明软件后端与起步样片，不能代替目标设备的真人实时审核。
+已把单引擎常驻、后台预热、运行时 RT resize、固定灯光签名和暖机后零新程序检查接入通用播放器；浏览器回归仍只证明软件后端与起步样片，不能代替目标设备的真人实时审核。
 
 English: never rebuild on quality changes or change shader defines; keep warmed sets resident; observe zero new program identities during playback. Diagnostics are evidence, not a residency implementation.
 
-## v0.5 默认选择
+## 默认选择
 
 以上 Worker/分层方案保留为实验性，默认不用。新项目默认[点击逐镜预热与常驻](../../tracks/music-video/realtime/README.md)。用户同机实测优先于架构推断；历史重建/灯数组合修复不免除懒建和分层复杂度的回归风险。见[无声与闪烁教训](v05-playback-and-flicker.md)。
