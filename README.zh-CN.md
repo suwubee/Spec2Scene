@@ -63,7 +63,7 @@ scripts/new-project.sh motion-games my-motion
 
 **新世界与深做。** 每部新 MV 按[区分度规则](playbook/12-distinct-worlds.md)建立自己的世界观和禁用清单，只复用底层引擎与改型改色的通用构件；按[深做制作法](playbook/11-deep-production.md)每个场景一个负责人分阶段推进，按[成片交付](playbook/13-film-delivery.md)完成集成、续渲、编码 QA 与下载。
 
-**画面关卡。** 每轮代表帧先过不依赖任何模型的 [picture-qa](tools/picture-qa/README.md)（条纹、外缘光晕、平涂、亮度分布、积云团、暖色占比、修复对比）；修复声明必须附 `--compare --claim`，豁免必须有依据，配置变宽会报警。分工见[画面关卡与模型分工](playbook/14-picture-gate.md)。
+**画面关卡。** 每轮代表帧先过不依赖任何模型的 [picture-qa](tools/picture-qa/README.md)（条纹、外缘光晕、平涂、亮度分布、积云团、暖色占比、修复对比）；修复声明必须附 `--compare --claim`，豁免必须有依据，配置变宽会报警。分工见[画面关卡与模型分工](playbook/14-picture-gate.md)。难件与场景按[迭代协议](playbook/15-iteration-protocol.md)推进：一轮一会话、每轮附导演审过的联系表、观感指标成对上下限并写明测量口径、每件最多三轮后降级冻结。
 
 **引擎与构件。** [三维电影引擎](tracks/music-video/engine/README.md)、[参数化构件](tracks/music-video/kits/README.md)（远山与建筑体块、雪/冰/夯土材质、天体相位、云海与水面等）、[人物](tracks/music-video/character/README.md)、[歌词对齐](tools/music/lyrics/README.md)与[离线预览与复验工具](tools/cinematic/README.md)。`npm run test:cinematic` 在生成项目的 out/ 写入关键帧、联系表、连续序列和性能证据。
 

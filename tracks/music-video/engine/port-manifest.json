@@ -85,9 +85,9 @@
     "sourceBytes": 47343,
     "sourceSHA256": "621c5d01e839de92b93ba1c7ade0732529a5317d89bce9e5d61a2251060ccd47",
     "comparison": "identical in both authorized snapshots",
-    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes.",
-    "portedBytes": 49989,
-    "portedSHA256": "d6c995da1c12e406f2b0116c5a4330acf9065226c37437928e2b926ef4c259f4"
+    "changes": "Preserve complete module algorithms; remove work content, inject project inputs, local imports, explicit errors and integer hashes in older helpers. v0.4.3: resident renderer and post-target resizing without shader or MSAA changes. v0.11: optional lens.resample 'catrom' (Catmull-Rom develop-pass reconstruction); default 'bilinear' keeps every existing output byte-identical.",
+    "portedBytes": 51580,
+    "portedSHA256": "8d9164aff0fb77ba7e0765b79496561a92cfd3580b1cf7b69400631e06242264"
   },
   {
     "module": "procTex.js",

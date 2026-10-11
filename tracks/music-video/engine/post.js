@@ -45,6 +45,8 @@ export const DEFAULT_POST = {
     vignetteStart: 0.45,         // normalised radius where extra vignette starts (0 centre..1 corner)
     softness: 0.08,              // blend toward the ½-res image (diffusion / old glass)
     highlightSoft: 0.7,          // extra blend for very bright pixels (kills HDR edge stair-steps, lens bleed)
+    resample: 'bilinear',        // develop-pass reconstruction through weave/distortion/CA: 'bilinear' (default look) |
+                                 // 'catrom' (Catmull-Rom: keeps 1–4 px contrast; sharper, opt in per film or shot)
   },
   tone: {                        // matches LIB_COMMON §2: moonlit albedo-0.5 (0.035) → ~21 % display, 0.18 → ~44 %
     contrast: 1.14,              // power of the tonescale (slope in log space)
@@ -72,6 +74,12 @@ export const DEFAULT_POST = {
 };
 
 export function mergePost(...ps) { return deepMerge(DEFAULT_POST, ...ps); }
+/** Develop-pass resample mode → shader int. undefined/'bilinear' → 0 (default); 'catrom' → 1; anything else throws. */
+export function resampleMode(v) {
+  if (v === undefined || v === null || v === 'bilinear') return 0;
+  if (v === 'catrom') return 1;
+  throw new Error(`post.lens.resample must be 'bilinear' or 'catrom', got ${JSON.stringify(v)}`);
+}
 
 // ---------------------------------------------------------------------------------------------
 const VS = /* glsl */ `
@@ -353,9 +361,28 @@ uniform vec4 uDist;         // k (barrel), 1/(1+k r2max), caR, caB (fraction at 
 uniform float uAspect;
 uniform float uImgK;        // 1 - bloom strength (the image is already exposed)
 uniform float uWeight;
+uniform int uResample;      // 0 = bilinear (default), 1 = Catmull-Rom (lens.resample 'catrom')
 vec3 srgbEncode(vec3 c){
   c = clamp(c, 0.0, 1.0);
   return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
+}
+// Catmull-Rom (Keys B=0, C=0.5) weights for the four taps at offsets -1, 0, 1, 2 around the sample.
+vec4 crWeights(float t){ float t2 = t * t, t3 = t2 * t;
+  return vec4(-0.5 * t3 + t2 - 0.5 * t, 1.5 * t3 - 2.5 * t2 + 1.0, -1.5 * t3 + 2.0 * t2 + 0.5 * t, 0.5 * t3 - 0.5 * t2); }
+vec3 sampleSharp(vec2 uv){
+  if (uResample == 0) return textureLod(tSharp, uv, 0.0).rgb;
+  ivec2 res = textureSize(tSharp, 0);
+  vec2 p = uv * vec2(res) - 0.5;
+  ivec2 fl = ivec2(floor(p));
+  vec2 f = p - vec2(fl);
+  vec4 wx = crWeights(f.x), wy = crWeights(f.y);
+  vec3 c = vec3(0.0); float ws = 0.0;
+  for (int j = -1; j <= 2; j++) for (int i = -1; i <= 2; i++) {
+    float w = wx[i + 1] * wy[j + 1];
+    c += texelFetch(tSharp, clamp(fl + ivec2(i, j), ivec2(0), res - 1), 0).rgb * w;
+    ws += w;
+  }
+  return c / max(ws, 1e-4);   // weights sum to 1; renormalise against float error
 }
 void main(){
   vec2 pic = vUv + uWeave;
@@ -369,8 +396,8 @@ void main(){
   vec2 uvR = pd * (1.0 + uDist.z * cr) * sc + 0.5;
   vec2 uvB = pd * (1.0 - uDist.w * cr) * sc + 0.5;
   vec3 col;
-  if (cr > 0.2) col = vec3(textureLod(tSharp, uvR, 0.0).r, textureLod(tSharp, uvG, 0.0).g, textureLod(tSharp, uvB, 0.0).b);
-  else col = textureLod(tSharp, uvG, 0.0).rgb;   // CA < ~0.25 px near the centre
+  if (cr > 0.2) col = vec3(sampleSharp(uvR).r, sampleSharp(uvG).g, sampleSharp(uvB).b);
+  else col = sampleSharp(uvG);   // CA < ~0.25 px near the centre
   col = clamp(col, vec3(0.0), vec3(30000.0));
   vec3 ge = textureLod(tGlow, uvG, 0.0).rgb; ge *= ge;
   vec3 glow = ge / max(1.0 - ge, 1e-4);
@@ -636,6 +663,7 @@ export function createPost(renderer, opts) {
       const m = mat(FS_DEVELOP, {
         tSharp: U(accumRT.texture), tGlow: U(glowRT.texture), tLut: U(null),
         uWeave: U(new THREE.Vector2()), uDist: U(new THREE.Vector4()), uAspect: U(PW / PH), uImgK: U(1), uWeight: U(1),
+        uResample: U(0),
       }, { ...LUT_DEF, DEBUG: debug | 0 });
       m.blending = THREE.CustomBlending; m.blendEquation = THREE.AddEquation; m.blendSrc = THREE.OneFactor; m.blendDst = THREE.OneFactor;
       develops.set(key, m);
@@ -781,6 +809,7 @@ export function createPost(renderer, opts) {
     const halfDiag = 0.5 * Math.hypot(PW, PH);
     u.uDist.value.set(k, 1 / (1 + k * r2max), (P.lens.ca * refScale) / halfDiag, (P.lens.ca * refScale * 0.6) / halfDiag);
     u.uImgK.value = 1 - P.bloom.strength;
+    u.uResample.value = resampleMode(P.lens.resample);
     renderer.setViewport(0, 0, PW, PH);
     pass(F, dispRT, 'develop');
     api._lastDevelop = F;

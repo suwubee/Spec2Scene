@@ -4,7 +4,7 @@
 
 它只做像素统计（纯 JS，只依赖 `node:zlib`），不调用任何模型，也不需要“会看图”。同一组 PNG 在任何机器上得到同一份 JSON 与同一个 PASS/FAIL。所以**任何模型都能跑、都能读懂结果**：报告给出失败检查名、数值和问题区域坐标（`box` 归一化、`px` 原图像素），不会看图的模型也能据此定位要改的区域；会看图的模型和人再看 `<帧>_qa.png` 标注图。
 
-它不代替独立视觉审核：PASS 只说明“这七类已知错误没有出现”，不说明画面好看、构图正确或符合意境。导演/审核人仍逐图签字。
+它不代替独立视觉审核：PASS 只说明“这些已知错误没有出现”，不说明画面好看、构图正确或符合意境。导演/审核人仍逐图签字。
 
 ## 用法
 
@@ -17,13 +17,16 @@ npm run qa:picture -- --url http://127.0.0.1:39920/?mode=capture --scene exterio
 npm run qa:picture -- --dir out/review/<scene>/r04 --compare out/review/<scene>/r03 --claim stripes,halo
 npm run qa:picture -- --check-config docs/picture-qa.shots.json        # 只校验配置，列出全部豁免
 npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上一版配置>   # 变宽即 ALERT，退出码 4
+# 构件检查台：按构件掩码测（排除邻件、边界腐蚀），成对观感边界，人物结构
+npm run qa:picture -- --dir out/lab/sand --mask sand --exclude pool --erode 2 --surface '{"bounds":{"ratio":[1.2,2.0],"midFrac":[0.4,1],"hpStd":[0.003,0.02]}}'
+npm run qa:picture -- --dir out/lab/figure --silhouette auto            # 每帧旁的 <帧>_fig.png（白 = 人物）
 ```
 
 输出（`--out`，默认 `out/picture-qa/<时间>/`）：每帧的豁免与配置告警（`exemptions`、`configWarnings`、`skyAudit`）一并写入；`report.json`（机器可读）、`report.md`（表格 + 每个 FAIL 的区域与数值）、`<帧>_qa.png`（标注图）、`<帧>_diff.png`（与上一版的 |ΔY|×8 热图）、`sheet.png`（全部标注图联系表）。退出码：0 全部 PASS，1 有 FAIL，2 用法/读图/抓帧/配置错误，3 selftest 不符合预期，4 配置相对 `--baseline` 变宽。
 
 `report.json` 结构：`results[i] = {file, shot, pass, failed:[检查名], checks:{<检查>:{pass, 数值…, regions|worst|blobs|problems:[{box, px}]}}}`。模型的修复循环应该是：读 `failed` → 读该检查的区域 `px` → 改代码 → 重新出同名帧 → `--compare 上一版 --claim <这些检查>` → 全部 PASS 才汇报。
 
-## 七项检查：检查什么、为什么、怎么算、阈值、误报
+## 七项基础检查：检查什么、为什么、怎么算、阈值、误报
 
 所有检查在“裁掉黑边、面积重采样到 960 宽”的画面上进行；亮度 Y = 0.2126R′+0.7152G′+0.0722B′（编码值 0..1）。阈值常量在 `picture-qa.mjs` 的 `TH`，全部由 `samples.json` 的回归样本锁定。
 
@@ -37,11 +40,69 @@ npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上�
 | ⑥ diff 对比上一版 | “汇报已修复但画面没变”：改了不生效的参数、改错文件、程序缓存键相同导致新代码从未执行、只改了别处 | 两版 Y（3×3）逐像素 \|Δ\|，变化像素 = \|Δ\| > 4/255；对上一版每个失败区域及 roi 求区域内变化比例 | 声称修复的项（`--claim`/配置 `claim`/roi）问题区域变化 < 2% 或均差 < 0.6/255；`--claim` 点名的检查在上一版没有检出问题且没给 roi（无法核实）；给了 `--require-change` 且无 claim 时全帧变化 < 2% | 未声称的旧问题列为 open，不判 FAIL（但其自身检查照常 FAIL）；只比较同名（同 t）帧；尺寸不同直接 FAIL |
 | ⑦ warm 暖色占比 | 夜景暖色泛滥，“一点暖”失控 | 暖像素 = max > 0.05 且 R − B > 0.04 且饱和度 > 0.25 且 R ≥ 0.85G；统计占比与 16 px 暖区 | 占比 > warmMax（内置 0.10，模板默认 0.05） | 拂晓、灯下特写在配置中放宽并写理由 |
 
-`--claim` 必须与 `--compare` 同时出现，单独使用是用法错误（退出码 2）。`skip` 跳过某项检查必须同时写 `skipWhy`；所有豁免都会原样写进 report.json，审核可见。不允许用豁免绕过正在修的问题。
+`--claim` 必须与 `--compare` 同时出现，单独使用是用法错误（退出码 2）。`--claim surface|silhouette` 没有上一版的问题区域，必须同时给 `--roi`。`skip` 跳过某项检查必须同时写 `skipWhy`；所有豁免都会原样写进 report.json，审核可见。不允许用豁免绕过正在修的问题。
+
+## 区域口径：按构件掩码测（`--mask` / `--exclude` / `--erode`）
+
+构件观感指标在整帧上测会被设计内容（水洼、湿沟、灯点）和邻件污染，读数既可能误报也可能掩盖问题。检查台目录与帧放在一起提供 `masks.json`：
+
+```json
+{ "sand": [0.0, 0.55, 1.0, 1.0],
+  "pool": "pool_mask.png",
+  "wet":  [[0.10, 0.70, 0.30, 0.80], [0.60, 0.72, 0.90, 0.85]],
+  "_why": "pool 与 wet 是邻件/设计内容，由各自的检查台验收" }
+```
+
+- 区域值：归一化矩形、矩形列表、PNG 路径（相对 masks.json，白 = 区域内；尺寸等于原帧时按帧的黑边裁切对齐，等于裁切后画面时直接用，其它尺寸报错）或 `{rects, png}`。`_` 开头的键是注释，排除理由写在 `_why`。
+- `--mask a,b`：①③④⑦ 与 ⑧ 只统计区域并集；② 只计大半落在区域内的轮廓；⑤ 云与 ⑥ 对比仍按整帧。`--exclude c,d` 从范围里减去邻件或设计内容；`--erode N` 把范围向内腐蚀 N 个分析瓦片（960 宽下 16 px，按测量分辨率缩放），与邻件交界处一般取 2。
+- `--masks FILE` 指定掩码文件（默认帧目录下 `masks.json`）。文件缺失、名字不存在、`--exclude/--erode` 没有 `--mask`、腐蚀后为空都是用法错误（退出码 2），不会回退到整帧。
+- `--dir` 不把 masks.json 引用的 PNG、`*_fig.png`、`*_cavity.png`、`*_mask.png` 当作帧。report.json 每帧写 `scope`（区域、排除、腐蚀、覆盖率），标注图把范围外压暗。
+
+## ⑧ surface：成对观感边界（只在声明时运行）
+
+只设下限的观感指标会被“过度满足”（要细节就做成斑马纹和像素噪点），只设覆盖率会得到随机撒点和硬边贴纸。⑧ 在区域内测量，按 `[下限, 上限]` 判定。测量在原分辨率上进行（宽于 1920 先缩到 1920）；像素尺度的量换算成 1920 宽下的像素，`hpStd` 与 `facets` 随分辨率变化，验收帧按 1920 宽渲染。
+
+| 指标 | 含义 | 抓什么 |
+|---|---|---|
+| `mean` `p01` `p10` `p50` `p90` `p99` | 区域亮度与分位 | 前景沉黑（下限）、发白（上限）；照明要求写成区域分位 |
+| `ratio` | p90 / p10 | 卡通高反差（上限）、灰卡平涂（下限） |
+| `midFrac` | p10–p90 区间中间 50% 的像素占比（双峰检测） | 斑马/迷彩两头堆积（平滑单峰约 0.45–0.5，均匀 0.4） |
+| `hpStd` | 3×3 高通标准差 | 颗粒进了反照率、像素级噪点（上限）；无细节（下限） |
+| `stars` | 孤立亮点密度（每 100×100 px，1920 宽；3×3 局部极大且 5×5 外环整体更暗） | 岩面“星空”、随机撒点 |
+| `coverage` | 斑块像素 / 区域像素（`patches`: `bright` / `dark` / `both`，`patchDelta` 默认 0.03，相对局部均值） | 表层看不见（下限）或铺满（上限） |
+| `softPx` | 斑块边缘 10–90% 过渡宽度（按到边界的有向距离求平均剖面，1920 宽像素） | 硬边贴纸 |
+| `sizeCV` | 斑块面积变异系数 | 大小均一的点阵 |
+| `cavity` | 落在腔体图前 30% 的斑块像素占比（`<帧>_cavity.png` 或 `surface.cavity`，白 = 最深） | 盐霜/积灰没有长在凹处 |
+| `facets` | 落在“两侧平坦、沿切线笔直延续”的亮度阶跃上的像素占比 | 平直面片着色的多面体宿主 |
+
+写法（逐镜配置的 `surface`，或命令行 `--surface JSON|文件`；只给 `{指标: [lo, hi]}` 时视为 `bounds`）：
+
+```json
+"surface": {"bounds": {"p50": [0.07, 0.16], "ratio": [1.2, 2.0], "midFrac": [0.40, 1], "hpStd": [0.003, 0.02], "stars": [null, 15]},
+            "oneSided": {"stars": "没有下限：没有孤立亮点就是合格"}, "patches": "bright"}
+```
+
+- 每个指标必须同时给上下限；一侧为 `null` 时必须在 `oneSided.<指标>` 写理由（≥ 8 字），否则配置校验失败。合并顺序同其它字段，按指标逐个覆盖。
+- `--check-config --baseline` 对 `surface` 任何一侧变宽或删掉指标报 `ALERT surface.<指标>`。不可达的指标改定义并写明物理理由，不放宽阈值。
+- 测不出的指标（区域内没有斑块、缺腔体图）判 FAIL 并写明原因。
+
+## ⑨ silhouette：人物结构（给了人物掩码才运行）
+
+`--silhouette FILE.png` 用同一张掩码判所有帧；`--silhouette auto` 用每帧旁的 `<帧>_fig.png`（缺失即 FAIL）。取最大连通域的高度范围，逐行求躯干段（含身体中轴的那一段）与独立段宽度：肩宽 = 高度 12–32% 内最宽，下摆 = 50–90% 内最宽，腰 = 两者之间最窄。
+
+- **帐篷**：腰 ≥ 肩 × 0.97（从肩到摆只变宽）→ FAIL；腰/摆 > 0.75 → FAIL；
+- **肢体分离**：高度 20–62% 内至少 3% 高度的行有宽 ≥ 躯干 15% 的独立段，否则 FAIL（正面视角可用 `--silhouette-opts '{"requireLimb":false}'`）；
+- 人物高度不足 60 px 判“无法测量”FAIL：结构指标要在人物占满画高的检查台视角上测。
+
+朝向角不从像素算，用 `region.mjs` 的 `facingAngle(heading, figurePos, cameraPos)`：地面平面上 heading 与“人物 → 相机”向量的夹角，0° = 正对相机，90° = 侧面，180° = 背对相机，背影要求 ≥ 120°。heading 必须是方向向量（不同骨架的 yaw 约定不同，传数字直接报错）。
+
+## 纯函数（`tools/picture-qa/region.mjs`）
+
+`parseMaskDefs`、`regionMask`、`erodeMask`、`validateBounds`、`pairedBounds`、`mergeBounds`、`widenedBounds`、`bimodality`、`highpassStd`、`starfield`、`findPatches`、`edgeSoftness`、`patchSizeSpread`、`cavityCorrelation`、`facetFraction`、`widthProfile`、`facingAngle`、`surfaceMetrics`。输入是行优先的亮度数组与 `Uint8Array` 掩码，不依赖文件与模型，可在项目自己的检查台脚本里直接调用；`picture-qa.mjs` 也转出其中常用的几个。
 
 ## 逐镜配置
 
-模板：[shots.template.json](shots.template.json)。生成项目把它放在 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目。帧 → 镜头按文件名匹配：`<scene>_t<秒>.png`（`--url --scene ID` 抓帧的命名）、`t<秒>.png` 或 `frame-<n>.png` + `fps`；`t ∈ [t0, t1)`。合并顺序：内置 TH < defaults < scene < shot < 命令行。字段：`luma{lo,hi,p99min,p01max,drmin}`、`warmMax`、`sky`、`allowStripes[{rect,why}]`、`roi`、`claim`、`requireChange`、`skip`+`skipWhy`、`exempt`、`notes`；`_` 开头的键是注释，但 `_why` 在有豁免的层是必填的。未知键、越界矩形、缺 `exempt`/`_why` 的豁免都会让 `--check-config` 失败（见下节）。
+模板：[shots.template.json](shots.template.json)。生成项目把它放在 `docs/picture-qa.shots.json`，由场景负责人维护自己镜头的条目。帧 → 镜头按文件名匹配：`<scene>_t<秒>.png`（`--url --scene ID` 抓帧的命名）、`t<秒>.png` 或 `frame-<n>.png` + `fps`；`t ∈ [t0, t1)`。合并顺序：内置 TH < defaults < scene < shot < 命令行。字段：`luma{lo,hi,p99min,p01max,drmin}`、`warmMax`、`sky`、`allowStripes[{rect,why}]`、`roi`、`claim`、`requireChange`、`skip`+`skipWhy`、`exempt`、`notes`、`surface`；`_` 开头的键是注释，但 `_why` 在有豁免的层是必填的。未知键、越界矩形、缺 `exempt`/`_why` 的豁免都会让 `--check-config` 失败（见下节）。
 
 ## 豁免的唯一依据与配置报警
 
@@ -61,7 +122,7 @@ npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上�
 
 ## 回归样本（合成，不含任何作品帧）
 
-[samples.json](samples.json) 用 [synth.mjs](synth.mjs) 的声明式图层（地面噪声、渐变天空、条纹、平涂块、剪影与光环、云团、卷云、雾、暖色区）程序生成每一帧，仓库不存任何图片。每项检查都有 FAIL 与 PASS 样本，⑥ 覆盖“声称修复且变了 / 完全没变 / 只改了别处 / 无法核实的声明 / roi 兜底 / 必须有变化 / 未声称的旧问题”。`npm test` 通过 `tools/test/picture-qa.test.mjs` 跑全部期望、确定性（两次运行 JSON 相同）与配置校验。
+[samples.json](samples.json) 用 [synth.mjs](synth.mjs) 的声明式图层（地面噪声、渐变天空、条纹、平涂块、剪影与光环、云团、卷云、雾、暖色区）程序生成每一帧，仓库不存任何图片。每项检查都有 FAIL 与 PASS 样本（⑧ 覆盖斑马、像素噪点、压黑、星空、硬边贴纸、面片与各自的合格对照，以及排除邻件后的 ③；⑨ 覆盖帐篷与人形），⑥ 覆盖“声称修复且变了 / 完全没变 / 只改了别处 / 无法核实的声明 / roi 兜底 / 必须有变化 / 未声称的旧问题”。`npm test` 通过 `tools/test/picture-qa.test.mjs` 跑全部期望、确定性（两次运行 JSON 相同）与配置校验，`tools/test/picture-qa-region.test.mjs` 覆盖掩码口径、成对边界、形态函数、人物结构、朝向角与命令行。
 
 改阈值或算法的规则：先加能复现新问题（或新误报）的合成样本，再改代码；selftest 必须全绿；在 lessons 里写明原因。不得为了让某个作品帧通过而放宽阈值，作品特例写进该镜头的配置并附理由。
 
@@ -75,4 +136,5 @@ npm run qa:picture -- --check-config docs/picture-qa.shots.json --baseline <上�
 2. 近水平带须幅度 ≥ 0.013 才计（地面透视压缩天然有横纹），低幅“岩层”同样靠 ⑥ + roi 拦截。
 3. ⑤ 的自动天空依赖横贯画面的地平线；复杂构图请在配置里写 `sky`。
 4. 只看单帧统计：闪烁用 `tools/flicker-check.mjs`，确定性用复渲比对，构图/意境/表演仍由独立审核判断。
-5. 阈值按 960 宽标定，输入任何尺寸都会先缩放；极小的画面（< 480 宽）细节会丢失。
+5. ①–⑦ 的阈值按 960 宽标定，输入任何尺寸都会先缩放；极小的画面（< 480 宽）细节会丢失。⑧ 的 `hpStd`、`facets` 与分辨率有关，验收帧按 1920 宽渲染。
+6. ⑧ 的斑块按“相对局部均值的亮/暗偏差”自动分割；颜色相近、只差色相的斑块分不出来，需要时用 PNG 掩码把表层区域单独给出再测。

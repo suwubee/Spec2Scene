@@ -32,7 +32,7 @@ G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面�
 
 使用 [tools/cinematic](../../tools/cinematic/README.md) 的 render_frames → encode → qa；重新打开浏览器逆序复渲比较像素。黑场、冻结、色带和音画长度只是候选，转场与闪光逐格审核；母版与分享版分别 QA。导出源码、运行指南、输入授权、联系表和质检报告，作品不回填方法仓库。
 
-**画面关卡**：每轮看图目录先过 [picture-qa](../../tools/picture-qa/README.md)，修复声明附 `--compare --claim`；人物按[角色规范](character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入，雪/冰/夯土只用 [kits/materials](kits/materials/README.md)。分工与原因见[画面关卡与模型分工](../../playbook/14-picture-gate.md)。
+**画面关卡**：每轮看图目录先过 [picture-qa](../../tools/picture-qa/README.md)，修复声明附 `--compare --claim`；人物按[角色规范](character/README.md#人物外观规范与外缘轮廓光写给任何接手的模型)接入，雪/冰/夯土只用 [kits/materials](kits/materials/README.md)。分工与原因见[画面关卡与模型分工](../../playbook/14-picture-gate.md)；难件与场景的轮次、审片与冻结见[迭代协议](../../playbook/15-iteration-protocol.md)。
 
 **设计深度与引擎能力**：SET、故事板物料清单与难件配方由设计者写满，派发前 `npm run qa:brief` PASS，实现者只写回填；引擎已有能力只调用不重写（[已有功能清单](engine/README.md#已有功能清单--do-not-reimplement)），每轮 `npm run qa:reimplement`，有相机运动时 `npm run qa:camera`。英雄镜头审核附标杆帧并排对照，用户否决已通过的内容时写审核误判记录（[审核章节](../../playbook/03-review.md#标杆并排与审核误判)）。
 

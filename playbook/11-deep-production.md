@@ -72,4 +72,5 @@ English key points: keep at most four reusable master sets; one owner per set; w
 - **全片模式验收**：常驻场景共享的天空等对象按场景写全键向量并恢复；引擎对每个场景首样本双渲；确定性与关键帧在全片模式复渲，单场景调试帧不代签。
 - **配置纪律与署名**：质检分数只靠改画面上升；豁免依据三类画面事实并写 `exempt` + `_why`，配置变宽 ALERT 由导演签字；片名与署名只来自项目显式字段，不复制旧作品。
 
+- **迭代协议**：难件与场景一轮一会话、每轮附导演审过的上一轮联系表，导演看数值与联系表后改配方并记迭代日志；每件最多三轮，之后按 ⑧ 降级冻结并登记；难件先改造已验收件；“引擎缺陷”先独立复现。见[迭代协议](15-iteration-protocol.md)。
 English: stop self-repair after two unchanged "fixed" rounds and turn the problem into a component; validate in full-film mode with scoped shared objects and primed first samples; raise picture-gate scores only by changing pictures; credits only from explicit project fields.

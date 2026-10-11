@@ -102,12 +102,28 @@
 | M32 | 设计稿交精简版、细节推给实现者 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M33 | 场景会话重写引擎已有的相机手持 | [音乐视频](../../tracks/music-video/lessons.md) |
 | M34 | 审核判通过、用户判粗糙 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M35 | 数值全过画面不过（单边阈值被过度满足） | [音乐视频](../../tracks/music-video/lessons.md) |
+| M36 | 刚好压到阈值以下 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M37 | 人物可读性三层：分离、表面、结构 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M38 | 表层只测覆盖率 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M39 | 检查台宿主与机位不真实 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M40 | 重复构件尺寸失真与周期适用条件 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M41 | 测量口径不统一 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M42 | 度量在设计光照下物理不可达 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M43 | 光强与反照率未推到编码亮度 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M44 | 引擎缺陷报告未经复核 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M45 | 会话里看不到图 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M46 | 难件从零新建 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M47 | 连跑多轮无外部审片 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M48 | 额度上限中途杀会话 | [音乐视频](../../tracks/music-video/lessons.md) |
+| M49 | 残留常驻服务与参数撞名 | [音乐视频](../../tracks/music-video/lessons.md) |
 | S13 | 影像时间、视差与分类推测 | [三维模拟](../../tracks/3d-simulation/lessons.md) |
 
 ## 专题复盘（新 → 旧）
 
 各专题的版本归属见[更新记录](../../CHANGELOG.md)。
 
+- [观感指标、测量口径与迭代协议](../../tracks/music-video/lessons.md#m35--数值全过画面不过单边阈值被过度满足)：观感指标成对给上下限并查分布形状，阈值判据改为相对基线 + 区域并先二分定位来源（M35–M36）；人物按分离→表面→结构三层验收，表层加分布与形态指标（M37–M38）；检查台用真实宿主与分镜机位，重复构件写真实尺寸，测量写明掩码、排除、腐蚀、锁颗粒与贴表面采样，度量先推物理可达、光强推到编码亮度（M39–M43）；引擎缺陷报告先独立复核、真问题以可选开关落地（M44）；每轮附导演审过的联系表、难件先改造已验收件、一轮一会话且最多三轮、按额度规划并行、结束按 PID 清理（M45–M49）。详见[迭代协议](../15-iteration-protocol.md)。
 - [设计深度、引擎能力与审核校准](../../tracks/music-video/lessons.md#m32--设计稿交精简版细节推给实现者)：设计者写满组件表、难件配方与逐镜物料清单，实现者只回填（M32）；引擎已有的手持等能力只调用不重写，用静态检查与最终相机抖动判定（M33）；审核通过前与标杆逐镜并排，用户否决后写审核误判记录并补检查（M34）。
 - [预热载入页只有文字](../../tracks/music-video/lessons.md#m31--预热载入页只有文字)：点击→第一帧必须测量，载入页要有真实画面、百分比与剩余时间。
 - [分工复盘与配置纪律](model-division.md#复盘主力模型--强模型组件--硬门槛的实际结果)：多轮不收敛的问题组件化后一轮解决；质检靠改画面，不靠改配置。

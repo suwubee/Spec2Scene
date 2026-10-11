@@ -12,6 +12,11 @@
 //   {type:'disk', cx, cy, r, color}                    hard disk (moon / lamp core)
 //   {type:'fog', level, k}                             global veil: v = v*(1-k) + level*k
 //   {type:'tint', rect, color, k}                      blend a colour over a rect (warm light pools etc.)
+//   {type:'bands', rect, period, amp, angle}           two-tone square-wave bands (zebra / camouflage over-contrast)
+//   {type:'noise', rect, amp}                          per-pixel grey noise ±amp (grain baked into albedo)
+//   {type:'dots', rect, n, amp}                        n isolated 1-px bright points (starfield on a surface)
+//   {type:'patches', rect, n, r:[min,max], soft, amp}  bright discs, radius px uniform in [min,max], edge ramp `soft` px
+//   {type:'facets', rect, size, amp}                   flat-shaded polygon facets (two families of straight cuts)
 // All positions are normalised 0..1 of width/height; sizes in normalised height unless noted.
 
 function hash32(x, y, s) {
@@ -96,6 +101,24 @@ export function renderScene(scene = {}) {
     } else if (L.type === 'disk') {
       const cx = L.cx * w, cy = L.cy * h, r = L.r * h;
       for (let y = Math.max(0, Math.floor(cy - r - 1)); y < Math.min(h, cy + r + 1); y++) for (let x = Math.max(0, Math.floor(cx - r - 1)); x < Math.min(w, cx + r + 1); x++) if (Math.hypot(x - cx, y - cy) <= r) set(y * w + x, L.color || [0.95, 0.95, 0.9]);
+    } else if (L.type === 'bands') {
+      const th = (L.angle ?? 0) * Math.PI / 180, nx = -Math.sin(th), ny = Math.cos(th);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (inRect(x / w, y / h, L.rect)) { const i = y * w + x, k = Math.floor((x * nx + y * ny) / L.period) & 1 ? 1 + L.amp : 1 - L.amp; R[i] *= k; G[i] *= k; B[i] *= k; }
+    } else if (L.type === 'noise') {
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (inRect(x / w, y / h, L.rect)) { const i = y * w + x, e = L.amp * (2 * hash32(x, y, seed + 4242) - 1); R[i] += e; G[i] += e; B[i] += e; }
+    } else if (L.type === 'dots') {
+      for (let k = 0; k < L.n; k++) { const x = Math.floor((L.rect[0] + hash32(k, 1, seed + 77) * (L.rect[2] - L.rect[0])) * w), y = Math.floor((L.rect[1] + hash32(k, 2, seed + 77) * (L.rect[3] - L.rect[1])) * h); add(Math.min(h - 1, y) * w + Math.min(w - 1, x), [1, 1, 1], L.amp); }
+    } else if (L.type === 'patches') {
+      const [rmin, rmax] = L.r, soft = L.soft ?? 0;
+      for (let k = 0; k < L.n; k++) {
+        const cx = (L.rect[0] + hash32(k, 3, seed + 55) * (L.rect[2] - L.rect[0])) * w, cy = (L.rect[1] + hash32(k, 4, seed + 55) * (L.rect[3] - L.rect[1])) * h, r = rmin + hash32(k, 5, seed + 55) * (rmax - rmin), ext = r + soft + 1;
+        for (let y = Math.max(0, Math.floor(cy - ext)); y < Math.min(h, cy + ext); y++) for (let x = Math.max(0, Math.floor(cx - ext)); x < Math.min(w, cx + ext); x++) {
+          const d = Math.hypot(x - cx, y - cy), a = soft > 0 ? Math.min(1, Math.max(0, (r + soft / 2 - d) / soft)) : d <= r ? 1 : 0;
+          if (a > 0) add(y * w + x, [1, 1, 1], L.amp * a);
+        }
+      }
+    } else if (L.type === 'facets') {
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (inRect(x / w, y / h, L.rect)) { const a = Math.floor((x + 0.6 * y) / L.size), b = Math.floor((x - 0.8 * y + 4000) / (L.size * 1.25)), v = 0.06 + L.amp * hash32(a, b, seed + 31); set(y * w + x, [v * 0.9, v, v * 1.1]); }
     } else if (L.type === 'fog') {
       for (let i = 0; i < n; i++) { R[i] += (L.level - R[i]) * L.k; G[i] += (L.level - G[i]) * L.k; B[i] += (L.level * 1.08 - B[i]) * L.k; }
     } else throw new Error(`unknown synthetic layer: ${L.type}`);
@@ -108,4 +131,30 @@ export function renderScene(scene = {}) {
     B[i] = Math.round(Math.min(1, Math.max(0, B[i] + e)) * 255) / 255;
   }
   return {w, h, R, G, B};
+}
+
+/**
+ * Binary figure mask for the ⑨ silhouette samples: {w=400, h=300, shape:'tent'|'body', arms:true}. 'tent' widens
+ * monotonically from the shoulders to the hem (a cloak/cone); 'body' has shoulders, a waist, a hem and separated arms.
+ */
+export function renderSilhouette({w = 400, h = 300, shape = 'body', arms = true} = {}) {
+  const mask = new Uint8Array(w * h), cx = w / 2, top = Math.round(h * 0.07), H = Math.round(h * 0.86);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const f = (y - top) / H, dx = Math.abs(x - cx);
+    if (f < 0 || f > 1) continue;
+    let on = false;
+    if (f < 0.12) on = Math.hypot(dx, (f - 0.06) * H) < H * 0.06;
+    else if (shape === 'tent') on = dx < H * (0.08 + 0.27 * (f - 0.12));
+    else {
+      let hw;
+      if (f < 0.2) hw = H * (0.085 + 0.55 * (f - 0.12));
+      else if (f < 0.45) hw = H * (0.13 - 0.15 * (f - 0.2));
+      else if (f < 0.8) hw = H * (0.092 + 0.23 * (f - 0.45));
+      else hw = -1;
+      on = hw > 0 ? dx < hw : Math.abs(dx - H * 0.04) < H * 0.025;
+      if (!on && arms && f > 0.16 && f < 0.55) { const ac = (f < 0.2 ? H * (0.085 + 0.55 * (f - 0.12)) : H * (0.13 - 0.15 * (f - 0.2))) + H * (0.015 + 0.15 * (f - 0.16)); on = Math.abs(dx - ac) < H * 0.022; }
+    }
+    if (on) mask[y * w + x] = 1;
+  }
+  return {w, h, mask};
 }

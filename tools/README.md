@@ -15,7 +15,7 @@
 | deploy/test-evidence.mjs | `--source SITE --command '["npm","test"]' --out EVIDENCE.json` | 发布树摘要绑定通过测试；证据放源目录外 |
 | deploy/deploy-static.sh | `--config CONFIG.json [--activate]` | 默认准备 releases/version，激活前按配置比 MIME/缓存/字节 |
 | package/make-release.sh | `--source DIR --out OUTSIDE_SOURCE.tar.gz [--verify-hook EXECUTABLE]` | tar；排除、包内外 SHA-256、解压验证，钩子失败不出包 |
-| picture-qa/ | [画面自动质检](picture-qa/README.md)：`picture-qa.mjs --dir DIR [--config shots.json] [--compare PREV --claim stripes,…]`；`--selftest` | 纯 JS 像素统计（node:zlib），不依赖模型/GPU；合成回归样本；生成项目 `npm run qa:picture` |
+| picture-qa/ | [画面自动质检](picture-qa/README.md)：`picture-qa.mjs --dir DIR [--config shots.json] [--compare PREV --claim stripes,…]`；构件口径 `--mask a,b [--exclude c] [--erode 2]`、成对观感边界 `--surface`、人物结构 `--silhouette`；`--selftest`；纯函数 `region.mjs`（双峰、星空、边缘软度、面片、宽度剖面、朝向角） | 纯 JS 像素统计（node:zlib），不依赖模型/GPU；合成回归样本；生成项目 `npm run qa:picture` |
 | brief-depth.mjs | `[--dir docs] [FILE.md …] [--min-bytes 10000] [--min-rows 8] [--src src] [--quiet] [--json]`：设计深度门槛（SET 标题、组件表八列与色值/库函数/来源、NEW-HARD 八项配方、逐镜物料清单、委托用语与占位、设计者字节） | 纯 Node 解析 Markdown；合成样例回归；生成项目 `npm run qa:brief` |
 | no-reimplement.mjs | `[--json] PATH…`（默认 src）：自写相机晃动、handheld > 1、`fract(sin())`、自写雾/天空、硬编码署名，报 file:line；`// no-reimplement-allow <规则>: <理由>` | 纯 Node 静态扫描；生成项目 `npm run qa:reimplement` |
 | cam-check.mjs | `--url http://127.0.0.1:39920/` 或 `--samples cams.json`，`[--hf-p95 1.5 --rms 1.5 --peak 4 --win 0.5]`：引擎 `lastCamera()` 的最终相机 → 按镜头与镜内硬切分段的 rms/峰值/p95 像素抖动（1920 宽），只计整窗残差 | 分析为纯函数 `analyzeCamera`；浏览器路径用 Playwright；生成项目 `npm run qa:camera` |

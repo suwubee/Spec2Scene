@@ -27,7 +27,7 @@
 
 ## 画面自动质检 picture-qa（强制）
 
-每一版每镜代表帧先过 [picture-qa](../../tools/picture-qa/README.md)：`npm run qa:picture -- --dir <看图目录>`，全部 PASS 才送导演初审或独立审核；修复轮必须 `--compare <上一轮> --claim <检查项>`，⑥ 证明问题区域确实变化。它是纯像素统计，不依赖任何模型，所有模型都能运行；检查 ① 条纹/各向异性 ② 外缘光晕 ③ 平涂 ④ 亮度分布 ⑤ 积云团 ⑦ 暖色占比 ⑥ 与上一版差异。逐镜配置 `docs/picture-qa.shots.json` 由 `npm test` 校验，豁免必须有理由。报告进入 GATE/REVIEW 证据；PASS 不代签审美。规则与分工见[画面关卡](../../playbook/14-picture-gate.md)。
+每一版每镜代表帧先过 [picture-qa](../../tools/picture-qa/README.md)：`npm run qa:picture -- --dir <看图目录>`，全部 PASS 才送导演初审或独立审核；修复轮必须 `--compare <上一轮> --claim <检查项>`，⑥ 证明问题区域确实变化。它是纯像素统计，不依赖任何模型，所有模型都能运行；检查 ① 条纹/各向异性 ② 外缘光晕 ③ 平涂 ④ 亮度分布 ⑤ 积云团 ⑦ 暖色占比 ⑥ 与上一版差异。逐镜配置 `docs/picture-qa.shots.json` 由 `npm test` 校验，豁免必须有理由。报告进入 GATE/REVIEW 证据；PASS 不代签审美。规则与分工见[画面关卡](../../playbook/14-picture-gate.md)。构件检查台按本构件掩码测：`--mask <区域> [--exclude <邻件>] --erode 2`（`masks.json` 与帧同目录，排除写 `_why`）；观感指标在配置层 `surface` 写成对上下限（单侧须 `oneSided` 理由），人物加 `--silhouette <人物掩码.png>` 判结构；颗粒敏感指标用 1920 宽并锁颗粒，掠射采样贴表面。每轮交付附自检非空的联系表，迭代日志记“约束改动 → 可见结果”，每件最多三轮。
 
 ## 设计深度、引擎能力与相机（强制）
 

@@ -3,6 +3,15 @@
 版本按时间倒序，最新在最前。这里只记录“这一版改了什么”；怎么用请看各目录的 README 与 playbook，手册只描述当前做法，不再按版本分段。
 Newest first. This file records what changed in each release; READMEs and playbooks describe current usage only.
 
+## 0.11.0 — 2026-10-11
+
+- picture-qa 构件口径：`--mask a,b [--masks FILE] [--exclude c,d] [--erode N]` 按检查台目录的 `masks.json`（归一化矩形、矩形列表或 PNG，白 = 区域内）只在构件区域内测 ①③④⑦（② 只计大半在区域内的轮廓，⑤⑥ 仍整帧），排除邻件与设计内容、向内腐蚀 N 个分析瓦片；文件或名字缺失即用法错误，report.json 写 `scope`，标注图压暗范围外。
+- 新增 ⑧ `surface`：在区域内按成对 `[下限, 上限]` 判定亮度分位、`ratio`（p90/p10）、`midFrac`（双峰检测）、`hpStd`、`stars`（孤立亮点/星空）、`coverage`、`softPx`（斑块边缘过渡宽）、`sizeCV`、`cavity`（与腔体图相关）、`facets`（平直面片阶跃）；单侧边界必须写 `oneSided` 理由，否则配置校验失败；`--check-config --baseline` 对任何一侧变宽报警。新增 ⑨ `silhouette`：从人物掩码求宽度剖面，帐篷（肩到摆只变宽）、腰/摆 > 0.75、无独立肢体判 FAIL。纯函数集中在 `tools/picture-qa/region.mjs`，含 `facingAngle`（heading 与人物→相机向量的夹角，180° = 背对相机）。合成样例新增 13 个（斑马、噪点、压黑、星空、贴纸、面片、排除邻件、帐篷/人形及各自合格对照），新增测试 `picture-qa-region`；原有命令行与配置不变。
+- 引擎 `post.lens.resample`：develop 几何重采样可选 `'catrom'`（Catmull-Rom，保住 1–4 px 细节），默认 `'bilinear'`，现有输出逐字节不变；新增 `post-resample` 测试（权重与对比单测；`SCENE_PICTURE_BROWSER=1` 时在 WebGL2 中核对默认输出与旧采样逐字节一致、catrom 的 1 px 对比更高），port-manifest 已更新。
+- 新章节 playbook 15 迭代协议：每轮“实现 → 自检 → 导演带数值与联系表审片 → 改配方 → 下一轮”，一轮一会话、每件 3 轮上限、降级冻结与冻结登记、引擎缺陷跨会话复核、额度规划与断点续跑、迭代日志格式；新增模板 `ITERATION-LOG.md`（生成项目同步复制）。
+- 模板：SET-brief 配方 ⑤ 检查台规则（真实宿主、分镜机位、在焦且占画高 ≥ 50%、真实灯光），⑥ 成对观感边界、测量口径一行、适用条件、人物结构槽与表层形态槽；重复构件写真实单位尺寸；灯光写到编码亮度与区域分位数；难件先 ADAPT。ART-BIBLE、GATE、PRODUCTION-PLAN、DIRECTOR-DECISIONS 同步。派发模板与 agents 说明加入：附导演审过的联系表、联系表自检、一轮一会话、结束前按 PID 关闭自己的服务、检查台 URL 参数不得与引擎参数同名；`agents/codex/dispatch.sh` 可附联系表图片。
+- 经验 M35–M49：单边阈值被过度满足、阈值被压线绕过、人物三层可读性、表层形态、检查台宿主与机位、真实单位尺寸与周期适用条件、测量口径、物理可达、编码亮度、引擎缺陷复核、会话看不到图、难件先改造、轮间外部审片、额度中断、遗留服务与参数撞名。
+
 ## 0.10.1 — 2026-10-11
 
 - `brief-depth` 按两份真实的深做设计与一份被否决的精简设计校准，减少误判（误判会逼模型去迎合格式）：①–⑧ 在构件小节内按顺序查找，可写在同一段，也可在 `## 4. A12 NEW-HARD 八段配方` 这类带编号的二级标题下；“塔身 NEW-GLM；透镜 E2b NEW-HARD”只要求 E2b 的配方；“数值见上”可引用 ① 之前的数值。组件行引用的构件小节（编号或件名标题）可补足空格、色值、库函数和来源，记 WARN；色表里的颜色名算色值；驼峰、带点的名字和引擎/组件实际导出的裸名算库函数（`--src DIR` 对未导出的名字给 WARN）；行内写明“无（理由）”的件记 WARN。

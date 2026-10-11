@@ -56,7 +56,7 @@ This section describes current usage only; see the [changelog](CHANGELOG.md) (ne
 
 **Original worlds and deep production.** Every film defines its own world and forbidden-content list ([world rules](playbook/12-distinct-worlds.md)); one owner per set works in stages ([deep production](playbook/11-deep-production.md)); integration, resumable rendering, per-encode QA and the MP4 download follow the [delivery workflow](playbook/13-film-delivery.md).
 
-**Picture gate.** Every review round first passes the model-free [picture-qa](tools/picture-qa/README.md); fix claims need `--compare --claim` evidence, exemptions need a stated basis, and loosened configs raise an alarm. See [picture gate and model division](playbook/14-picture-gate.md).
+**Picture gate.** Every review round first passes the model-free [picture-qa](tools/picture-qa/README.md); fix claims need `--compare --claim` evidence, exemptions need a stated basis, and loosened configs raise an alarm. See [picture gate and model division](playbook/14-picture-gate.md). Hard parts and sets follow the [iteration protocol](playbook/15-iteration-protocol.md): one round per session with the reviewed contact sheet attached, paired perceptual bounds with a stated measurement scope, and at most three rounds before a degraded freeze.
 
 **Engine and kits.** The [cinematic engine](tracks/music-video/engine/README.md), [parametric kits](tracks/music-video/kits/README.md), [characters](tracks/music-video/character/README.md), [lyric alignment](tools/music/lyrics/README.md) and [preview / validation tools](tools/cinematic/README.md). `npm run test:cinematic` writes evidence only into an ignored generated project.
 
