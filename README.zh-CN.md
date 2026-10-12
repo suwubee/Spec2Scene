@@ -46,7 +46,7 @@ scripts/new-project.sh motion-games my-motion
 | [音乐视频](tracks/music-video/README.md) | 解析→分镜→世界曲线→确定性渲染→编码质检 |
 | [三维模拟](tracks/3d-simulation/README.md) | 真实数据→可信度→程序几何→漫游→手机降级→静态发布 |
 | [体感游戏](tracks/motion-games/README.md) | 本地模型→输入与判定→免手与声音→真实回归→配对与缓存 |
-| [agents](agents/codex/README.md) | Claude Code 技能、Codex 片段与派发脚本 |
+| [agents](agents/README.md) | Claude Code 技能、Codex 片段与派发脚本、提供方中断续跑 |
 | [tools](tools/README.md) | 所有工具用法、依赖、限制与自检 |
 | [projects](projects/README.md) | 每个新项目独立输出目录 |
 | [validation](validation/README.md) | 基准验收与证据 |

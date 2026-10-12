@@ -36,6 +36,8 @@ G2G3 与 FINAL 必须包含“实时可看”：独立审核人在实时页面�
 
 **设计深度与引擎能力**：SET、故事板物料清单与难件配方由设计者写满，派发前 `npm run qa:brief` PASS，实现者只写回填；引擎已有能力只调用不重写（[已有功能清单](engine/README.md#已有功能清单--do-not-reimplement)），每轮 `npm run qa:reimplement`，有相机运动时 `npm run qa:camera`。英雄镜头审核附标杆帧并排对照，用户否决已通过的内容时写审核误判记录（[审核章节](../../playbook/03-review.md#标杆并排与审核误判)）。
 
+**场景阶段**：按[迭代协议](../../playbook/15-iteration-protocol.md#9-场景阶段)英雄先行——英雄画面里可见的件不论难易都过检查台（分镜机位 + 整件全形视角）后冻结，英雄基准帧每轮回归；夜景逐镜写剪影或受光读法；审片拒绝捷径；场景之间做区分度并排；冻结件在每个场景光照下复验，修冻结件做场景帧回归；确定性跨进程、乱序测。`npm run qa:camera` 含万向节检查（相机路径不经过天顶/天底），交付联系表过 `npm run qa:sheet`；会话被提供方中断时用 [`agents/run-with-resume.sh`](../../agents/README.md) 续跑。
+
 **远景、体块与常驻约定**：远山/地平线与房屋、城墙、残台、船体只用 [kits/far](kits/far/README.md)；人物走位用 [walkPath](character/README.md#行走路径与脚印对齐)；共享天空等共享对象按场景隔离、每个场景首样本双渲（[引擎说明](engine/README.md#常驻多场景共享对象隔离与首帧-prime)）；picture-qa 豁免只依据三类画面事实且配置变宽报警；片名与署名只来自项目 `src/credits.js`。
 
 开始阅读：[规格](SPEC.md)、[QA](QA.md)、[经验](lessons.md)、[通用工具](../../tools/README.md)。English: Translate emotion into recurring imagery, then direct the camera. Independent gates review mood, anatomy and the complete cinematic preview.

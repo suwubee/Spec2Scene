@@ -17,6 +17,6 @@ description: 从获授权音频制作程序化音乐视频；适用于音乐解�
 
 设计深度与引擎能力：SET 组件表（件 | 尺寸 | 材质(色值) | 程序做法 | L1 | L2 | L3 | 来源）、NEW-HARD 八项配方与逐镜物料清单由设计者写满，派发前 `npm run qa:brief` PASS，实现者只写回填段；引擎已有能力（相机手持/呼吸、天空、雾、水、粒子、后期、署名）只调用不重写，见 engine/README.md“已有功能清单”，每轮 `npm run qa:reimplement`，有相机运动时 `npm run qa:camera`。英雄镜头审核附标杆帧并排对照；用户否决已通过的内容时先写审核误判记录（playbook/03-review.md）。
 
-迭代协议（playbook/15-iteration-protocol.md）：难件与检查台一轮一会话、每件最多 3 轮后按 ⑧ 降级冻结；每轮派发附导演审过的上一轮联系表，联系表交付前自检非空；观感指标成对上下限 + 测量口径（`--mask/--exclude/--erode`、`surface`、人物 `--silhouette`）；引擎缺陷报告先由另一会话复现，真问题以可选开关、默认不变落地；检查台 URL 参数不与引擎参数同名；结束前按 PID 清理并汇报。迭代日志用 templates/ITERATION-LOG.md。
+迭代协议（playbook/15-iteration-protocol.md）：难件与检查台一轮一会话、每件最多 3 轮后按 ⑧ 降级冻结；每轮派发附导演审过的上一轮联系表，联系表交付前自检非空；观感指标成对上下限 + 测量口径（`--mask/--exclude/--erode`、`surface`、人物 `--silhouette`）；引擎缺陷报告先由另一会话复现，真问题以可选开关、默认不变落地；检查台 URL 参数不与引擎参数同名；结束前按 PID 清理并汇报。迭代日志用 templates/ITERATION-LOG.md。场景阶段英雄先行：英雄可见件全部检查台冻结（分镜机位 + 整件全形视角），英雄基准帧每轮回归，夜景逐镜写剪影或受光读法，拒绝捷径，场景区分度并排，冻结件在本场景光照下复验、修复做场景帧回归，确定性跨进程乱序测；`qa:camera` 含万向节检查，联系表过 `qa:sheet`；会话中途不调读图工具；导演按明确路径提交；提供方中断用 agents/run-with-resume.sh 续跑。
 
 强制 G1 意境分镜、G2 人体与表演、G3 成片预览。每关产出证据后停下，等待独立审核 PASS；实现者自审不算。使用 templates/REVIEW-music-video.md。编排者仅按已获授权安排独立会话或人类审核，不推定并行权限。

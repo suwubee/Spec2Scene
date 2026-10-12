@@ -39,7 +39,7 @@ The motion starter includes a labelled synthetic skeleton and a real camera inpu
 | [tracks/music-video](tracks/music-video/README.md) | Music analysis, shots, world curves, deterministic frames, encode and QA |
 | [tracks/3d-simulation](tracks/3d-simulation/README.md) | Source provenance, procedural geometry, navigation and memory budgets |
 | [tracks/motion-games](tracks/motion-games/README.md) | Local perception, forgiving input, hands-free flow, audio and real-data regression |
-| [agents](agents/codex/README.md) | Repository instructions, skills and task dispatch example |
+| [agents](agents/README.md) | Repository instructions, skills, task dispatch example and provider-outage resume wrapper |
 | [tools](tools/README.md) | Static server, rendering, screenshots, analysis, speech, deployment, packaging and pose harness |
 | [projects](projects/README.md) | Ignored, independent output projects |
 | [validation](validation/README.md) | Baseline validation procedure and evidence |

@@ -31,4 +31,4 @@
 
 ## 设计深度、引擎能力与相机（强制）
 
-派发实现前 `npm run qa:brief` PASS（每份 SET 组件表八列写满、NEW-HARD 八项配方、逐镜物料清单、设计者手写字节下限）；每轮代码 `npm run qa:reimplement` 0 条；有相机运动时在服务运行中 `npm run qa:camera` 每镜 PASS（p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px，1920 宽）。英雄镜头的 AD/G3 审核附标杆帧并排对照表；用户否决已通过的内容时写审核误判记录。规则见[深做制作法](../../playbook/11-deep-production.md)与[审核章节](../../playbook/03-review.md)。
+派发实现前 `npm run qa:brief` PASS（每份 SET 组件表八列写满、NEW-HARD 八项配方、逐镜物料清单、设计者手写字节下限）；每轮代码 `npm run qa:reimplement` 0 条；有相机运动时在服务运行中 `npm run qa:camera` 每镜 PASS（p95 ≤ 1.5 px、rms ≤ 1.5 px、峰值 ≤ 4 px，1920 宽；万向节检查：同一镜头相邻帧在俯仰绝对值 > 80° 时偏航或横滚变化 ≤ 3°）。交付的联系表由截图工具帧拼成并过 `npm run qa:sheet`（逐格与原帧比较方向）。场景阶段按[迭代协议](../../playbook/15-iteration-protocol.md)第 9–11 节：英雄可见件全部检查台冻结、英雄基准帧每轮回归、夜景逐镜写剪影或受光读法、场景区分度并排、冻结件在本场景光照下复验、确定性跨进程乱序测。英雄镜头的 AD/G3 审核附标杆帧并排对照表；用户否决已通过的内容时写审核误判记录。规则见[深做制作法](../../playbook/11-deep-production.md)与[审核章节](../../playbook/03-review.md)。
